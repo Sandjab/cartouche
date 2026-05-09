@@ -5,6 +5,11 @@
 > Blueprint-style SVG dashboards for GitHub repositories and profiles.
 > Pure SVG primitives, six themes, two languages, embeddable in any README via `<picture>`.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/dashboard-dark.svg">
+  <img src="assets/dashboard-light.svg" alt="Dashboard Cartouche pour le repo cartouche — rafraîchi toutes les 6 heures par GitHub Actions">
+</picture>
+
 Cartouche prend un repo GitHub (ou un profil entier) et en tire un dashboard
 SVG dans l'esthétique du dessin technique : grille, double-cadre, courbes
 d'étoiles annotées, radar de santé, métriques, et un bloc de titre type

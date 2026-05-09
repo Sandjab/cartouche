@@ -1,0 +1,72 @@
+# Render Cartouche's own repo dashboard and commit it to assets/.
+#
+# Cartouche dogfoods itself: this workflow uses the in-tree code (pip install .)
+# rather than the PyPI package, so any change to src/cartouche/** that lands on
+# main will be reflected in the next scheduled render.
+#
+# In README.md, embed the result with:
+#
+#     <picture>
+#       <source media="(prefers-color-scheme: dark)" srcset="assets/dashboard-dark.svg">
+#       <img src="assets/dashboard-light.svg" alt="Cartouche dashboard">
+#     </picture>
+
+name: Cartouche · repo dashboard
+
+on:
+  schedule:
+    # Every 6 hours.
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/dashboard.yml"
+      - "src/cartouche/**"
+      - "pyproject.toml"
+
+permissions:
+  contents: write   # required to commit the regenerated SVG
+
+concurrency:
+  group: cartouche-dashboard
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Cartouche (from checkout)
+        run: pip install .
+
+      - name: Render light + dark variants
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir -p assets
+          cartouche repo "$REPO" \
+            --theme blueprint-light \
+            --out assets/dashboard-light.svg
+          cartouche repo "$REPO" \
+            --theme blueprint-dark \
+            --out assets/dashboard-dark.svg
+
+      - name: Commit if changed
+        run: |
+          if [[ -n $(git status --porcelain assets/) ]]; then
+            git config user.name "cartouche-bot"
+            git config user.email "cartouche-bot@users.noreply.github.com"
+            git add assets/
+            git commit -m "chore(cartouche): refresh repo dashboard"
+            git push
+          else
+            echo "No dashboard changes."
+          fi

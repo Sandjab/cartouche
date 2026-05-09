@@ -73,6 +73,28 @@ def frame(width: int, height: int, theme: dict, margin: int = 20) -> str:
     )
 
 
+def watermark(width: int, height: int, theme: dict) -> str:
+    """Return an `<image>` SVG fragment for the theme's watermark, or "" if none.
+
+    Renders the bundled PNG inline as a base64 data URI — Cartouche's
+    invariant is that the SVG stays self-contained (no external fetches
+    at view time). The image covers the canvas at theme["watermark_opacity"]
+    and sits between the background+grid and the frame, so it reads as a
+    paper texture rather than competing with the data layer.
+    """
+    name = theme.get("watermark")
+    if not name:
+        return ""
+    from .. import watermarks
+    uri = watermarks.as_data_uri(name)
+    opacity = theme.get("watermark_opacity", 0.10)
+    return (
+        f'<image href="{uri}" x="0" y="0" '
+        f'width="{width}" height="{height}" opacity="{opacity}" '
+        f'preserveAspectRatio="xMidYMid slice"/>'
+    )
+
+
 # ──────────────────────────────────────────────────────────────────────────
 #  Text helpers
 # ──────────────────────────────────────────────────────────────────────────

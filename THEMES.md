@@ -1,24 +1,29 @@
 # Cartouche Theme Catalogue
 
-Ten themes in five aesthetic families, each with a light and a dark
-counterpart. Every preview below is rendered from the **same mock fixtures**
-(`mock_repo()` and `mock_profile()`) so the only thing changing between two
-cells is the palette and the typographic hierarchy. Pick a theme via
-`--theme <name>` on the CLI or `get_theme(<name>)` in the Python API.
+Sixteen themes in eight aesthetic families: five clean palettes (Drafting,
+Blueprint, Vellum, Botanical, Blossom) plus three watermarked variants
+(Vellum + Davinci, Botanical + Floral, Blossom + Kawai). Every preview
+below is rendered from the **same mock fixtures** (`mock_repo()` and
+`mock_profile()`) so the only thing changing between two cells is the
+palette and the watermark. Pick a theme via `--theme <name>` on the CLI
+or `get_theme(<name>)` in the Python API.
 
 ```bash
-cartouche themes  # list all ten
-cartouche repo    Sandjab/Athanor --mock --theme vellum-dark    --out /tmp/r.svg
-cartouche profile Sandjab          --mock --theme blueprint-dark --out /tmp/p.svg
+cartouche themes  # list all sixteen
+cartouche repo    Sandjab/Athanor --mock --theme vellum-davinci-dark    --out /tmp/r.svg
+cartouche profile Sandjab          --mock --theme blossom-kawai-light --out /tmp/p.svg
 ```
 
-| Family        | Light                 | Dark                |
-|---------------|-----------------------|---------------------|
-| **Drafting**  | `drafting-light`      | `drafting-dark`     |
-| **Blueprint** | `blueprint-light`     | `blueprint-dark`    |
-| **Vellum**    | `vellum-light`        | `vellum-dark`       |
-| **Botanical** | `botanical-light`     | `botanical-dark`    |
-| **Blossom**   | `blossom-light`       | `blossom-dark`      |
+| Family               | Light                       | Dark                       |
+|----------------------|-----------------------------|----------------------------|
+| **Drafting**         | `drafting-light`            | `drafting-dark`            |
+| **Blueprint**        | `blueprint-light`           | `blueprint-dark`           |
+| **Vellum**           | `vellum-light`              | `vellum-dark`              |
+| **Botanical**        | `botanical-light`           | `botanical-dark`           |
+| **Blossom**          | `blossom-light`             | `blossom-dark`             |
+| **Vellum + Davinci** | `vellum-davinci-light`      | `vellum-davinci-dark`      |
+| **Botanical + Floral** | `botanical-floral-light`  | `botanical-floral-dark`    |
+| **Blossom + Kawai**  | `blossom-kawai-light`       | `blossom-kawai-dark`       |
 
 ---
 
@@ -48,9 +53,9 @@ to body copy and shouldn't fight for attention.
 
 Cyanotype lineage. The **pale faded reverse** of an architectural blueprint
 on the light side, and a **deep nighttime Prussian blue dive** on the dark
-side — the most "engineering-drawing"-coded of the five families, and the
-default theme for the CLI. Reach for this when you want the dashboard to
-read instantly as a technical artefact.
+side — the most "engineering-drawing"-coded of the five base families,
+and the default theme for the CLI. Reach for this when you want the
+dashboard to read instantly as a technical artefact.
 
 ### Repo dashboard
 
@@ -132,9 +137,95 @@ project that should read as joyful and crafted rather than industrial.
 
 ---
 
+## Vellum + Davinci
+
+Same Vellum palette as above, with a **bundled Da Vinci plate watermark**
+inlined behind the data layer at low opacity. The Vitruvian Man feels
+particularly at home here: the parchment ground reads as the surface of an
+old codex, and the watermark bleeds through as an afterimage of the master
+draftsman's notebook. Pair with editorial / archival content.
+
+### Repo dashboard
+
+| `vellum-davinci-light` | `vellum-davinci-dark` |
+|---|---|
+| <img src="examples/outputs/repo-vellum-davinci-light.svg" alt="repo · vellum-davinci-light" width="100%"/> | <img src="examples/outputs/repo-vellum-davinci-dark.svg" alt="repo · vellum-davinci-dark" width="100%"/> |
+
+### Profile dashboard
+
+| `vellum-davinci-light` | `vellum-davinci-dark` |
+|---|---|
+| <img src="examples/outputs/profile-vellum-davinci-light.svg" alt="profile · vellum-davinci-light" width="100%"/> | <img src="examples/outputs/profile-vellum-davinci-dark.svg" alt="profile · vellum-davinci-dark" width="100%"/> |
+
+---
+
+## Botanical + Floral
+
+Botanical palette plus a **floral motif watermark** ghosted into the
+background. Pushes the herbarium feel further: the paper now appears to be
+printed on a wallpaper sheet, with the metrics sitting on top of a faint
+flower bed. Best for projects that want a richly decorated background
+without sacrificing legibility of the data layer.
+
+### Repo dashboard
+
+| `botanical-floral-light` | `botanical-floral-dark` |
+|---|---|
+| <img src="examples/outputs/repo-botanical-floral-light.svg" alt="repo · botanical-floral-light" width="100%"/> | <img src="examples/outputs/repo-botanical-floral-dark.svg" alt="repo · botanical-floral-dark" width="100%"/> |
+
+### Profile dashboard
+
+| `botanical-floral-light` | `botanical-floral-dark` |
+|---|---|
+| <img src="examples/outputs/profile-botanical-floral-light.svg" alt="profile · botanical-floral-light" width="100%"/> | <img src="examples/outputs/profile-botanical-floral-dark.svg" alt="profile · botanical-floral-dark" width="100%"/> |
+
+---
+
+## Blossom + Kawai
+
+Blossom palette plus a **kawaii character watermark**. The pink-grey paper
+of Blossom now hosts a soft mascot ghosted under the cartouche grid — full
+sakura-stationery vibe. Use this for personal pages that should feel
+unapologetically cute, or for community/internal projects where the
+dashboard doubles as decoration.
+
+### Repo dashboard
+
+| `blossom-kawai-light` | `blossom-kawai-dark` |
+|---|---|
+| <img src="examples/outputs/repo-blossom-kawai-light.svg" alt="repo · blossom-kawai-light" width="100%"/> | <img src="examples/outputs/repo-blossom-kawai-dark.svg" alt="repo · blossom-kawai-dark" width="100%"/> |
+
+### Profile dashboard
+
+| `blossom-kawai-light` | `blossom-kawai-dark` |
+|---|---|
+| <img src="examples/outputs/profile-blossom-kawai-light.svg" alt="profile · blossom-kawai-light" width="100%"/> | <img src="examples/outputs/profile-blossom-kawai-dark.svg" alt="profile · blossom-kawai-dark" width="100%"/> |
+
+---
+
+## How watermarks work
+
+The watermark is a **bundled PNG inlined as a base64 data URI** in the SVG
+output, so the result stays self-contained (no external fetches at view
+time, no foreignObject, no JS — Cartouche's invariants stay green). It's
+laid over the background and grid at low opacity (default `0.10`) and sits
+behind the frame and data, so it reads as a paper texture rather than as
+data.
+
+To add your own watermark, drop a `<name>.png` into
+`src/cartouche/watermarks/`, then either:
+
+- **Bind it to a new theme** — copy a watermarked entry in `themes.py` and
+  set `"watermark": "<name>"` plus any opacity tweak.
+- **Layer it onto an existing theme via overlay** *(future, not yet
+  exposed via CLI)* — pass an explicit theme override at the API level.
+
+Watermarks should be **PNG with transparency** at modest resolution
+(~600–800px on the longest side keeps the resulting SVG under 1 MB).
+
 ## Adding a theme
 
-A theme is a flat dict of 12 color tokens — see `src/cartouche/themes.py`
+A theme is a flat dict of color tokens — see `src/cartouche/themes.py`
 for the contract. Adding one is ~12 lines: copy an existing entry, change
 the palette, and the rest of the code (renderer, CLI, tests) picks it up
 automatically. To regenerate this catalogue's previews for a new theme:

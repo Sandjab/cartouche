@@ -3,7 +3,7 @@
 > 🇬🇧 **English** (you are here) · 🇫🇷 [Français](README-fr.md)
 
 > Technical-drawing SVG dashboards for GitHub repositories and profiles.
-> Pure SVG primitives, ten themes, two languages, embeddable in any README via `<picture>`.
+> Pure SVG primitives, sixteen themes (incl. watermarked variants), two languages, embeddable in any README via `<picture>`.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/dashboard-dark.svg">
@@ -13,9 +13,10 @@
 Cartouche takes a GitHub repo (or a whole profile) and renders it as a
 technical-drawing SVG: grid, double-line frame, annotated star history,
 health radar, key metrics, and a *cartouche* — the architectural title
-block — in the bottom-right corner. Ten themes (light + dark), two
-built-in languages (English + French) with extensible custom packs via
-JSON, all served through the `<picture>` tag for both color modes.
+block — in the bottom-right corner. Sixteen themes (light + dark, plus
+watermarked variants for Vellum + Davinci, Botanical + Floral, Blossom +
+Kawai), two built-in languages (English + French) with extensible custom
+packs via JSON, all served through the `<picture>` tag for both color modes.
 
 ## Why
 
@@ -130,16 +131,22 @@ See `src/cartouche/lang/en.json` for the full key list.
 
 ## Themes
 
-Ten themes in five families, each with a light and a dark counterpart.
-See [THEMES.md](THEMES.md) for side-by-side previews of every variant.
+Sixteen themes in eight families, each with a light and a dark counterpart.
+The first five are clean palettes; the last three are watermarked variants
+that ghost a bundled PNG (Da Vinci plate, floral motif, kawaii character)
+behind the data layer at low opacity. See [THEMES.md](THEMES.md) for
+side-by-side previews of every variant.
 
-| Family        | Light                 | Dark                |
-|---------------|-----------------------|---------------------|
-| **Drafting**  | `drafting-light`      | `drafting-dark`     |
-| **Blueprint** | `blueprint-light`     | `blueprint-dark`    |
-| **Vellum**    | `vellum-light`        | `vellum-dark`       |
-| **Botanical** | `botanical-light`     | `botanical-dark`    |
-| **Blossom**   | `blossom-light`       | `blossom-dark`      |
+| Family                 | Light                       | Dark                       |
+|------------------------|-----------------------------|----------------------------|
+| **Drafting**           | `drafting-light`            | `drafting-dark`            |
+| **Blueprint**          | `blueprint-light`           | `blueprint-dark`           |
+| **Vellum**             | `vellum-light`              | `vellum-dark`              |
+| **Botanical**          | `botanical-light`           | `botanical-dark`           |
+| **Blossom**            | `blossom-light`             | `blossom-dark`             |
+| **Vellum + Davinci**   | `vellum-davinci-light`      | `vellum-davinci-dark`      |
+| **Botanical + Floral** | `botanical-floral-light`    | `botanical-floral-dark`    |
+| **Blossom + Kawai**    | `blossom-kawai-light`       | `blossom-kawai-dark`       |
 
 - **Drafting** — white paper, indigo ink. Achromatic, neutral, the tone
   of a technical memo.
@@ -151,6 +158,13 @@ See [THEMES.md](THEMES.md) for side-by-side previews of every variant.
   ivory, deep forest at night with candle-pollen accents.
 - **Blossom** — sakura kawaii. Powder-rose on pearl-grey ivory, deep
   aubergine boudoir at night, neon-soft pink data with mint accents.
+- **Vellum + Davinci** — Vellum palette + Da Vinci plate watermark. Reads
+  as the surface of an old codex with the master draftsman's notebook
+  bleeding through.
+- **Botanical + Floral** — Botanical palette + floral motif watermark.
+  The herbarium feel pushed further into a wallpapered field of flowers.
+- **Blossom + Kawai** — Blossom palette + kawaii character watermark.
+  Sakura stationery, soft mascot ghosted under the cartouche grid.
 
 ## Embedding in a README
 
@@ -202,7 +216,7 @@ svg = repo.render(data, theme=get_theme("vellum-light"), lang=fr)
 
 ```
 src/cartouche/
-├── themes.py            # 10-theme registry (dict-of-dicts)
+├── themes.py            # 16-theme registry (dict-of-dicts)
 ├── lang/
 │   ├── __init__.py      # load(), list_builtin(), t(), tmpl()
 │   ├── en.json          # default language

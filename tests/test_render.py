@@ -28,7 +28,11 @@ REQUIRED_THEME_TOKENS = {
     "bg", "grid_fine", "grid_major", "frame", "frame_inner", "axis",
     "text_primary", "text_secondary", "text_label",
     "data_primary", "data_fill_opacity", "accent",
+    "watermark", "watermark_opacity",
 }
+
+# These tokens are not hex colors and shouldn't be validated as such.
+NON_COLOR_TOKENS = {"data_fill_opacity", "watermark", "watermark_opacity"}
 
 REQUIRED_LANG_LABELS = {
     "subtitle_repo", "subtitle_profile", "rev_prefix", "sheet_label",
@@ -75,14 +79,14 @@ def test_theme_has_all_tokens(name: str):
 @pytest.mark.parametrize("name", list_themes())
 def test_theme_colors_are_hex(name: str):
     theme = get_theme(name)
-    for k in REQUIRED_THEME_TOKENS - {"data_fill_opacity"}:
+    for k in REQUIRED_THEME_TOKENS - NON_COLOR_TOKENS:
         assert re.match(r"^#[0-9a-fA-F]{6}$", theme[k])
 
 
 def test_themes_count():
     # Smoke test — bumps every time we add or drop a theme. Keeps surprises
     # out of the registry without preventing growth.
-    assert len(THEMES) == 10
+    assert len(THEMES) == 16
     families = {name.rsplit("-", 1)[0] for name in THEMES}
     for family in families:
         assert f"{family}-light" in THEMES, f"{family!r} missing light variant"
@@ -139,7 +143,7 @@ def test_lang_helpers():
 
 
 # ──────────────────────────────────────────────────────────────────────────
-#  Renderers — across 10 themes × 2 langs = 20 combinations each
+#  Renderers — across 16 themes × 2 langs = 32 combinations each
 # ──────────────────────────────────────────────────────────────────────────
 
 @pytest.mark.parametrize("theme_name", list_themes())

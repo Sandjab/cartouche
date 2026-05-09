@@ -47,11 +47,14 @@ Issues = "https://github.com/Sandjab/cartouche/issues"
 [tool.hatch.build.targets.wheel]
 packages = ["src/cartouche"]
 
-# JSON files (language packs) must be packaged into the wheel so
-# importlib.resources can find them at runtime.
+# Resource files (language packs, watermark PNGs) must be packaged
+# into the wheel so importlib.resources can find them at runtime.
 [tool.hatch.build.targets.wheel.force-include]
 "src/cartouche/lang/en.json" = "cartouche/lang/en.json"
 "src/cartouche/lang/fr.json" = "cartouche/lang/fr.json"
+"src/cartouche/watermarks/davinci.png" = "cartouche/watermarks/davinci.png"
+"src/cartouche/watermarks/floral.png"  = "cartouche/watermarks/floral.png"
+"src/cartouche/watermarks/kawai.png"   = "cartouche/watermarks/kawai.png"
 
 [tool.hatch.build.targets.sdist]
 include = [

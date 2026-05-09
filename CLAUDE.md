@@ -31,7 +31,7 @@ cartouche/
 │   ├── __init__.py            # re-exports themes + lang
 │   ├── __main__.py            # python -m cartouche
 │   ├── cli.py                 # argparse entry point
-│   ├── themes.py              # 10-theme registry (dict-of-dicts)
+│   ├── themes.py              # 16-theme registry (dict-of-dicts)
 │   ├── fetch.py               # GitHub REST + GraphQL, stdlib urllib only
 │   ├── mock.py                # canned data fixtures (no API)
 │   ├── lang/
@@ -89,8 +89,8 @@ and regressions in the CLI.
 1. **Renderers consume tokens, not colors.** `render/primitives.py` and
    `render/repo.py` and `render/profile.py` MUST NOT contain hex codes.
    Every color comes from `theme[token_name]`. Adding a new color to a
-   primitive requires adding the token to `themes.py` for ALL 10 themes
-   simultaneously.
+   primitive requires adding the token to `themes.py` for ALL 16 themes
+   simultaneously (the 10 base themes plus the 6 watermarked variants).
 
 2. **Renderers consume `lang`, not literals.** The renderers MUST NOT
    contain user-visible English/French strings. Every label flows through
@@ -168,7 +168,7 @@ The render pipeline is: data dict → primitives → SVG string.
 
 ### Changing the SVG layout
 
-Don't move things by ±2px and call it a day. Test all 10 themes × 2 langs
+Don't move things by ±2px and call it a day. Test all 16 themes × 2 langs
 visually because some text is longer in FR and may overflow. Open one
 sample of each in a browser:
 
@@ -184,12 +184,17 @@ labels. Shrinking the canvas means re-fitting the heatmap.
 
 ### `src/cartouche/themes.py`
 
-Ten themes in five light/dark families. The keys MUST match exactly:
+Sixteen themes in eight light/dark families. The keys MUST match exactly:
 `drafting-light`, `drafting-dark`, `blueprint-light`, `blueprint-dark`,
 `vellum-light`, `vellum-dark`, `botanical-light`, `botanical-dark`,
-`blossom-light`, `blossom-dark`. Tests reference these keys directly.
+`blossom-light`, `blossom-dark`, `vellum-davinci-light`,
+`vellum-davinci-dark`, `botanical-floral-light`, `botanical-floral-dark`,
+`blossom-kawai-light`, `blossom-kawai-dark`. Tests reference these keys
+directly. The watermarked variants are built by `_with_watermark()` from
+their parent palette plus a `watermark` token (PNG name, looked up in
+`src/cartouche/watermarks/`) and `watermark_opacity` (default 0.10).
 
-Adding tokens to a theme: update ALL 10 themes and the
+Adding tokens to a theme: update ALL 16 themes and the
 `REQUIRED_THEME_TOKENS` set in tests.
 
 ### `src/cartouche/lang/__init__.py`
@@ -251,14 +256,14 @@ change it.
 
 Parametrized over themes and langs. When adding a new theme or lang the
 tests automatically include it. The test count grows multiplicatively
-(10 themes × 2 langs × 2 dashboards = 40 render tests; today 79 total
+(16 themes × 2 langs × 2 dashboards = 64 render tests; today 115 total
 including theme/lang/CLI tests).
 
 ## Status
 
 | Feature                           | State    |
 |-----------------------------------|----------|
-| 10 themes (5 families × light/dark) | ✅ stable |
+| 16 themes (8 families × light/dark, incl. 3 watermarked) | ✅ stable |
 | Repo dashboard                    | ✅ stable |
 | Profile dashboard                 | ✅ stable |
 | i18n with EN+FR + custom overlay  | ✅ stable |

@@ -71,6 +71,7 @@ def render(data: ProfileData, theme: dict, lang: dict | None = None) -> str:
     ))
     parts.append(P.defs(theme))
     parts.append(P.background(CANVAS_W, CANVAS_H, theme))
+    parts.append(P.watermark(CANVAS_W, CANVAS_H, theme))
     parts.append(P.frame(CANVAS_W, CANVAS_H, theme))
 
     parts.append(P.header(

@@ -182,6 +182,28 @@ THEMES: dict[str, dict] = {
     },
 }
 
+# Watermark tokens — every theme has them, defaulting to no watermark.
+# Watermarked variants below override these two fields.
+for _t in THEMES.values():
+    _t.setdefault("watermark", None)
+    _t.setdefault("watermark_opacity", 0.0)
+
+
+def _with_watermark(base: dict, name: str, opacity: float = 0.10) -> dict:
+    """Return a shallow copy of `base` with watermark fields set."""
+    return {**base, "watermark": name, "watermark_opacity": opacity}
+
+
+# ── WATERMARKED VARIANTS ──────────────────────────────────────────────────
+# Same palettes as their parent families, with a bundled PNG watermark
+# inlined behind the data layer at low opacity. See src/cartouche/watermarks/.
+THEMES["vellum-davinci-light"]   = _with_watermark(THEMES["vellum-light"],    "davinci")
+THEMES["vellum-davinci-dark"]    = _with_watermark(THEMES["vellum-dark"],     "davinci")
+THEMES["botanical-floral-light"] = _with_watermark(THEMES["botanical-light"], "floral")
+THEMES["botanical-floral-dark"]  = _with_watermark(THEMES["botanical-dark"],  "floral")
+THEMES["blossom-kawai-light"]    = _with_watermark(THEMES["blossom-light"],   "kawai")
+THEMES["blossom-kawai-dark"]     = _with_watermark(THEMES["blossom-dark"],    "kawai")
+
 
 def get_theme(name: str) -> dict:
     """Return a theme dict by name. Raises KeyError with a helpful message."""

@@ -31,7 +31,7 @@ cartouche/
 │   ├── __init__.py            # re-exports themes + lang
 │   ├── __main__.py            # python -m cartouche
 │   ├── cli.py                 # argparse entry point
-│   ├── themes.py              # 6-theme registry (dict-of-dicts)
+│   ├── themes.py              # 10-theme registry (dict-of-dicts)
 │   ├── fetch.py               # GitHub REST + GraphQL, stdlib urllib only
 │   ├── mock.py                # canned data fixtures (no API)
 │   ├── lang/
@@ -89,7 +89,7 @@ and regressions in the CLI.
 1. **Renderers consume tokens, not colors.** `render/primitives.py` and
    `render/repo.py` and `render/profile.py` MUST NOT contain hex codes.
    Every color comes from `theme[token_name]`. Adding a new color to a
-   primitive requires adding the token to `themes.py` for ALL 6 themes
+   primitive requires adding the token to `themes.py` for ALL 10 themes
    simultaneously.
 
 2. **Renderers consume `lang`, not literals.** The renderers MUST NOT
@@ -168,7 +168,7 @@ The render pipeline is: data dict → primitives → SVG string.
 
 ### Changing the SVG layout
 
-Don't move things by ±2px and call it a day. Test all 6 themes × 2 langs
+Don't move things by ±2px and call it a day. Test all 10 themes × 2 langs
 visually because some text is longer in FR and may overflow. Open one
 sample of each in a browser:
 
@@ -184,11 +184,12 @@ labels. Shrinking the canvas means re-fitting the heatmap.
 
 ### `src/cartouche/themes.py`
 
-Six themes in three light/dark families. The keys MUST match exactly:
+Ten themes in five light/dark families. The keys MUST match exactly:
 `drafting-light`, `drafting-dark`, `blueprint-light`, `blueprint-dark`,
-`vellum-light`, `vellum-dark`. Tests reference these keys directly.
+`vellum-light`, `vellum-dark`, `botanical-light`, `botanical-dark`,
+`blossom-light`, `blossom-dark`. Tests reference these keys directly.
 
-Adding tokens to a theme: update ALL 6 themes and the
+Adding tokens to a theme: update ALL 10 themes and the
 `REQUIRED_THEME_TOKENS` set in tests.
 
 ### `src/cartouche/lang/__init__.py`
@@ -250,14 +251,14 @@ change it.
 
 Parametrized over themes and langs. When adding a new theme or lang the
 tests automatically include it. The test count grows multiplicatively
-(6 themes × 2 langs × 2 dashboards = 24 render tests; today 53 total
+(10 themes × 2 langs × 2 dashboards = 40 render tests; today 79 total
 including theme/lang/CLI tests).
 
 ## Status
 
 | Feature                           | State    |
 |-----------------------------------|----------|
-| 6 themes (3 families × light/dark) | ✅ stable |
+| 10 themes (5 families × light/dark) | ✅ stable |
 | Repo dashboard                    | ✅ stable |
 | Profile dashboard                 | ✅ stable |
 | i18n with EN+FR + custom overlay  | ✅ stable |

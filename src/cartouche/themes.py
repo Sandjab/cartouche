@@ -115,6 +115,71 @@ THEMES: dict[str, dict] = {
         "data_fill_opacity": 0.20,
         "accent":            "#ef6e6e",
     },
+
+    # ── BOTANICAL ─────────────────────────────────────────────────────────
+    # 19th-century herbarium plate. Sage-and-fern ink on ivory paper,
+    # deep forest at night with candle-pollen accents.
+    "botanical-light": {
+        "bg":                "#f3efde",
+        "grid_fine":         "#e6e3cc",
+        "grid_major":        "#cbd0b1",
+        "frame":             "#1f3a1f",
+        "frame_inner":       "#7d9474",
+        "axis":              "#7d9474",
+        "text_primary":      "#0f2010",
+        "text_secondary":    "#5a7556",
+        "text_label":        "#1f3a1f",
+        "data_primary":      "#3f7a3a",
+        "data_fill_opacity": 0.16,
+        "accent":            "#a83a30",
+    },
+    "botanical-dark": {
+        "bg":                "#162818",
+        "grid_fine":         "#1f3522",
+        "grid_major":        "#2a4530",
+        "frame":             "#dfe5cc",
+        "frame_inner":       "#5e6f4f",
+        "axis":              "#5e6f4f",
+        "text_primary":      "#eef0db",
+        "text_secondary":    "#9ab088",
+        "text_label":        "#dfe5cc",
+        "data_primary":      "#8fc578",
+        "data_fill_opacity": 0.18,
+        "accent":            "#f5b94a",
+    },
+
+    # ── BLOSSOM ───────────────────────────────────────────────────────────
+    # Sakura kawaii. Powder-rose ink on ivory with pearl-grey structure;
+    # deep aubergine boudoir at night, with neon-soft pink data and mint
+    # complement accents.
+    "blossom-light": {
+        "bg":                "#fff5f8",
+        "grid_fine":         "#f0e3e9",
+        "grid_major":        "#dfc9d4",
+        "frame":             "#5b3947",
+        "frame_inner":       "#b89aa6",
+        "axis":              "#b89aa6",
+        "text_primary":      "#2e1a26",
+        "text_secondary":    "#8a7580",
+        "text_label":        "#5b3947",
+        "data_primary":      "#e07ab0",
+        "data_fill_opacity": 0.18,
+        "accent":            "#5b9fc4",
+    },
+    "blossom-dark": {
+        "bg":                "#241624",
+        "grid_fine":         "#332033",
+        "grid_major":        "#432d44",
+        "frame":             "#fad9e6",
+        "frame_inner":       "#8d647a",
+        "axis":              "#8d647a",
+        "text_primary":      "#fde8ef",
+        "text_secondary":    "#c69eb1",
+        "text_label":        "#fad9e6",
+        "data_primary":      "#ff9bcc",
+        "data_fill_opacity": 0.20,
+        "accent":            "#9be3d2",
+    },
 }
 
 

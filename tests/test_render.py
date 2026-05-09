@@ -2,7 +2,7 @@
 
 These don't hit the GitHub API. They use the `mock` module fixtures and
 check that:
-  - all 6 themes have the required token keys
+  - all themes have the required token keys
   - both built-in lang packs have all required keys + months
   - both renderers produce well-formed SVG with strings from the lang pack
   - the lang overlay merge does the right thing
@@ -79,8 +79,14 @@ def test_theme_colors_are_hex(name: str):
         assert re.match(r"^#[0-9a-fA-F]{6}$", theme[k])
 
 
-def test_six_themes():
-    assert len(THEMES) == 6
+def test_themes_count():
+    # Smoke test — bumps every time we add or drop a theme. Keeps surprises
+    # out of the registry without preventing growth.
+    assert len(THEMES) == 10
+    families = {name.rsplit("-", 1)[0] for name in THEMES}
+    for family in families:
+        assert f"{family}-light" in THEMES, f"{family!r} missing light variant"
+        assert f"{family}-dark" in THEMES, f"{family!r} missing dark variant"
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -133,7 +139,7 @@ def test_lang_helpers():
 
 
 # ──────────────────────────────────────────────────────────────────────────
-#  Renderers — across 6 themes × 2 langs = 12 combinations each
+#  Renderers — across 10 themes × 2 langs = 20 combinations each
 # ──────────────────────────────────────────────────────────────────────────
 
 @pytest.mark.parametrize("theme_name", list_themes())

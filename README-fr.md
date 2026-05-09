@@ -3,7 +3,7 @@
 > 🇬🇧 [English](README.md) · 🇫🇷 **Français** (vous êtes ici)
 
 > Dashboards SVG façon dessin technique pour repos et profils GitHub.
-> Primitives SVG pures, six thèmes, deux langues, intégrables dans tout README via `<picture>`.
+> Primitives SVG pures, dix thèmes, deux langues, intégrables dans tout README via `<picture>`.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/dashboard-dark.svg">
@@ -13,7 +13,7 @@
 Cartouche prend un repo GitHub (ou un profil entier) et en tire un dashboard
 SVG dans l'esthétique du dessin technique : grille, double-cadre, courbes
 d'étoiles annotées, radar de santé, métriques, et un bloc de titre type
-*cartouche d'architecte* en bas à droite. Six thèmes (light + dark), deux
+*cartouche d'architecte* en bas à droite. Dix thèmes (light + dark), deux
 langues built-in (en + fr) avec ajout de packs personnalisés par fichier
 JSON, le tout prêt à être servi aux deux modes via la balise `<picture>`.
 
@@ -130,20 +130,28 @@ Voir `src/cartouche/lang/en.json` pour la liste complète des clés.
 
 ## Thèmes
 
-Six thèmes en trois familles, chacune avec un pendant clair et sombre.
+Dix thèmes en cinq familles, chacune avec un pendant clair et sombre.
+Voir [THEMES.md](THEMES.md) pour les aperçus light/dark côte à côte de
+chaque variante.
 
-| Famille      | Light                 | Dark                |
-|--------------|-----------------------|---------------------|
-| **Drafting** | `drafting-light`      | `drafting-dark`     |
-| **Blueprint**| `blueprint-light`     | `blueprint-dark`    |
-| **Vellum**   | `vellum-light`        | `vellum-dark`       |
+| Famille       | Light                 | Dark                |
+|---------------|-----------------------|---------------------|
+| **Drafting**  | `drafting-light`      | `drafting-dark`     |
+| **Blueprint** | `blueprint-light`     | `blueprint-dark`    |
+| **Vellum**    | `vellum-light`        | `vellum-dark`       |
+| **Botanical** | `botanical-light`     | `botanical-dark`    |
+| **Blossom**   | `blossom-light`       | `blossom-dark`      |
 
 - **Drafting** — papier blanc / encre indigo. Achromatique, neutre, le ton
   d'une note technique.
 - **Blueprint** — cyanotype. Pâle bleu nuage clair, ou plongée nocturne dans
   le bleu de Prusse profond.
-- **Vellum** — vélin crème / sépia. Côté sombre : cuir aged et or. Pour qui
-  veut un côté Beaux-Arts plutôt qu'ingénieur.
+- **Vellum** — vélin crème / sépia. Côté sombre : cuir patiné et or. Pour
+  qui veut un côté Beaux-Arts plutôt qu'ingénieur.
+- **Botanical** — planche d'herbier 19e siècle. Encre sauge-et-fougère sur
+  ivoire, ou forêt nocturne avec accents pollen-bougie.
+- **Blossom** — sakura kawaii. Rose poudré sur ivoire gris perle, ou
+  boudoir aubergine nocturne, données rose néon-doux et accents menthe.
 
 ## Embedding dans un README
 
@@ -197,7 +205,7 @@ svg = repo.render(data, theme=get_theme("vellum-light"), lang=fr)
 
 ```
 src/cartouche/
-├── themes.py            # registre des 6 thèmes (dict-of-dicts)
+├── themes.py            # registre des 10 thèmes (dict-of-dicts)
 ├── lang/
 │   ├── __init__.py      # load(), list_builtin(), t(), tmpl()
 │   ├── en.json          # langue par défaut

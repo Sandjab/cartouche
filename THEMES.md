@@ -1,22 +1,24 @@
 # Cartouche Theme Catalogue
 
-Six themes in three aesthetic families, each with a light and a dark
+Ten themes in five aesthetic families, each with a light and a dark
 counterpart. Every preview below is rendered from the **same mock fixtures**
 (`mock_repo()` and `mock_profile()`) so the only thing changing between two
 cells is the palette and the typographic hierarchy. Pick a theme via
 `--theme <name>` on the CLI or `get_theme(<name>)` in the Python API.
 
 ```bash
-cartouche themes  # list all six
+cartouche themes  # list all ten
 cartouche repo    Sandjab/Athanor --mock --theme vellum-dark    --out /tmp/r.svg
 cartouche profile Sandjab          --mock --theme blueprint-dark --out /tmp/p.svg
 ```
 
-| Family       | Light                 | Dark                |
-|--------------|-----------------------|---------------------|
-| **Drafting** | `drafting-light`      | `drafting-dark`     |
-| **Blueprint**| `blueprint-light`     | `blueprint-dark`    |
-| **Vellum**   | `vellum-light`        | `vellum-dark`       |
+| Family        | Light                 | Dark                |
+|---------------|-----------------------|---------------------|
+| **Drafting**  | `drafting-light`      | `drafting-dark`     |
+| **Blueprint** | `blueprint-light`     | `blueprint-dark`    |
+| **Vellum**    | `vellum-light`        | `vellum-dark`       |
+| **Botanical** | `botanical-light`     | `botanical-dark`    |
+| **Blossom**   | `blossom-light`       | `blossom-dark`      |
 
 ---
 
@@ -46,7 +48,7 @@ to body copy and shouldn't fight for attention.
 
 Cyanotype lineage. The **pale faded reverse** of an architectural blueprint
 on the light side, and a **deep nighttime Prussian blue dive** on the dark
-side — the most "engineering-drawing"-coded of the three families, and the
+side — the most "engineering-drawing"-coded of the five families, and the
 default theme for the CLI. Reach for this when you want the dashboard to
 read instantly as a technical artefact.
 
@@ -83,6 +85,50 @@ nostalgic; it makes the data feel curated rather than instrumented.
 | `vellum-light` | `vellum-dark` |
 |---|---|
 | <img src="examples/outputs/profile-vellum-light.svg" alt="profile · vellum-light" width="100%"/> | <img src="examples/outputs/profile-vellum-dark.svg" alt="profile · vellum-dark" width="100%"/> |
+
+---
+
+## Botanical
+
+19th-century herbarium plate. **Sage-and-fern ink on ivory paper** on the
+light side; **deep forest at night** with candle-pollen amber accents on
+the dark side. Reach for this when the dashboard sits next to long-form
+scientific or naturalist content — it makes the data feel observed and
+catalogued rather than instrumented and measured.
+
+### Repo dashboard
+
+| `botanical-light` | `botanical-dark` |
+|---|---|
+| <img src="examples/outputs/repo-botanical-light.svg" alt="repo · botanical-light" width="100%"/> | <img src="examples/outputs/repo-botanical-dark.svg" alt="repo · botanical-dark" width="100%"/> |
+
+### Profile dashboard
+
+| `botanical-light` | `botanical-dark` |
+|---|---|
+| <img src="examples/outputs/profile-botanical-light.svg" alt="profile · botanical-light" width="100%"/> | <img src="examples/outputs/profile-botanical-dark.svg" alt="profile · botanical-dark" width="100%"/> |
+
+---
+
+## Blossom
+
+Sakura kawaii. **Powder-rose ink on ivory with pearl-grey structure** on
+the light side; **deep aubergine boudoir at night** with neon-soft pink
+data and mint complement accents on the dark side. The most explicitly
+girly of the bunch — pick this when the dashboard belongs to a personal
+project that should read as joyful and crafted rather than industrial.
+
+### Repo dashboard
+
+| `blossom-light` | `blossom-dark` |
+|---|---|
+| <img src="examples/outputs/repo-blossom-light.svg" alt="repo · blossom-light" width="100%"/> | <img src="examples/outputs/repo-blossom-dark.svg" alt="repo · blossom-dark" width="100%"/> |
+
+### Profile dashboard
+
+| `blossom-light` | `blossom-dark` |
+|---|---|
+| <img src="examples/outputs/profile-blossom-light.svg" alt="profile · blossom-light" width="100%"/> | <img src="examples/outputs/profile-blossom-dark.svg" alt="profile · blossom-dark" width="100%"/> |
 
 ---
 

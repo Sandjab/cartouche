@@ -3,7 +3,7 @@
 > 🇬🇧 **English** (you are here) · 🇫🇷 [Français](README-fr.md)
 
 > Technical-drawing SVG dashboards for GitHub repositories and profiles.
-> Pure SVG primitives, six themes, two languages, embeddable in any README via `<picture>`.
+> Pure SVG primitives, ten themes, two languages, embeddable in any README via `<picture>`.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/dashboard-dark.svg">
@@ -13,7 +13,7 @@
 Cartouche takes a GitHub repo (or a whole profile) and renders it as a
 technical-drawing SVG: grid, double-line frame, annotated star history,
 health radar, key metrics, and a *cartouche* — the architectural title
-block — in the bottom-right corner. Six themes (light + dark), two
+block — in the bottom-right corner. Ten themes (light + dark), two
 built-in languages (English + French) with extensible custom packs via
 JSON, all served through the `<picture>` tag for both color modes.
 
@@ -130,13 +130,16 @@ See `src/cartouche/lang/en.json` for the full key list.
 
 ## Themes
 
-Six themes in three families, each with a light and a dark counterpart.
+Ten themes in five families, each with a light and a dark counterpart.
+See [THEMES.md](THEMES.md) for side-by-side previews of every variant.
 
-| Family       | Light                 | Dark                |
-|--------------|-----------------------|---------------------|
-| **Drafting** | `drafting-light`      | `drafting-dark`     |
-| **Blueprint**| `blueprint-light`     | `blueprint-dark`    |
-| **Vellum**   | `vellum-light`        | `vellum-dark`       |
+| Family        | Light                 | Dark                |
+|---------------|-----------------------|---------------------|
+| **Drafting**  | `drafting-light`      | `drafting-dark`     |
+| **Blueprint** | `blueprint-light`     | `blueprint-dark`    |
+| **Vellum**    | `vellum-light`        | `vellum-dark`       |
+| **Botanical** | `botanical-light`     | `botanical-dark`    |
+| **Blossom**   | `blossom-light`       | `blossom-dark`      |
 
 - **Drafting** — white paper, indigo ink. Achromatic, neutral, the tone
   of a technical memo.
@@ -144,6 +147,10 @@ Six themes in three families, each with a light and a dark counterpart.
   Prussian blue dive.
 - **Vellum** — cream parchment / sepia. Dark variant: aged leather and
   gold. For those who want a Beaux-Arts feel rather than engineering.
+- **Botanical** — 19th-century herbarium plate. Sage-and-fern ink on
+  ivory, deep forest at night with candle-pollen accents.
+- **Blossom** — sakura kawaii. Powder-rose on pearl-grey ivory, deep
+  aubergine boudoir at night, neon-soft pink data with mint accents.
 
 ## Embedding in a README
 
@@ -195,7 +202,7 @@ svg = repo.render(data, theme=get_theme("vellum-light"), lang=fr)
 
 ```
 src/cartouche/
-├── themes.py            # 6-theme registry (dict-of-dicts)
+├── themes.py            # 10-theme registry (dict-of-dicts)
 ├── lang/
 │   ├── __init__.py      # load(), list_builtin(), t(), tmpl()
 │   ├── en.json          # default language

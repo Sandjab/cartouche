@@ -1,7 +1,7 @@
 """Cartouche — technical-drawing dashboards for GitHub repos and profiles.
 
 Two dashboards: `cartouche.render.repo` and `cartouche.render.profile`.
-Six themes: see `cartouche.themes`.
+Ten themes: see `cartouche.themes`.
 Languages: see `cartouche.lang` (en + fr built-in, custom packs welcomed).
 Generated SVGs go in your README via the <picture> tag for light/dark.
 """

@@ -1,0 +1,294 @@
+# Cartouche
+
+> 🇬🇧 [English](README.md) · 🇫🇷 **Français** (you are here)
+
+> Blueprint-style SVG dashboards for GitHub repositories and profiles.
+> Pure SVG primitives, six themes, two languages, embeddable in any README via `<picture>`.
+
+Cartouche prend un repo GitHub (ou un profil entier) et en tire un dashboard
+SVG dans l'esthétique du dessin technique : grille, double-cadre, courbes
+d'étoiles annotées, radar de santé, métriques, et un bloc de titre type
+*cartouche d'architecte* en bas à droite. Six thèmes (light + dark), deux
+langues built-in (en + fr) avec ajout de packs personnalisés par fichier
+JSON, le tout prêt à être servi aux deux modes via la balise `<picture>`.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  ATHANOR                                  REV A.04       │
+│  SANDJAB · REPOSITORY TELEMETRY           SHEET 01 / 01  │
+│  ────────────────────────────────────────────────────    │
+│  FIG. 01 — STAR HISTORY · Sep 2025 → May 2026            │
+│       ╱──•                                               │
+│      ╱   // FIRST STAR — 2025-10-08                      │
+│   ──╯                                                    │
+│  ────────────────────────────────────────────────────    │
+│  FIG. 02 — HEALTH RADAR    FIG. 03 — INDICATORS          │
+│      ☆                  ┌────┐ ┌────┐                    │
+│   ◇  ●  ◇               │ 23 │ │  4 │                    │
+│      ◇                  └────┘ └────┘                    │
+│                         ┌────┐ ┌────┐                    │
+│                         │ 12 │ │ 67 │                    │
+│                         └────┘ └────┘                    │
+│  ────────────────────────────────────────────────────    │
+│  NOTES                              ┌────────────────┐   │
+│  ▸ Pipeline: atomic claims …        │ SANDJAB │ A.04 │   │
+│  ▸ Canonical docs: CLAUDE.md …      └────────────────┘   │
+└──────────────────────────────────────────────────────────┘
+```
+
+## Pourquoi
+
+Les solutions existantes (star-history.com, GitHub Charts, etc.) servent les
+images via le proxy Camo, ce qui se traduit par du cache agressif côté
+GitHub, des ratés de rafraîchissement, et zéro contrôle sur le rendu.
+Cartouche prend l'autre côté du tradeoff : générer le SVG en local via une
+GitHub Action, le commiter dans `assets/`, et le servir comme fichier
+versionné — donc rafraîchi à la cadence de votre cron, lisible par tout le
+monde, et stylisable à votre goût.
+
+## Installation
+
+```bash
+pip install cartouche-svg
+```
+
+Aucune dépendance runtime — Cartouche utilise uniquement la stdlib (`urllib`
+pour les appels API, `json`, `datetime`, `math`, `importlib.resources`).
+
+## Utilisation en CLI
+
+```bash
+# Dashboard pour un repo (anglais par défaut)
+cartouche repo Sandjab/Athanor --theme blueprint-light --out dashboard.svg
+
+# Même dashboard en français
+cartouche repo Sandjab/Athanor --theme blueprint-light --lang fr --out dashboard.svg
+
+# Dashboard pour un profil
+cartouche profile Sandjab --theme drafting-dark --out profile.svg
+
+# Lister les thèmes et langues disponibles
+cartouche themes
+cartouche langs
+
+# Tester sans toucher à l'API (données mockées)
+cartouche repo Sandjab/Athanor --mock --theme vellum-light
+
+# Surcharger une langue avec votre propre pack JSON
+cartouche repo Sandjab/Athanor --lang fr --lang-file ./my-overrides.json
+```
+
+Le CLI lit le token GitHub dans cet ordre : `--token`, `$GITHUB_TOKEN`,
+`$GH_TOKEN`, sinon anonyme (60 req/h, suffit rarement pour un profil).
+
+## Internationalisation
+
+**Anglais par défaut.** Activez le français avec `--lang fr`.
+
+### Packs built-in
+
+```bash
+cartouche langs   # → en, fr
+```
+
+### Ajouter une langue
+
+Déposez un fichier `<code>.json` dans `src/cartouche/lang/`, en miroir du
+schéma de `en.json` (clés `labels`, `templates`, `months_short`,
+`months_long`). Le test `test_lang_has_all_required_keys` vous indique
+quelles clés sont obligatoires. Une fois le fichier déposé et le wheel
+reconstruit, `--lang <code>` est utilisable directement.
+
+### Surcharger sans recompiler
+
+Pour modifier ponctuellement quelques chaînes sans publier un nouveau pack,
+créez un JSON d'overlay et passez-le via `--lang-file` :
+
+```json
+{
+  "labels": {
+    "fig_radar_health": "FIG. 02 — VITAL SIGNS",
+    "drawn_by": "BY"
+  },
+  "templates": {
+    "n_years": "{n} years"
+  }
+}
+```
+
+```bash
+cartouche repo Sandjab/Athanor --lang en --lang-file my-overrides.json --out dashboard.svg
+```
+
+L'overlay est *deep-merged* sur le pack de base : seules les clés que vous
+définissez sont remplacées, le reste reste inchangé.
+
+### Schéma d'un pack de langue
+
+```json
+{
+  "code": "xx",
+  "name": "My language",
+  "labels": {
+    "drawn_by": "...",
+    "fig_radar_health": "...",
+    "card_stargazers": "...",
+    ...
+  },
+  "templates": {
+    "fig_star_history": "FIG. 01 — STAR HISTORY · {start} → {end}",
+    "first_star_top": "// FIRST STAR — {date}",
+    ...
+  },
+  "months_short": ["JAN", "FEB", ...],
+  "months_long":  ["Jan", "Feb", ...]
+}
+```
+
+Voir `src/cartouche/lang/en.json` pour la liste complète des clés.
+
+## Thèmes
+
+Six thèmes en trois familles, chacune avec un pendant clair et sombre.
+
+| Famille      | Light                 | Dark                |
+|--------------|-----------------------|---------------------|
+| **Drafting** | `drafting-light`      | `drafting-dark`     |
+| **Blueprint**| `blueprint-light`     | `blueprint-dark`    |
+| **Vellum**   | `vellum-light`        | `vellum-dark`       |
+
+- **Drafting** — papier blanc / encre indigo. Achromatique, neutre, le ton
+  d'une note technique.
+- **Blueprint** — cyanotype. Pâle bleu nuage clair, ou plongée nocturne dans
+  le bleu de Prusse profond.
+- **Vellum** — vélin crème / sépia. Côté sombre : cuir aged et or. Pour qui
+  veut un côté Beaux-Arts plutôt qu'ingénieur.
+
+## Embedding dans un README
+
+Servir la bonne variante au visiteur selon le `prefers-color-scheme` de son
+navigateur :
+
+```markdown
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/dashboard-dark.svg">
+  <img src="assets/dashboard-light.svg" alt="Cartouche dashboard">
+</picture>
+```
+
+Important : utilisez un **chemin relatif** (`assets/...`), pas une URL
+absolue. GitHub réécrit les images externes via son proxy Camo qui casse le
+mécanisme `<picture>` light/dark ; les chemins relatifs sont servis tels
+quels.
+
+## Mise à jour automatique via GitHub Actions
+
+Deux workflows prêts à l'emploi dans `examples/workflows/` :
+
+- `repo-dashboard.yml` — à coller dans `.github/workflows/` du repo dont vous
+  voulez le dashboard. Toutes les 6 heures, regénère et commite.
+- `profile-dashboard.yml` — à coller dans votre **profile repo**
+  (`<handle>/<handle>`). Toutes les 12 heures.
+
+Les deux utilisent `secrets.GITHUB_TOKEN` (déjà disponible dans toute Action)
+et fonctionnent sans configuration supplémentaire. Pour servir un dashboard
+en français, ajoutez `--lang fr` aux commandes `cartouche` du workflow.
+
+## API Python
+
+```python
+from cartouche import lang
+from cartouche.render import repo
+from cartouche.themes import get_theme
+
+# Charger un pack de langue (avec overlay optionnel)
+fr = lang.load("fr", overlay_path="my-overrides.json")  # overlay optional
+
+# Charger des données (mock ou via fetch.repo_data())
+from cartouche.mock import mock_repo
+data = mock_repo("Sandjab", "Athanor", lang=fr)
+
+# Rendre le SVG
+svg = repo.render(data, theme=get_theme("vellum-light"), lang=fr)
+```
+
+## Architecture
+
+```
+src/cartouche/
+├── themes.py            # registre des 6 thèmes (dict-of-dicts)
+├── lang/
+│   ├── __init__.py      # load(), list_builtin(), t(), tmpl()
+│   ├── en.json          # langue par défaut
+│   └── fr.json          # français
+├── fetch.py             # wrappers GitHub REST + GraphQL, stdlib only
+├── mock.py              # fixtures pour développement sans API
+├── cli.py               # entry point argparse
+└── render/
+    ├── primitives.py    # cadre, grille, cartouche, axes, radar, texte
+    ├── repo.py          # composeur du dashboard repo
+    └── profile.py       # composeur du dashboard profil
+```
+
+Le moteur de rendu est *token-agnostic* (les couleurs viennent de `themes`)
+et *literal-free* (les chaînes viennent de `lang`). Ajouter un septième
+thème = ajouter ~12 lignes dans `THEMES`. Ajouter une langue = déposer un
+JSON dans `lang/`. Voir [CLAUDE.md](CLAUDE.md) pour le détail des invariants
+architecturaux.
+
+## Données affichées
+
+### Dashboard repo
+
+- **FIG. 01** — Star history avec annotations de pic et endpoint marker
+- **FIG. 02** — Radar 6 axes : stars, forks, commits, code, tests, docs
+- **FIG. 03** — Cartes : stargazers, forks, issues, commits/30j + barre de
+  langages
+
+### Dashboard profil
+
+- **FIG. 01** — Étoiles cumulées sur tous les repos publics du compte
+- **FIG. 02** — Top 5 repos par stars, avec langage et commits/30j (les
+  noms trop longs sont tronqués par `…` pour ne pas toucher les barres)
+- **FIG. 03** — Radar profil 6 axes : reach, activity, breadth, depth,
+  polyglot, engagement
+- **FIG. 04** — Heatmap de contributions sur 53 semaines glissantes (via
+  GraphQL — nécessite un token)
+- **FIG. 05** — Indicateurs : total stars, total forks, commits/12 mois,
+  ancienneté
+
+Les deux dashboards portent une discrète signature `Proudly Clauded by
+@<handle>` juste sous le cadre, en bas à droite. Le handle vient des
+données, donc chaque utilisateur de la lib obtient automatiquement son
+propre crédit. Pour l'enlever ou la reformuler, surchargez le template
+`proudly_clauded` via `--lang-file`.
+
+## Limitations connues
+
+- Le dashboard profil interroge `/repos/.../stargazers` pour chaque repo
+  public ; pour un compte avec beaucoup de repos très étoilés, l'opération
+  peut prendre une minute. Une couche de cache incrémentale est prévue.
+- Pas de support des dépôts forks dans les agrégats profil (filtrés). Le
+  dashboard d'un fork individuel fonctionne normalement.
+- Les polices web ne sont pas embarquées — GitHub les strippe au rendu des
+  SVG dans les README. Le fallback est une stack monospace système.
+- Les annotations sont automatiques (premier ★, plus gros pic) ; les
+  callouts custom ne sont pas encore exposés.
+
+## Développement
+
+```bash
+git clone https://github.com/Sandjab/cartouche
+cd cartouche
+pip install -e ".[dev]"
+pytest                                                 # 55 tests, ~0.2s
+python -m cartouche repo Sandjab/Athanor --mock        # smoke test sans API
+python -m cartouche profile Sandjab --mock --lang fr   # version FR
+```
+
+Pour Claude Code CLI : voir [CLAUDE.md](CLAUDE.md) pour l'architecture, les
+invariants, et les tâches courantes.
+
+## Licence
+
+MIT — voir [LICENSE](LICENSE).

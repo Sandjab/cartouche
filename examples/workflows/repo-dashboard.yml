@@ -1,0 +1,69 @@
+# Example: render a Cartouche repo dashboard and commit it to assets/.
+#
+# Drop this in `.github/workflows/dashboard.yml` of any repo where you want
+# the Cartouche dashboard. It runs every 6 hours, regenerates the SVG, and
+# commits it back if anything changed.
+#
+# In your README.md, embed the result with:
+#
+#     <picture>
+#       <source media="(prefers-color-scheme: dark)" srcset="assets/dashboard-dark.svg">
+#       <img src="assets/dashboard-light.svg" alt="Cartouche dashboard">
+#     </picture>
+
+name: Cartouche · repo dashboard
+
+on:
+  schedule:
+    # Every 6 hours. Adjust to taste.
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/dashboard.yml"
+
+permissions:
+  contents: write   # required to commit the regenerated SVG
+
+concurrency:
+  group: cartouche-dashboard
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Cartouche
+        run: pip install cartouche-svg
+
+      - name: Render light + dark variants
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p assets
+          cartouche repo "${{ github.repository }}" \
+            --theme blueprint-light \
+            --out assets/dashboard-light.svg
+          cartouche repo "${{ github.repository }}" \
+            --theme blueprint-dark \
+            --out assets/dashboard-dark.svg
+
+      - name: Commit if changed
+        run: |
+          if [[ -n $(git status --porcelain assets/) ]]; then
+            git config user.name "cartouche-bot"
+            git config user.email "cartouche-bot@users.noreply.github.com"
+            git add assets/
+            git commit -m "chore(cartouche): refresh repo dashboard"
+            git push
+          else
+            echo "No dashboard changes."
+          fi

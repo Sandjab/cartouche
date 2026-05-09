@@ -1,0 +1,71 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cartouche-svg"
+version = "0.2.0"
+description = "Blueprint-style SVG dashboards for GitHub repositories and profiles."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Sandjab", email = "consulting@gavini.org" },
+]
+keywords = ["github", "dashboard", "svg", "blueprint", "readme", "stars"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Documentation",
+    "Topic :: Multimedia :: Graphics :: Presentation",
+]
+# Zero runtime dependencies — uses stdlib urllib, json, datetime only.
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7",
+    "ruff>=0.4",
+]
+
+[project.scripts]
+cartouche = "cartouche.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Sandjab/cartouche"
+Repository = "https://github.com/Sandjab/cartouche"
+Issues = "https://github.com/Sandjab/cartouche/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cartouche"]
+
+# JSON files (language packs) must be packaged into the wheel so
+# importlib.resources can find them at runtime.
+[tool.hatch.build.targets.wheel.force-include]
+"src/cartouche/lang/en.json" = "cartouche/lang/en.json"
+"src/cartouche/lang/fr.json" = "cartouche/lang/fr.json"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "/examples",
+    "/README.md",
+    "/LICENSE",
+    "/CLAUDE.md",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

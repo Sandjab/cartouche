@@ -1,0 +1,70 @@
+# Example: render a Cartouche profile dashboard.
+#
+# Drop this in `.github/workflows/dashboard.yml` of your *profile repo*
+# (the special repo named `<yourhandle>/<yourhandle>` that backs your
+# GitHub profile README). It runs every 12 hours and refreshes a
+# profile-wide dashboard with cumulative stars, top-5 repos, and the
+# 53-week contribution heatmap.
+#
+# In your profile README, embed the result with:
+#
+#     <picture>
+#       <source media="(prefers-color-scheme: dark)" srcset="assets/profile-dark.svg">
+#       <img src="assets/profile-light.svg" alt="Cartouche profile dashboard">
+#     </picture>
+
+name: Cartouche · profile dashboard
+
+on:
+  schedule:
+    # Twice a day is enough — profile aggregates change slowly.
+    - cron: "0 6,18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cartouche-profile
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Cartouche
+        run: pip install cartouche-svg
+
+      - name: Render light + dark variants
+        env:
+          # GITHUB_TOKEN is required for the GraphQL contribution calendar.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p assets
+          # ${{ github.repository_owner }} is your handle when this workflow
+          # runs in your profile repo.
+          cartouche profile "${{ github.repository_owner }}" \
+            --theme blueprint-light \
+            --out assets/profile-light.svg
+          cartouche profile "${{ github.repository_owner }}" \
+            --theme blueprint-dark \
+            --out assets/profile-dark.svg
+
+      - name: Commit if changed
+        run: |
+          if [[ -n $(git status --porcelain assets/) ]]; then
+            git config user.name "cartouche-bot"
+            git config user.email "cartouche-bot@users.noreply.github.com"
+            git add assets/
+            git commit -m "chore(cartouche): refresh profile dashboard"
+            git push
+          else
+            echo "No dashboard changes."
+          fi

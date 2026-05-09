@@ -389,6 +389,79 @@ def test_cli_repo_annotations_file_invalid_json(tmp_path):
     assert exc.value.code == 2
 
 
+def test_annotations_layout_descends_on_collision():
+    """Two close-X annotations on the right half (sx > 480, so the opposite
+    anchor would run off-chart) collide on the default track; the second
+    must descend to a lower track while staying inside the FIG. 01 ↔
+    x-axis band."""
+    from cartouche.render.repo import _layout_annotations
+    from datetime import date
+
+    def project(x_data, _count):
+        # Both sx > 480 → primary anchor is "end". Opposite "start" would
+        # push the long label off the right edge, so flipping isn't an option
+        # and the layout has to drop a track. Tight x-spacing forces a
+        # horizontal label-box overlap on the default track.
+        return 500 + x_data * 1, 200
+
+    start = date(2025, 9, 1)
+    anns = [
+        {"date": "2025-09-01", "count": 0,
+         "label_top": "// VERY LONG LABEL FIRST EVENT", "label_bottom": "// extra detail one"},
+        {"date": "2025-10-01", "count": 5,
+         "label_top": "// VERY LONG LABEL SECOND EVENT", "label_bottom": "// extra detail two"},
+    ]
+    placed = _layout_annotations(anns, project, start)
+    assert len(placed) == 2
+    # Earlier annotation is at base track; later one descends.
+    assert placed[0]["leader_y"] < placed[1]["leader_y"]
+    # Both stay in the band between FIG. 01 (124) and the x-axis (320).
+    for p in placed:
+        assert 124 < p["leader_y"] < 320
+
+
+def test_annotations_layout_monotone_y():
+    """Y is monotonically non-decreasing in date order — leftmost (earliest)
+    annotation is always at or above any later one. Three annotations
+    cramped on the right half so the staircase has to descend twice."""
+    from cartouche.render.repo import _layout_annotations
+    from datetime import date
+
+    def project(x_data, _count):
+        # All sx > 480 → can't flip to the left without going off-chart.
+        return 500 + x_data * 8, 200
+
+    start = date(2025, 9, 1)
+    long_top = "// LONG TITLE THAT NEEDS ROOM"
+    long_bot = "// long descriptive subtext"
+    anns = [
+        {"date": f"2025-09-{day:02d}", "count": i,
+         "label_top": long_top, "label_bottom": long_bot}
+        for i, day in enumerate([1, 5, 9], start=1)
+    ]
+    placed = _layout_annotations(anns, project, start)
+    ys = [p["leader_y"] for p in placed]
+    # Strictly monotone descending: each later annotation pushed lower.
+    assert ys[0] < ys[1] < ys[2]
+
+
+def test_annotations_layout_preserves_date_order():
+    """Output is sorted by date regardless of input order."""
+    from cartouche.render.repo import _layout_annotations
+    from datetime import date
+
+    def project(x_data, _count):
+        return 100 + x_data * 2, 200
+
+    start = date(2025, 9, 1)
+    anns = [
+        {"date": "2026-04-01", "count": 20, "label_top": "// LATE", "label_bottom": "// later"},
+        {"date": "2025-10-01", "count": 5,  "label_top": "// EARLY", "label_bottom": "// earlier"},
+    ]
+    placed = _layout_annotations(anns, project, start)
+    assert [p["date"] for p in placed] == ["2025-10-01", "2026-04-01"]
+
+
 def test_cli_repo_annotations_file_missing_required_key(tmp_path):
     from cartouche.cli import main
     overlay = tmp_path / "events.json"

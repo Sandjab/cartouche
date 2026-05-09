@@ -166,29 +166,118 @@ def _fig_star_history(data: RepoData, theme: dict, lang: dict) -> str:
     )
     parts.append(chart_svg)
 
-    for ann in data.get("annotations", []):
-        ann_date = datetime.strptime(ann["date"], "%Y-%m-%d").date()
-        ann_x_data = (ann_date - start).days
-        sx, sy = project(ann_x_data, ann["count"])
-        leader_y = 146
-        if sx > 480:
-            leader_x = sx - 76
-            anchor = "end"
-        else:
-            leader_x = sx + 76
-            anchor = "start"
+    for placed in _layout_annotations(data.get("annotations", []), project, start):
         parts.append(P.annotation(
-            sx, sy, leader_x, leader_y,
-            primary=ann["label_top"],
-            secondary=ann["label_bottom"],
+            placed["sx"], placed["sy"],
+            placed["leader_x"], placed["leader_y"],
+            primary=placed["label_top"],
+            secondary=placed["label_bottom"],
             theme=theme,
-            label_anchor=anchor,
+            label_anchor=placed["anchor"],
         ))
 
     last_x, last_y = project(points[-1][0], points[-1][1])
     parts.append(P.endpoint_marker(last_x, last_y, str(parsed[-1][1]), theme))
 
     return "".join(parts)
+
+
+def _layout_annotations(annotations: list[dict], project, start_date) -> list[dict]:
+    """Place each annotation's leader and label using a monotone-staircase
+    layout.
+
+    All callouts live in the band between the FIG. 01 title (top, y≈124)
+    and the x-axis (bottom, y=320). The band is sliced into horizontal
+    tracks 22 pixels apart (`base_track=146`, then `+22` per step).
+
+    Annotations are processed in date order (left → right). For each:
+        - Start at `current_floor`, the lowest track used so far
+          (initially `base_track`).
+        - On the current track, try the preferred anchor, then the
+          opposite anchor.
+        - If both collide with a previously-placed label box, descend
+          one track and try again.
+        - Once placed, raise `current_floor` so later annotations never
+          go higher than this one.
+
+    This guarantees:
+        - Callouts stay between FIG. 01 and the x-axis.
+        - The leftmost (earliest) annotation is always at the highest
+          track; subsequent annotations are at the same track (no
+          collision) or strictly lower (collision).
+        - Label boxes never overlap, except in pathological cases where
+          the staircase reaches `max_track` — then the last placement
+          falls back to the default and accepts the overlap rather than
+          dropping the annotation.
+
+    Returns a list parallel to `annotations` (sorted by date), each entry
+    augmented with `sx`, `sy`, `leader_x`, `leader_y`, `anchor`.
+    """
+    if not annotations:
+        return []
+
+    # Geometry constants matching the chart layout in _fig_star_history
+    # and the annotation primitive (size=7).
+    char_w = 4.2        # monospace advance at font-size 7
+    chart_x_min = 60
+    chart_x_max = 640
+    text_pad = 2        # gap between leader_x and the text glyphs
+    leader_offset = 50  # horizontal length of the L-shaped leader
+    base_track = 146    # highest track, just under the FIG. 01 title
+    track_step = 20     # vertical spacing between successive tracks
+    max_track = 290     # lowest track, ~30px above the x-axis (y=320)
+
+    sorted_ann = sorted(annotations, key=lambda a: a["date"])
+    placed_boxes: list[tuple[float, float, float, float]] = []
+    result: list[dict] = []
+    current_floor = base_track  # track Y monotonically — never goes back up
+
+    for ann in sorted_ann:
+        ann_date = datetime.strptime(ann["date"], "%Y-%m-%d").date()
+        sx, sy = project((ann_date - start_date).days, ann["count"])
+        label_w = max(len(ann["label_top"]), len(ann["label_bottom"])) * char_w
+
+        primary = "start" if sx <= 480 else "end"
+        opposite = "end" if primary == "start" else "start"
+
+        def box(anchor: str, leader_y: float):
+            lx = sx + leader_offset if anchor == "start" else sx - leader_offset
+            if anchor == "start":
+                x_l, x_r = lx + text_pad, lx + text_pad + label_w
+            else:
+                x_l, x_r = lx - text_pad - label_w, lx - text_pad
+            return x_l, x_r, leader_y - 8, leader_y + 12, lx
+
+        chosen = None
+        ly = current_floor
+        while ly <= max_track and chosen is None:
+            for anchor in (primary, opposite):
+                x_l, x_r, y_t, y_b, lx = box(anchor, ly)
+                if x_l < chart_x_min - 24 or x_r > chart_x_max + 24:
+                    continue
+                if any(x_l < pr and pl < x_r and y_t < pb and pt < y_b
+                       for pl, pr, pt, pb in placed_boxes):
+                    continue
+                chosen = (anchor, ly, lx, x_l, x_r, y_t, y_b)
+                break
+            if chosen is None:
+                ly += track_step
+
+        if chosen is None:
+            x_l, x_r, y_t, y_b, lx = box(primary, current_floor)
+            chosen = (primary, current_floor, lx, x_l, x_r, y_t, y_b)
+
+        anchor, ly, lx, x_l, x_r, y_t, y_b = chosen
+        placed_boxes.append((x_l, x_r, y_t, y_b))
+        current_floor = ly  # later annotations may not rise above this track
+        result.append({
+            **ann,
+            "sx": sx, "sy": sy,
+            "leader_x": lx, "leader_y": ly,
+            "anchor": anchor,
+        })
+
+    return result
 
 
 # ──────────────────────────────────────────────────────────────────────────

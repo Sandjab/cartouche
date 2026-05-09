@@ -282,14 +282,17 @@ def line_chart(points: Sequence[tuple[float, float]],
 def annotation(svg_x: float, svg_y: float,
                leader_to_x: float, leader_to_y: float,
                primary: str, secondary: str,
-               theme: dict, *, label_anchor: str = "start") -> str:
+               theme: dict, *, label_anchor: str = "start",
+               size: int = 7) -> str:
     """Drop a circular marker at (svg_x, svg_y), draw an L-shaped dashed leader
     to (leader_to_x, leader_to_y), and place a two-line callout at the leader end.
 
     `primary` is the accent-colored top line ("// PREMIÈRE ÉTOILE — 2025-10-08").
     `secondary` is the dim continuation line ("push initial · v0.1.0").
+    `size` overrides the font-size of both lines (default 7, tighter than the
+    rest of the dashboard so several callouts can stack vertically).
     """
-    text_x = leader_to_x + 4 if label_anchor == "start" else leader_to_x - 4
+    text_x = leader_to_x + 2 if label_anchor == "start" else leader_to_x - 2
     return (
         f'<circle cx="{svg_x}" cy="{svg_y}" r="2.4" fill="{theme["accent"]}"/>'
         f'<line x1="{svg_x}" y1="{svg_y}" x2="{svg_x}" y2="{leader_to_y}" '
@@ -298,8 +301,10 @@ def annotation(svg_x: float, svg_y: float,
         f'<line x1="{svg_x}" y1="{leader_to_y}" x2="{leader_to_x}" y2="{leader_to_y}" '
         f'stroke="{theme["accent"]}" stroke-width="0.5" '
         f'stroke-dasharray="2,2" fill="none"/>'
-        + text(primary, text_x, leader_to_y - 4, theme, role="accent", anchor=label_anchor)
-        + text(secondary, text_x, leader_to_y + 7, theme, role="dim", anchor=label_anchor)
+        + text(primary,   text_x, leader_to_y - 2, theme, role="accent",
+               anchor=label_anchor, size=size)
+        + text(secondary, text_x, leader_to_y + 6, theme, role="dim",
+               anchor=label_anchor, size=size)
     )
 
 

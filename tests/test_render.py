@@ -320,3 +320,85 @@ def test_cli_rejects_bad_repo_target():
     from cartouche.cli import main
     rc = main(["repo", "no-slash", "--mock"])
     assert rc == 2
+
+
+def test_cli_repo_annotations_file_overrides_auto(tmp_path):
+    """Custom annotations replace the auto-detected first-star + spike pair."""
+    from cartouche.cli import main
+    overlay = tmp_path / "events.json"
+    overlay.write_text(json.dumps([
+        {"date": "2025-12-15",
+         "label_top": "// HACKER NEWS", "label_bottom": "// front page"},
+        {"date": "2026-04-01",
+         "label_top": "// SHIPPED v1", "label_bottom": "// public release"},
+    ]))
+    out_path = tmp_path / "out.svg"
+    rc = main([
+        "repo", "Sandjab/Athanor",
+        "--annotations-file", str(overlay),
+        "--out", str(out_path),
+        "--mock",
+    ])
+    assert rc == 0
+    content = out_path.read_text()
+    assert "HACKER NEWS" in content
+    assert "SHIPPED v1" in content
+    # Auto-detected labels should NOT appear once overridden
+    assert "FIRST STAR" not in content
+
+
+def test_cli_repo_annotations_file_count_interpolated(tmp_path):
+    """Annotations without explicit `count` get one derived from star_history."""
+    from cartouche.cli import _load_annotations_overlay
+    history = [
+        {"date": "2025-09-01", "count": 0},
+        {"date": "2025-12-01", "count": 5},
+        {"date": "2026-03-01", "count": 12},
+    ]
+    overlay_path = tmp_path / "events.json"
+    overlay_path.write_text(json.dumps([
+        # Date between Dec and Mar: count should be 5 (latest ≤ target)
+        {"date": "2026-01-15", "label_top": "X", "label_bottom": "Y"},
+    ]))
+    result = _load_annotations_overlay(str(overlay_path), history)
+    assert len(result) == 1
+    assert result[0]["count"] == 5
+
+
+def test_cli_repo_annotations_file_not_found():
+    from cartouche.cli import main
+    with pytest.raises(SystemExit) as exc:
+        main([
+            "repo", "Sandjab/Athanor",
+            "--annotations-file", "/nonexistent/path.json",
+            "--mock",
+        ])
+    assert exc.value.code == 2
+
+
+def test_cli_repo_annotations_file_invalid_json(tmp_path):
+    from cartouche.cli import main
+    bad = tmp_path / "broken.json"
+    bad.write_text("[ this is not json ]")
+    with pytest.raises(SystemExit) as exc:
+        main([
+            "repo", "Sandjab/Athanor",
+            "--annotations-file", str(bad),
+            "--mock",
+        ])
+    assert exc.value.code == 2
+
+
+def test_cli_repo_annotations_file_missing_required_key(tmp_path):
+    from cartouche.cli import main
+    overlay = tmp_path / "events.json"
+    overlay.write_text(json.dumps([
+        {"date": "2026-01-01"},  # missing label_top + label_bottom
+    ]))
+    with pytest.raises(SystemExit) as exc:
+        main([
+            "repo", "Sandjab/Athanor",
+            "--annotations-file", str(overlay),
+            "--mock",
+        ])
+    assert exc.value.code == 2

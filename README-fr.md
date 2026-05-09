@@ -59,6 +59,9 @@ cartouche repo Sandjab/Athanor --mock --theme vellum-light
 
 # Surcharger une langue avec votre propre pack JSON
 cartouche repo Sandjab/Athanor --lang fr --lang-file ./my-overrides.json
+
+# Remplacer les callouts auto-détectés sur la courbe d'étoiles
+cartouche repo Sandjab/Athanor --annotations-file ./events.json
 ```
 
 Le CLI lit le token GitHub dans cet ordre : `--token`, `$GITHUB_TOKEN`,
@@ -166,6 +169,34 @@ côte à côte de chaque variante.
   L'esthétique d'herbier poussée vers un papier-peint floral.
 - **Blossom + Kawai** — palette Blossom + filigrane perso kawaii. Pleine
   papeterie sakura, mascotte douce sous la grille du cartouche.
+
+## Annotations personnalisées
+
+Par défaut, le dashboard repo détecte automatiquement deux callouts sur la
+courbe d'étoiles : la **première étoile** et le **plus gros pic single-step**.
+Passez `--annotations-file path/to/events.json` pour les remplacer par votre
+propre liste d'événements :
+
+```json
+[
+  {"date": "2025-12-15", "label_top": "// HACKER NEWS", "label_bottom": "// front page"},
+  {"date": "2026-04-01", "label_top": "// SHIPPED v1", "label_bottom": "// public release"},
+  {"date": "2026-04-15", "count": 100, "label_top": "// MILESTONE", "label_bottom": "// 100 stars"}
+]
+```
+
+- **`date`** (obligatoire, ISO `YYYY-MM-DD`) — point d'ancrage du callout
+  sur l'axe.
+- **`label_top`** / **`label_bottom`** (obligatoires) — les deux lignes de
+  texte tracées à côté du fil de leader. Convention : `// PRÉFIXE` pour la
+  première ligne, libellé descriptif pour la deuxième, mais tout passe.
+- **`count`** (optionnel) — le total d'étoiles cumulé pour positionner le
+  point sur la courbe. Si absent, Cartouche le déduit du `star_history` à
+  la date la plus proche en amont.
+
+Les annotations custom **remplacent** la paire auto-détectée — copiez-les
+dans votre fichier si vous voulez les conserver. Disponible uniquement sur
+le dashboard `repo` (la courbe `profile` n'a pas d'annotations).
 
 ## Embedding dans un README
 
@@ -275,8 +306,10 @@ propre crédit. Pour l'enlever ou la reformuler, surchargez le template
   dashboard d'un fork individuel fonctionne normalement.
 - Les polices web ne sont pas embarquées — GitHub les strippe au rendu des
   SVG dans les README. Le fallback est une stack monospace système.
-- Les annotations sont automatiques (premier ★, plus gros pic) ; les
-  callouts custom ne sont pas encore exposés.
+- Les deux annotations auto-détectées (premier ★, plus gros pic) sont
+  *remplacées* si vous passez `--annotations-file` ; pas de moyen
+  d'*augmenter* la paire auto-détectée sans la lister manuellement dans
+  votre overlay.
 
 ## Développement
 

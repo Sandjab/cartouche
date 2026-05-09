@@ -2,6 +2,7 @@
 
 Usage:
     cartouche repo OWNER/REPO  [--theme THEME] [--lang CODE] [--lang-file PATH]
+                               [--annotations-file PATH]
                                [--out PATH] [--token TOKEN] [--mock]
     cartouche profile USER     [--theme THEME] [--lang CODE] [--lang-file PATH]
                                [--out PATH] [--token TOKEN] [--mock]
@@ -13,17 +14,22 @@ Examples:
     cartouche repo Sandjab/Athanor --theme blueprint-light --out dashboard.svg
     cartouche profile Sandjab --theme drafting-dark --lang fr
     cartouche repo myorg/myrepo --mock --lang fr --lang-file ./my-overrides.json
+    cartouche repo myorg/myrepo --annotations-file my-events.json
     cartouche themes
     cartouche langs
 
 Token resolution:    --token > $GITHUB_TOKEN > $GH_TOKEN > anonymous (rate-limited).
 Language defaults to English. Override with `--lang fr` (built-in), or supply
 your own JSON overlay via `--lang-file path/to/custom.json` to tweak any keys.
+Custom callouts on the star-history line are added via `--annotations-file
+path/to/events.json` (repo dashboard only); see `_load_annotations_overlay`
+docstring for the schema.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 
 from . import __version__, lang as lang_module
@@ -44,6 +50,10 @@ def main(argv: list[str] | None = None) -> int:
     p_repo.add_argument("target", metavar="OWNER/REPO",
                         help="GitHub repository, e.g. Sandjab/Athanor")
     _add_common_args(p_repo)
+    p_repo.add_argument("--annotations-file", default=None, dest="annotations_file",
+                        help="Path to a JSON file with custom annotations on "
+                             "the star-history line. Replaces the auto-detected "
+                             "first-star + biggest-spike callouts.")
 
     # profile
     p_prof = sub.add_parser("profile", help="Render a user profile dashboard")
@@ -116,9 +126,81 @@ def _render_repo(args: argparse.Namespace) -> int:
             sys.stderr.write(f"error: {e}\n")
             return 3
 
+    if args.annotations_file:
+        data["annotations"] = _load_annotations_overlay(
+            args.annotations_file, data["star_history"]
+        )
+
     from .render import repo as repo_render
     svg = repo_render.render(data, get_theme(args.theme), lang=lang)
     return _write(svg, args.out)
+
+
+def _load_annotations_overlay(path: str, star_history: list[dict]) -> list[dict]:
+    """Read a custom-annotations JSON overlay and normalise it to the contract
+    consumed by `render.repo` (`Annotation` TypedDict).
+
+    File format: a JSON array of objects, each with:
+        date         (str, ISO YYYY-MM-DD)        required
+        label_top    (str)                        required
+        label_bottom (str)                        required
+        count        (int)                        optional — derived from
+                                                  star_history if absent
+                                                  (latest entry ≤ date)
+
+    Errors exit the CLI with code 2 (bad input) and a one-line stderr message.
+    """
+    try:
+        with open(path, encoding="utf-8") as f:
+            items = json.load(f)
+    except FileNotFoundError:
+        sys.stderr.write(f"error: annotations file not found: {path}\n")
+        raise SystemExit(2)
+    except json.JSONDecodeError as e:
+        sys.stderr.write(f"error: annotations file is not valid JSON: {e}\n")
+        raise SystemExit(2)
+
+    if not isinstance(items, list):
+        sys.stderr.write(
+            "error: annotations file must contain a JSON list at the top level.\n"
+        )
+        raise SystemExit(2)
+
+    result: list[dict] = []
+    for i, entry in enumerate(items):
+        if not isinstance(entry, dict):
+            sys.stderr.write(f"error: annotation #{i}: must be a JSON object.\n")
+            raise SystemExit(2)
+        for required in ("date", "label_top", "label_bottom"):
+            if required not in entry:
+                sys.stderr.write(
+                    f"error: annotation #{i}: missing required key {required!r}.\n"
+                )
+                raise SystemExit(2)
+        date = entry["date"]
+        count = entry.get("count")
+        if count is None:
+            count = _interpolate_count(date, star_history)
+        result.append({
+            "date":         date,
+            "count":        count,
+            "label_top":    entry["label_top"],
+            "label_bottom": entry["label_bottom"],
+        })
+    return result
+
+
+def _interpolate_count(target_date: str, history: list[dict]) -> int:
+    """Return the cumulative star count at `target_date` by finding the latest
+    history entry on or before that date. ISO date strings sort lexically, so
+    no datetime parsing is needed."""
+    best = 0
+    for h in history:
+        if h["date"] <= target_date:
+            best = h["count"]
+        else:
+            break
+    return best
 
 
 def _render_profile(args: argparse.Namespace) -> int:

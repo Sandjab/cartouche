@@ -271,7 +271,7 @@ including theme/lang/CLI tests).
 | Tests                             | ✅ 55 passing |
 | PyPI release                      | ⏳ not yet pushed |
 | Stargazer cache (incremental)     | ⏳ planned, not implemented |
-| Custom annotation callouts        | ⏳ planned (today: auto-detect first ★ + spike) |
+| Custom annotation callouts        | ✅ stable via `--annotations-file PATH` (replaces auto-detected first ★ + spike) |
 | Multiple layout variants (square, compact) | ⏳ not started |
 
 ## Anti-patterns

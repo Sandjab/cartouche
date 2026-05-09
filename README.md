@@ -58,6 +58,9 @@ cartouche repo Sandjab/Athanor --mock --theme vellum-light
 
 # Override individual labels with your own JSON pack
 cartouche repo Sandjab/Athanor --lang fr --lang-file ./my-overrides.json
+
+# Replace auto-detected callouts on the star line with your own events
+cartouche repo Sandjab/Athanor --annotations-file ./events.json
 ```
 
 Token resolution: `--token` > `$GITHUB_TOKEN` > `$GH_TOKEN` > anonymous
@@ -166,6 +169,34 @@ side-by-side previews of every variant.
 - **Blossom + Kawai** — Blossom palette + kawaii character watermark.
   Sakura stationery, soft mascot ghosted under the cartouche grid.
 
+## Custom annotations
+
+By default the repo dashboard auto-detects two callouts on the star history:
+the **first star** and the **largest single-step spike**. Pass
+`--annotations-file path/to/events.json` to replace them with your own
+list of events:
+
+```json
+[
+  {"date": "2025-12-15", "label_top": "// HACKER NEWS", "label_bottom": "// front page"},
+  {"date": "2026-04-01", "label_top": "// SHIPPED v1", "label_bottom": "// public release"},
+  {"date": "2026-04-15", "count": 100, "label_top": "// MILESTONE", "label_bottom": "// 100 stars"}
+]
+```
+
+- **`date`** (required, ISO `YYYY-MM-DD`) is where the callout anchors on
+  the star-history axis.
+- **`label_top`** / **`label_bottom`** (required) are the two text lines
+  drawn next to the leader line. Convention is `// PREFIX` for the top
+  line and a more descriptive bottom line, but anything goes.
+- **`count`** (optional) is the cumulative star count to anchor on the
+  curve. If omitted, Cartouche derives it from the closest
+  `star_history` entry on or before that date.
+
+Custom annotations **replace** the auto-detected pair — copy the auto-
+detected ones into your file if you want to keep them. Only available on
+the `repo` dashboard (the `profile` star line does not have annotations).
+
 ## Embedding in a README
 
 Serve the right variant based on the visitor's `prefers-color-scheme`:
@@ -271,8 +302,9 @@ template via `--lang-file`.
   dashboard for an individual fork still works normally.
 - Web fonts are not embedded — GitHub strips them when rendering SVGs in
   READMEs. The fallback is a system monospace stack.
-- Annotations are auto-detected (first ★, biggest spike); custom callouts
-  aren't exposed yet.
+- The two auto-detected annotations (first ★, biggest spike) replace each
+  other if you pass `--annotations-file`; there's no way to *augment* the
+  auto-detected pair without listing them manually in your overlay.
 
 ## Development
 

@@ -6,7 +6,7 @@
 ## Project overview
 
 **Cartouche** is a zero-runtime-dependency Python library that generates
-blueprint-style SVG dashboards for GitHub repositories and profiles. It
+technical-drawing SVG dashboards for GitHub repositories and profiles. It
 ships as `cartouche-svg` on PyPI and exposes a `cartouche` CLI plus a
 clean Python API.
 

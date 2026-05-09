@@ -2,7 +2,7 @@
 
 > 🇬🇧 **English** (you are here) · 🇫🇷 [Français](README-fr.md)
 
-> Blueprint-style SVG dashboards for GitHub repositories and profiles.
+> Technical-drawing SVG dashboards for GitHub repositories and profiles.
 > Pure SVG primitives, six themes, two languages, embeddable in any README via `<picture>`.
 
 <picture>
@@ -16,30 +16,6 @@ health radar, key metrics, and a *cartouche* — the architectural title
 block — in the bottom-right corner. Six themes (light + dark), two
 built-in languages (English + French) with extensible custom packs via
 JSON, all served through the `<picture>` tag for both color modes.
-
-```
-┌──────────────────────────────────────────────────────────┐
-│  ATHANOR                                  REV A.04       │
-│  SANDJAB · REPOSITORY TELEMETRY           SHEET 01 / 01  │
-│  ────────────────────────────────────────────────────    │
-│  FIG. 01 — STAR HISTORY · Sep 2025 → May 2026            │
-│       ╱──•                                               │
-│      ╱   // FIRST STAR — 2025-10-08                      │
-│   ──╯                                                    │
-│  ────────────────────────────────────────────────────    │
-│  FIG. 02 — HEALTH RADAR    FIG. 03 — INDICATORS          │
-│      ☆                  ┌────┐ ┌────┐                    │
-│   ◇  ●  ◇               │ 23 │ │  4 │                    │
-│      ◇                  └────┘ └────┘                    │
-│                         ┌────┐ ┌────┐                    │
-│                         │ 12 │ │ 67 │                    │
-│                         └────┘ └────┘                    │
-│  ────────────────────────────────────────────────────    │
-│  NOTES                              ┌────────────────┐   │
-│  ▸ Pipeline: atomic claims …        │ SANDJAB │ A.04 │   │
-│  ▸ Canonical docs: CLAUDE.md …      └────────────────┘   │
-└──────────────────────────────────────────────────────────┘
-```
 
 ## Why
 

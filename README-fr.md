@@ -1,9 +1,9 @@
 # Cartouche
 
-> 🇬🇧 [English](README.md) · 🇫🇷 **Français** (you are here)
+> 🇬🇧 [English](README.md) · 🇫🇷 **Français** (vous êtes ici)
 
-> Blueprint-style SVG dashboards for GitHub repositories and profiles.
-> Pure SVG primitives, six themes, two languages, embeddable in any README via `<picture>`.
+> Dashboards SVG façon dessin technique pour repos et profils GitHub.
+> Primitives SVG pures, six thèmes, deux langues, intégrables dans tout README via `<picture>`.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/dashboard-dark.svg">
@@ -16,30 +16,6 @@ d'étoiles annotées, radar de santé, métriques, et un bloc de titre type
 *cartouche d'architecte* en bas à droite. Six thèmes (light + dark), deux
 langues built-in (en + fr) avec ajout de packs personnalisés par fichier
 JSON, le tout prêt à être servi aux deux modes via la balise `<picture>`.
-
-```
-┌──────────────────────────────────────────────────────────┐
-│  ATHANOR                                  REV A.04       │
-│  SANDJAB · REPOSITORY TELEMETRY           SHEET 01 / 01  │
-│  ────────────────────────────────────────────────────    │
-│  FIG. 01 — STAR HISTORY · Sep 2025 → May 2026            │
-│       ╱──•                                               │
-│      ╱   // FIRST STAR — 2025-10-08                      │
-│   ──╯                                                    │
-│  ────────────────────────────────────────────────────    │
-│  FIG. 02 — HEALTH RADAR    FIG. 03 — INDICATORS          │
-│      ☆                  ┌────┐ ┌────┐                    │
-│   ◇  ●  ◇               │ 23 │ │  4 │                    │
-│      ◇                  └────┘ └────┘                    │
-│                         ┌────┐ ┌────┐                    │
-│                         │ 12 │ │ 67 │                    │
-│                         └────┘ └────┘                    │
-│  ────────────────────────────────────────────────────    │
-│  NOTES                              ┌────────────────┐   │
-│  ▸ Pipeline: atomic claims …        │ SANDJAB │ A.04 │   │
-│  ▸ Canonical docs: CLAUDE.md …      └────────────────┘   │
-└──────────────────────────────────────────────────────────┘
-```
 
 ## Pourquoi
 

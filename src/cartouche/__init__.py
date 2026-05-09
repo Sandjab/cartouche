@@ -1,4 +1,4 @@
-"""Cartouche — blueprint-style dashboards for GitHub repos and profiles.
+"""Cartouche — technical-drawing dashboards for GitHub repos and profiles.
 
 Two dashboards: `cartouche.render.repo` and `cartouche.render.profile`.
 Six themes: see `cartouche.themes`.

@@ -33,7 +33,7 @@ from .themes import get_theme, list_themes
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="cartouche",
-        description="Blueprint-style dashboards for GitHub repos and profiles.",
+        description="Technical-drawing dashboards for GitHub repos and profiles.",
     )
     parser.add_argument("--version", action="version",
                         version=f"cartouche {__version__}")

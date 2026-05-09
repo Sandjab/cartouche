@@ -1,15 +1,15 @@
 # Cartouche Theme Catalogue
 
 Six themes in three aesthetic families, each with a light and a dark
-counterpart. Every preview below is rendered from the **same mock fixture**
-(`mock_repo()` — 23 stars, 67 commits over 30 days, two annotations) so the
-only thing changing between two cells is the palette and the typographic
-hierarchy. Pick a theme via `--theme <name>` on the CLI or
-`get_theme(<name>)` in the Python API.
+counterpart. Every preview below is rendered from the **same mock fixtures**
+(`mock_repo()` and `mock_profile()`) so the only thing changing between two
+cells is the palette and the typographic hierarchy. Pick a theme via
+`--theme <name>` on the CLI or `get_theme(<name>)` in the Python API.
 
 ```bash
 cartouche themes  # list all six
-cartouche repo Sandjab/Athanor --mock --theme vellum-dark --out /tmp/d.svg
+cartouche repo    Sandjab/Athanor --mock --theme vellum-dark    --out /tmp/r.svg
+cartouche profile Sandjab          --mock --theme blueprint-dark --out /tmp/p.svg
 ```
 
 | Family       | Light                 | Dark                |
@@ -28,9 +28,17 @@ attention to itself. The dark variant flips to charcoal paper without
 shifting the underlying hue family. Pick this when the dashboard sits next
 to body copy and shouldn't fight for attention.
 
+### Repo dashboard
+
 | `drafting-light` | `drafting-dark` |
 |---|---|
-| <img src="examples/outputs/repo-drafting-light.svg" alt="drafting-light theme preview" width="100%"/> | <img src="examples/outputs/repo-drafting-dark.svg" alt="drafting-dark theme preview" width="100%"/> |
+| <img src="examples/outputs/repo-drafting-light.svg" alt="repo · drafting-light" width="100%"/> | <img src="examples/outputs/repo-drafting-dark.svg" alt="repo · drafting-dark" width="100%"/> |
+
+### Profile dashboard
+
+| `drafting-light` | `drafting-dark` |
+|---|---|
+| <img src="examples/outputs/profile-drafting-light.svg" alt="profile · drafting-light" width="100%"/> | <img src="examples/outputs/profile-drafting-dark.svg" alt="profile · drafting-dark" width="100%"/> |
 
 ---
 
@@ -42,9 +50,17 @@ side — the most "engineering-drawing"-coded of the three families, and the
 default theme for the CLI. Reach for this when you want the dashboard to
 read instantly as a technical artefact.
 
+### Repo dashboard
+
 | `blueprint-light` | `blueprint-dark` |
 |---|---|
-| <img src="examples/outputs/repo-blueprint-light.svg" alt="blueprint-light theme preview" width="100%"/> | <img src="examples/outputs/repo-blueprint-dark.svg" alt="blueprint-dark theme preview" width="100%"/> |
+| <img src="examples/outputs/repo-blueprint-light.svg" alt="repo · blueprint-light" width="100%"/> | <img src="examples/outputs/repo-blueprint-dark.svg" alt="repo · blueprint-dark" width="100%"/> |
+
+### Profile dashboard
+
+| `blueprint-light` | `blueprint-dark` |
+|---|---|
+| <img src="examples/outputs/profile-blueprint-light.svg" alt="profile · blueprint-light" width="100%"/> | <img src="examples/outputs/profile-blueprint-dark.svg" alt="profile · blueprint-dark" width="100%"/> |
 
 ---
 
@@ -56,9 +72,17 @@ a 19th-century naturalist plate than to a Bauhaus blueprint. Use this when
 the surrounding context is editorial, hand-crafted, or deliberately
 nostalgic; it makes the data feel curated rather than instrumented.
 
+### Repo dashboard
+
 | `vellum-light` | `vellum-dark` |
 |---|---|
-| <img src="examples/outputs/repo-vellum-light.svg" alt="vellum-light theme preview" width="100%"/> | <img src="examples/outputs/repo-vellum-dark.svg" alt="vellum-dark theme preview" width="100%"/> |
+| <img src="examples/outputs/repo-vellum-light.svg" alt="repo · vellum-light" width="100%"/> | <img src="examples/outputs/repo-vellum-dark.svg" alt="repo · vellum-dark" width="100%"/> |
+
+### Profile dashboard
+
+| `vellum-light` | `vellum-dark` |
+|---|---|
+| <img src="examples/outputs/profile-vellum-light.svg" alt="profile · vellum-light" width="100%"/> | <img src="examples/outputs/profile-vellum-dark.svg" alt="profile · vellum-dark" width="100%"/> |
 
 ---
 
@@ -67,14 +91,18 @@ nostalgic; it makes the data feel curated rather than instrumented.
 A theme is a flat dict of 12 color tokens — see `src/cartouche/themes.py`
 for the contract. Adding one is ~12 lines: copy an existing entry, change
 the palette, and the rest of the code (renderer, CLI, tests) picks it up
-automatically. To regenerate this catalogue's previews:
+automatically. To regenerate this catalogue's previews for a new theme:
 
 ```bash
-PYTHONPATH=src python3 -m cartouche repo Sandjab/Athanor --mock \
-  --theme <new-theme-light> --out examples/outputs/repo-<new-theme-light>.svg
-PYTHONPATH=src python3 -m cartouche repo Sandjab/Athanor --mock \
-  --theme <new-theme-dark>  --out examples/outputs/repo-<new-theme-dark>.svg
+for kind in repo profile; do
+  for variant in light dark; do
+    PYTHONPATH=src python3 -m cartouche $kind \
+      $([ "$kind" = repo ] && echo "Sandjab/Athanor" || echo "Sandjab") \
+      --mock --theme NEW-THEME-$variant \
+      --out examples/outputs/$kind-NEW-THEME-$variant.svg
+  done
+done
 ```
 
-Then add a section above following the same structure (paragraph + 2-column
-table linking to the two SVGs).
+Then add a section above following the same structure (paragraph + two
+2-column tables, one per dashboard kind).

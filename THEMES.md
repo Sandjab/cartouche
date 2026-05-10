@@ -25,6 +25,19 @@ cartouche profile Sandjab          --mock --theme blossom-kawai-light --out /tmp
 | **Botanical + Floral** | `botanical-floral-light`  | `botanical-floral-dark`    |
 | **Blossom + Kawai**  | `blossom-kawai-light`       | `blossom-kawai-dark`       |
 
+## Contents
+
+- [Drafting](#drafting)
+- [Blueprint](#blueprint)
+- [Vellum](#vellum)
+- [Botanical](#botanical)
+- [Blossom](#blossom)
+- [Vellum + Davinci](#vellum--davinci)
+- [Botanical + Floral](#botanical--floral)
+- [Blossom + Kawai](#blossom--kawai)
+- [How watermarks work](#how-watermarks-work)
+- [Adding a theme](#adding-a-theme)
+
 ---
 
 ## Drafting

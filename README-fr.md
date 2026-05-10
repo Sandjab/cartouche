@@ -26,6 +26,23 @@ Kawai), deux langues built-in (en + fr) avec ajout de packs personnalisés
 par fichier JSON, le tout prêt à être servi aux deux modes via la balise
 `<picture>`.
 
+## Sommaire
+
+- [Pourquoi](#pourquoi)
+- [Données affichées](#données-affichées)
+- [Installation](#installation)
+- [Utilisation en CLI](#utilisation-en-cli)
+- [Internationalisation](#internationalisation)
+- [Thèmes](#thèmes)
+- [Annotations personnalisées](#annotations-personnalisées)
+- [Embedding dans un README](#embedding-dans-un-readme)
+- [Mise à jour automatique via GitHub Actions](#mise-à-jour-automatique-via-github-actions)
+- [API Python](#api-python)
+- [Architecture](#architecture)
+- [Limitations connues](#limitations-connues)
+- [Développement](#développement)
+- [Licence](#licence)
+
 ## Pourquoi
 
 Les solutions existantes (star-history.com, GitHub Charts, etc.) servent les
@@ -36,11 +53,44 @@ GitHub Action, le commiter dans `assets/`, et le servir comme fichier
 versionné — donc rafraîchi à la cadence de votre cron, lisible par tout le
 monde, et stylisable à votre goût.
 
+## Données affichées
+
+### Dashboard repo
+
+- **FIG. 01** — Star history avec annotations de pic et endpoint marker
+- **FIG. 02** — Radar 6 axes : stars, forks, commits, code, tests, docs
+- **FIG. 03** — Cartes : stargazers, forks, issues, commits/30j + barre de
+  langages
+
+### Dashboard profil
+
+- **FIG. 01** — Étoiles cumulées sur tous les repos publics du compte
+- **FIG. 02** — Top 5 repos par stars, avec langage et commits/30j (les
+  noms trop longs sont tronqués par `…` pour ne pas toucher les barres)
+- **FIG. 03** — Radar profil 6 axes : reach, activity, breadth, depth,
+  polyglot, engagement
+- **FIG. 04** — Heatmap de contributions sur 53 semaines glissantes (via
+  GraphQL — nécessite un token)
+- **FIG. 05** — Indicateurs : total stars, total forks, commits/12 mois,
+  ancienneté
+
+Les deux dashboards portent une discrète signature `Proudly Clauded by
+@<handle>` juste sous le cadre, en bas à droite. Le handle vient des
+données, donc chaque utilisateur de la lib obtient automatiquement son
+propre crédit. Pour l'enlever ou la reformuler, surchargez le template
+`proudly_clauded` via `--lang-file`.
+
 ## Installation
 
 ```bash
 pip install cartouche-svg
 ```
+
+> **Note** : la publication PyPI est en attente. En attendant la sortie de
+> v0.2.0 sur PyPI, installation depuis les sources :
+> ```bash
+> pip install git+https://github.com/Sandjab/cartouche.git
+> ```
 
 Aucune dépendance runtime — Cartouche utilise uniquement la stdlib (`urllib`
 pour les appels API, `json`, `datetime`, `math`, `importlib.resources`).
@@ -277,33 +327,6 @@ thème = ajouter ~12 lignes dans `THEMES`. Ajouter une langue = déposer un
 JSON dans `lang/`. Voir [CLAUDE.md](CLAUDE.md) pour le détail des invariants
 architecturaux.
 
-## Données affichées
-
-### Dashboard repo
-
-- **FIG. 01** — Star history avec annotations de pic et endpoint marker
-- **FIG. 02** — Radar 6 axes : stars, forks, commits, code, tests, docs
-- **FIG. 03** — Cartes : stargazers, forks, issues, commits/30j + barre de
-  langages
-
-### Dashboard profil
-
-- **FIG. 01** — Étoiles cumulées sur tous les repos publics du compte
-- **FIG. 02** — Top 5 repos par stars, avec langage et commits/30j (les
-  noms trop longs sont tronqués par `…` pour ne pas toucher les barres)
-- **FIG. 03** — Radar profil 6 axes : reach, activity, breadth, depth,
-  polyglot, engagement
-- **FIG. 04** — Heatmap de contributions sur 53 semaines glissantes (via
-  GraphQL — nécessite un token)
-- **FIG. 05** — Indicateurs : total stars, total forks, commits/12 mois,
-  ancienneté
-
-Les deux dashboards portent une discrète signature `Proudly Clauded by
-@<handle>` juste sous le cadre, en bas à droite. Le handle vient des
-données, donc chaque utilisateur de la lib obtient automatiquement son
-propre crédit. Pour l'enlever ou la reformuler, surchargez le template
-`proudly_clauded` via `--lang-file`.
-
 ## Limitations connues
 
 - Le dashboard profil interroge `/repos/.../stargazers` pour chaque repo
@@ -324,7 +347,7 @@ propre crédit. Pour l'enlever ou la reformuler, surchargez le template
 git clone https://github.com/Sandjab/cartouche
 cd cartouche
 pip install -e ".[dev]"
-pytest                                                 # 55 tests, ~0.2s
+pytest                                                 # 128 tests, ~0.3s
 python -m cartouche repo Sandjab/Athanor --mock        # smoke test sans API
 python -m cartouche profile Sandjab --mock --lang fr   # version FR
 ```

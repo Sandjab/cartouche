@@ -25,6 +25,23 @@ watermarked variants for Vellum + Davinci, Botanical + Floral, Blossom +
 Kawai), two built-in languages (English + French) with extensible custom
 packs via JSON, all served through the `<picture>` tag for both color modes.
 
+## Contents
+
+- [Why](#why)
+- [What gets displayed](#what-gets-displayed)
+- [Installation](#installation)
+- [CLI usage](#cli-usage)
+- [Internationalization](#internationalization)
+- [Themes](#themes)
+- [Custom annotations](#custom-annotations)
+- [Embedding in a README](#embedding-in-a-readme)
+- [Auto-update via GitHub Actions](#auto-update-via-github-actions)
+- [Python API](#python-api)
+- [Architecture](#architecture)
+- [Known limitations](#known-limitations)
+- [Development](#development)
+- [License](#license)
+
 ## Why
 
 Existing solutions (star-history.com, GitHub Charts, etc.) serve images
@@ -35,11 +52,44 @@ commit it to your repo, and serve it as a versioned file — so it
 refreshes on the cron cadence you set, is readable by anyone, and is
 fully styleable to taste.
 
+## What gets displayed
+
+### Repo dashboard
+
+- **FIG. 01** — Star history with peak annotations and endpoint marker
+- **FIG. 02** — 6-axis radar: stars, forks, commits, code, tests, docs
+- **FIG. 03** — Cards: stargazers, forks, issues, commits/30d + language
+  breakdown bar
+
+### Profile dashboard
+
+- **FIG. 01** — Cumulative stars across all the account's public repos
+- **FIG. 02** — Top 5 repos by stars, with language and commits/30d
+  (long names are truncated with `…` to keep them off the bars)
+- **FIG. 03** — 6-axis profile radar: reach, activity, breadth, depth,
+  polyglot, engagement
+- **FIG. 04** — 53-week trailing contribution heatmap (via GraphQL —
+  requires a token)
+- **FIG. 05** — Indicators: total stars, total forks, commits/12 months,
+  account age
+
+Both dashboards carry a small `Proudly Clauded by @<handle>` watermark
+just below the frame, in the bottom-right corner. The handle is pulled
+from the data, so anyone running the lib gets their own credit line
+automatically. To remove or rephrase it, override the `proudly_clauded`
+template via `--lang-file`.
+
 ## Installation
 
 ```bash
 pip install cartouche-svg
 ```
+
+> **Note**: PyPI release is pending. Until v0.2.0 lands on PyPI, install
+> directly from source:
+> ```bash
+> pip install git+https://github.com/Sandjab/cartouche.git
+> ```
 
 Zero runtime dependencies — Cartouche uses only the standard library
 (`urllib` for API calls, `json`, `datetime`, `math`, `importlib.resources`).
@@ -142,9 +192,9 @@ See `src/cartouche/lang/en.json` for the full key list.
 ## Themes
 
 Sixteen themes in eight families, each with a light and a dark counterpart.
-The first five are clean palettes; the last three are watermarked variants
-that ghost a bundled PNG (Da Vinci plate, floral motif, kawaii character)
-behind the data layer at low opacity. See [THEMES.md](THEMES.md) for
+The first five families are clean palettes; the last three are watermarked
+variants that ghost a bundled PNG (Da Vinci plate, floral motif, kawaii
+character) behind the data layer at low opacity. See [THEMES.md](THEMES.md) for
 side-by-side previews of every variant.
 
 | Family                 | Light                       | Dark                       |
@@ -273,33 +323,6 @@ The render engine is *token-agnostic* (colors come from `themes`) and
 lines in `THEMES`. Adding a language = drop a JSON in `lang/`. See
 [CLAUDE.md](CLAUDE.md) for the architectural invariants in detail.
 
-## What gets displayed
-
-### Repo dashboard
-
-- **FIG. 01** — Star history with peak annotations and endpoint marker
-- **FIG. 02** — 6-axis radar: stars, forks, commits, code, tests, docs
-- **FIG. 03** — Cards: stargazers, forks, issues, commits/30d + language
-  breakdown bar
-
-### Profile dashboard
-
-- **FIG. 01** — Cumulative stars across all the account's public repos
-- **FIG. 02** — Top 5 repos by stars, with language and commits/30d
-  (long names are truncated with `…` to keep them off the bars)
-- **FIG. 03** — 6-axis profile radar: reach, activity, breadth, depth,
-  polyglot, engagement
-- **FIG. 04** — 53-week trailing contribution heatmap (via GraphQL —
-  requires a token)
-- **FIG. 05** — Indicators: total stars, total forks, commits/12 months,
-  account age
-
-Both dashboards carry a small `Proudly Clauded by @<handle>` watermark
-just below the frame, in the bottom-right corner. The handle is pulled
-from the data, so anyone running the lib gets their own credit line
-automatically. To remove or rephrase it, override the `proudly_clauded`
-template via `--lang-file`.
-
 ## Known limitations
 
 - The profile dashboard hits `/repos/.../stargazers` for each public
@@ -319,7 +342,7 @@ template via `--lang-file`.
 git clone https://github.com/Sandjab/cartouche
 cd cartouche
 pip install -e ".[dev]"
-pytest                                                 # 55 tests, ~0.2s
+pytest                                                 # 128 tests, ~0.3s
 python -m cartouche repo Sandjab/Athanor --mock        # smoke test without API
 python -m cartouche profile Sandjab --mock --lang fr   # FR variant
 ```

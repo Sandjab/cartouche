@@ -7,6 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-%E2%89%A53.10-blue.svg)](https://www.python.org)
 [![Version](https://img.shields.io/badge/Version-v0.2.0-green.svg)](https://github.com/Sandjab/cartouche/releases)
+[![Visitors](https://komarev.com/ghpvc/?username=Sandjab&label=Visitors&color=0e75b6&style=flat)](https://github.com/Sandjab)
 
 > Dashboards SVG façon dessin technique pour repos et profils GitHub.
 > Primitives SVG pures, seize thèmes (variantes filigranées incluses), deux langues, intégrables dans tout README via `<picture>`.

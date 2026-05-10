@@ -33,6 +33,7 @@ cartouche/
 │   ├── cli.py                 # argparse entry point
 │   ├── themes.py              # 16-theme registry (dict-of-dicts)
 │   ├── fetch.py               # GitHub REST + GraphQL, stdlib urllib only
+│   ├── cache.py               # disk cache (TTL JSON) for hot fetch paths
 │   ├── mock.py                # canned data fixtures (no API)
 │   ├── lang/
 │   │   ├── __init__.py        # load(), list_builtin(), t(), tmpl(), helpers
@@ -223,6 +224,14 @@ Pure stdlib. Anonymous calls hit the 60 req/h rate limit fast — for
 profile dashboards we make ~20+ calls (one stargazers fetch per repo +
 languages + commits). Always pass a token in CI.
 
+The two heaviest paths — stargazer timelines and per-repo language
+byte counts — go through the disk cache (`cartouche.cache`) via
+`_cached_stargazer_dates` / `_cached_languages`. Both `repo_data` and
+`profile_data` accept a `cache: Cache | None` arg; when omitted, a
+default 24h-TTL cache rooted at `$XDG_CACHE_HOME/cartouche/` is used.
+The CLI threads `--no-cache` / `--cache-ttl` / `--cache-dir` into a
+`Cache` instance via `_build_cache`.
+
 The `_count_via_pagination` trick parses the Link header `rel="last"`
 to count without iterating. This is faster than full pagination but
 relies on GitHub's pagination format. If GitHub ever changes its Link
@@ -292,9 +301,17 @@ families (Vellum + Davinci, Botanical + Floral, Blossom + Kawai).
 
 Parametrized over themes and langs. When adding a new theme or lang the
 tests automatically include it. The test count grows multiplicatively
-(16 themes × 2 langs × 2 dashboards = 64 render tests; today 128 total
-including theme/lang/CLI tests, plus the notes-wrap and CANVAS_H sanity
-checks).
+(16 themes × 2 langs × 2 dashboards = 64 render tests; today 147 total
+including theme/lang/CLI tests, the notes-wrap and CANVAS_H sanity
+checks, and the cache tests in `test_cache.py`).
+
+### `tests/test_cache.py`
+
+Pins the contract of `cartouche.cache.Cache` (round-trip, TTL, disabled
+mode, version mismatch, path-traversal neutralization, atomic write,
+clear-one and clear-all). Also has one integration test that monkey-
+patches `_get_paginated` / `_get_json` to raise — proving that a hot
+cache really skips the network.
 
 ## Status
 
@@ -307,7 +324,8 @@ checks).
 | GitHub Actions workflows          | ✅ stable |
 | Tests                             | ✅ 128 passing |
 | PyPI release                      | ⏳ not yet pushed |
-| Stargazer cache (incremental)     | ⏳ planned, not implemented |
+| Stargazer cache (TTL-based)       | ✅ stable (24h disk cache, --no-cache to skip) |
+| Stargazer cache (incremental refresh) | ⏳ planned, not implemented |
 | Custom annotation callouts        | ✅ stable via `--annotations-file PATH` (replaces auto-detected first ★ + spike) |
 | Multiple layout variants (square, compact) | ⏳ not started |
 

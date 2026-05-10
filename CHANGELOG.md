@@ -39,6 +39,12 @@ Pre-PyPI hardening of v0.2.0. Targeted at first publication.
   separate `build-wheel` job that verifies the language packs and
   watermark PNGs are packaged into the wheel.
 - **Visitors badge** (komarev), one counter per repo.
+- **Disk cache** (`cartouche.cache.Cache`) for the two GitHub endpoints
+  that dominate runtime: stargazer timelines and per-repo language
+  byte counts. JSON-on-disk under `$XDG_CACHE_HOME/cartouche/` with a
+  24h TTL by default. New CLI flags: `--no-cache`, `--cache-ttl
+  SECONDS`, `--cache-dir PATH`. A second `cartouche profile` run on
+  the same handle is now near-instant.
 
 ### Changed
 

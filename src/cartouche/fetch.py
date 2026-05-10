@@ -25,6 +25,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Any, Iterator
 
 from . import lang as _lang_module
+from .cache import Cache
 from .lang import tmpl
 
 API_BASE = "https://api.github.com"
@@ -37,29 +38,31 @@ USER_AGENT = "cartouche-svg/0.1"
 # ──────────────────────────────────────────────────────────────────────────
 
 def repo_data(owner: str, name: str, token: str | None = None,
-              lang: dict | None = None) -> dict:
+              lang: dict | None = None,
+              cache: Cache | None = None) -> dict:
     """Fetch and aggregate everything needed for the repo dashboard.
 
     `lang` is a language pack (see cartouche.lang). Defaults to English.
     Used to format annotation labels and auto-generated notes.
+
+    `cache` is a `cartouche.cache.Cache`. The two heaviest calls
+    (stargazer timeline + language byte counts) are read from / written
+    to it; everything else still hits the API. Pass `Cache(enabled=False)`
+    to disable, or omit for a default 24h-TTL disk cache.
     """
     if lang is None:
         lang = _lang_module.load("en")
+    if cache is None:
+        cache = Cache()
     token = _resolve_token(token)
     repo = _get_json(f"{API_BASE}/repos/{owner}/{name}", token)
 
-    # Star history (timestamps via the star+json media type)
-    stargazers = list(_get_paginated(
-        f"{API_BASE}/repos/{owner}/{name}/stargazers",
-        token,
-        accept="application/vnd.github.star+json",
-    ))
-    star_history = _build_cumulative_history(
-        [_parse_iso(s["starred_at"]) for s in stargazers]
-    )
+    # Star history (timestamps via the star+json media type) — cached.
+    star_dates = _cached_stargazer_dates(owner, name, token, cache)
+    star_history = _build_cumulative_history(star_dates)
 
-    # Languages (returns {name: bytes})
-    lang_bytes = _get_json(f"{API_BASE}/repos/{owner}/{name}/languages", token)
+    # Languages (returns {name: bytes}) — cached.
+    lang_bytes = _cached_languages(owner, name, token, cache)
     languages = _bytes_to_pct(lang_bytes)
 
     # Closed issues — use search to count without paginating all of them.
@@ -116,13 +119,19 @@ def repo_data(owner: str, name: str, token: str | None = None,
 
 
 def profile_data(handle: str, token: str | None = None,
-                 lang: dict | None = None) -> dict:
+                 lang: dict | None = None,
+                 cache: Cache | None = None) -> dict:
     """Fetch and aggregate everything needed for the profile dashboard.
 
     `lang` defaults to English; used to format auto-generated notes.
+    `cache` shares the same disk store used by `repo_data` — the per-repo
+    stargazer and language calls (the dominant cost on viral profiles)
+    are read through it.
     """
     if lang is None:
         lang = _lang_module.load("en")
+    if cache is None:
+        cache = Cache()
     token = _resolve_token(token)
     user = _get_json(f"{API_BASE}/users/{handle}", token)
 
@@ -134,19 +143,15 @@ def profile_data(handle: str, token: str | None = None,
     # Filter out forks for top-5; full list still informs totals
     own_repos = [r for r in repos if not r["fork"]]
 
-    # Aggregate star history across all owned repos
+    # Aggregate star history across all owned repos — cached per repo.
     all_star_dates: list[date] = []
     for r in own_repos:
         if r["stargazers_count"] == 0:
             continue
         try:
-            stargazers = list(_get_paginated(
-                f"{API_BASE}/repos/{handle}/{r['name']}/stargazers",
-                token,
-                accept="application/vnd.github.star+json",
-                max_pages=5,  # cap to avoid runaway on viral repos
+            all_star_dates.extend(_cached_stargazer_dates(
+                handle, r["name"], token, cache, max_pages=5,
             ))
-            all_star_dates.extend(_parse_iso(s["starred_at"]) for s in stargazers)
         except urllib.error.HTTPError:
             continue
     star_history = _build_cumulative_history(sorted(all_star_dates))
@@ -167,12 +172,11 @@ def profile_data(handle: str, token: str | None = None,
             "commits_30d": commits_30d,
         })
 
-    # Aggregate languages (bytes-weighted)
+    # Aggregate languages (bytes-weighted) — cached per repo.
     lang_totals: Counter[str] = Counter()
     for r in own_repos[:20]:  # cap at 20 to stay reasonable
         try:
-            lb = _get_json(f"{API_BASE}/repos/{handle}/{r['name']}/languages", token)
-            lang_totals.update(lb)
+            lang_totals.update(_cached_languages(handle, r["name"], token, cache))
         except urllib.error.HTTPError:
             continue
     languages = _bytes_to_pct(dict(lang_totals.most_common(10)))
@@ -217,6 +221,47 @@ def profile_data(handle: str, token: str | None = None,
         "rev":                  _next_rev(),
         "date":                 date.today().isoformat(),
     }
+
+
+# ──────────────────────────────────────────────────────────────────────────
+#  Cached fetchers (the two hot paths)
+# ──────────────────────────────────────────────────────────────────────────
+
+def _cached_stargazer_dates(owner: str, name: str, token: str | None,
+                            cache: Cache, max_pages: int = 50) -> list[date]:
+    """Return the list of star event dates for a repo, using the cache.
+
+    The full, untrimmed list of dates is what we cache (as ISO strings),
+    not the downsampled `star_history`. This keeps the cache resilient
+    to changes in the downsampling logic and lets the same cache feed
+    both `repo_data` (full curve) and `profile_data` (sum across repos).
+    """
+    key = ("stargazers", owner, name)
+    cached = cache.get(key)
+    if cached is not None:
+        return [date.fromisoformat(d) for d in cached]
+
+    pages = _get_paginated(
+        f"{API_BASE}/repos/{owner}/{name}/stargazers",
+        token,
+        accept="application/vnd.github.star+json",
+        max_pages=max_pages,
+    )
+    dates = [_parse_iso(s["starred_at"]) for s in pages]
+    cache.put(key, [d.isoformat() for d in dates])
+    return dates
+
+
+def _cached_languages(owner: str, name: str, token: str | None,
+                      cache: Cache) -> dict[str, int]:
+    """Return the {language: bytes} mapping for a repo, using the cache."""
+    key = ("languages", owner, name)
+    cached = cache.get(key)
+    if cached is not None:
+        return cached
+    data = _get_json(f"{API_BASE}/repos/{owner}/{name}/languages", token)
+    cache.put(key, data)
+    return data
 
 
 # ──────────────────────────────────────────────────────────────────────────

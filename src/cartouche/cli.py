@@ -4,8 +4,10 @@ Usage:
     cartouche repo OWNER/REPO  [--theme THEME] [--lang CODE] [--lang-file PATH]
                                [--annotations-file PATH]
                                [--out PATH] [--token TOKEN] [--mock]
+                               [--no-cache] [--cache-ttl SECONDS] [--cache-dir PATH]
     cartouche profile USER     [--theme THEME] [--lang CODE] [--lang-file PATH]
                                [--out PATH] [--token TOKEN] [--mock]
+                               [--no-cache] [--cache-ttl SECONDS] [--cache-dir PATH]
     cartouche themes           # list available themes
     cartouche langs            # list available language packs
     cartouche --version
@@ -15,6 +17,7 @@ Examples:
     cartouche profile Sandjab --theme drafting-dark --lang fr
     cartouche repo myorg/myrepo --mock --lang fr --lang-file ./my-overrides.json
     cartouche repo myorg/myrepo --annotations-file my-events.json
+    cartouche profile Sandjab --no-cache       # force fresh API fetch
     cartouche themes
     cartouche langs
 
@@ -24,6 +27,12 @@ your own JSON overlay via `--lang-file path/to/custom.json` to tweak any keys.
 Custom callouts on the star-history line are added via `--annotations-file
 path/to/events.json` (repo dashboard only); see `_load_annotations_overlay`
 docstring for the schema.
+
+Caching: stargazer timelines and per-repo language counts are cached on
+disk under `$XDG_CACHE_HOME/cartouche/` (default 24h TTL). The cache
+makes a follow-up profile render of the same handle near-instant. Use
+`--no-cache` to skip it, `--cache-ttl 0` to force a refresh once, or
+`--cache-dir PATH` to relocate.
 """
 
 from __future__ import annotations
@@ -31,8 +40,10 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 
 from . import __version__, lang as lang_module
+from .cache import Cache, default_cache_dir
 from .themes import get_theme, list_themes
 
 
@@ -95,6 +106,13 @@ def _add_common_args(p: argparse.ArgumentParser) -> None:
                    help="GitHub token; falls back to $GITHUB_TOKEN / $GH_TOKEN")
     p.add_argument("--mock", action="store_true",
                    help="Use canned data (no API call) — for testing layouts")
+    p.add_argument("--no-cache", action="store_true", dest="no_cache",
+                   help="Disable the on-disk cache (force fresh API fetches)")
+    p.add_argument("--cache-ttl", type=int, default=None, dest="cache_ttl",
+                   help="Cache TTL in seconds (default 86400 = 24h). "
+                        "Set to 0 to force a one-shot refresh.")
+    p.add_argument("--cache-dir", default=None, dest="cache_dir",
+                   help=f"Cache directory (default: {default_cache_dir()})")
 
 
 def _load_lang(args: argparse.Namespace) -> dict:
@@ -106,6 +124,15 @@ def _load_lang(args: argparse.Namespace) -> dict:
     except FileNotFoundError as e:
         sys.stderr.write(f"error: lang file not found: {e}\n")
         raise SystemExit(2)
+
+
+def _build_cache(args: argparse.Namespace) -> Cache:
+    """Construct a Cache from the CLI flags, with sensible defaults."""
+    base_dir = Path(args.cache_dir) if args.cache_dir else None
+    kwargs: dict = {"enabled": not args.no_cache}
+    if args.cache_ttl is not None:
+        kwargs["ttl_seconds"] = max(0, args.cache_ttl)
+    return Cache(base_dir=base_dir, **kwargs)
 
 
 def _render_repo(args: argparse.Namespace) -> int:
@@ -121,7 +148,8 @@ def _render_repo(args: argparse.Namespace) -> int:
     else:
         from . import fetch
         try:
-            data = fetch.repo_data(owner, name, token=args.token, lang=lang)
+            data = fetch.repo_data(owner, name, token=args.token, lang=lang,
+                                   cache=_build_cache(args))
         except Exception as e:
             sys.stderr.write(f"error: {e}\n")
             return 3
@@ -212,7 +240,8 @@ def _render_profile(args: argparse.Namespace) -> int:
     else:
         from . import fetch
         try:
-            data = fetch.profile_data(args.target, token=args.token, lang=lang)
+            data = fetch.profile_data(args.target, token=args.token, lang=lang,
+                                      cache=_build_cache(args))
         except Exception as e:
             sys.stderr.write(f"error: {e}\n")
             return 3

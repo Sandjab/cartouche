@@ -335,8 +335,13 @@ lines in `THEMES`. Adding a language = drop a JSON in `lang/`. See
 ## Known limitations
 
 - The profile dashboard hits `/repos/.../stargazers` for each public
-  repo; for an account with many highly-starred repos, this can take a
-  minute. An incremental cache layer is planned.
+  repo; the first run on a viral account can still take a minute, but
+  subsequent runs are near-instant thanks to a 24h disk cache
+  (`$XDG_CACHE_HOME/cartouche/`). Pass `--no-cache` to skip it,
+  `--cache-ttl 0` to force a one-shot refresh, or `--cache-dir PATH`
+  to relocate. True *incremental* refresh (only fetch stars added
+  since last run) isn't implemented yet — when the cache is stale,
+  the timeline is refetched in full.
 - Forks are excluded from profile aggregates (filtered out). The
   dashboard for an individual fork still works normally.
 - Web fonts are not embedded — GitHub strips them when rendering SVGs in

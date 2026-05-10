@@ -339,8 +339,14 @@ architecturaux.
 ## Limitations connues
 
 - Le dashboard profil interroge `/repos/.../stargazers` pour chaque repo
-  public ; pour un compte avec beaucoup de repos très étoilés, l'opération
-  peut prendre une minute. Une couche de cache incrémentale est prévue.
+  public ; le premier passage sur un compte très étoilé peut prendre
+  une minute, mais les suivants sont quasi-instantanés grâce à un
+  cache disque 24h (`$XDG_CACHE_HOME/cartouche/`). Passez `--no-cache`
+  pour le désactiver, `--cache-ttl 0` pour forcer un refresh ponctuel,
+  ou `--cache-dir PATH` pour le relocaliser. Le rafraîchissement
+  *incrémental* (ne fetcher que les étoiles nouvelles depuis la dernière
+  fois) n'est pas encore là — quand le cache est expiré, on refetch
+  toute la timeline.
 - Pas de support des dépôts forks dans les agrégats profil (filtrés). Le
   dashboard d'un fork individuel fonctionne normalement.
 - Les polices web ne sont pas embarquées — GitHub les strippe au rendu des

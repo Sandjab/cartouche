@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [
-    { name = "Sandjab", email = "consulting@gavini.org" },
+    { name = "Sandjab", email = "gh-cartouche@gavini.org" },
 ]
 keywords = ["github", "dashboard", "svg", "readme", "stars"]
 classifiers = [

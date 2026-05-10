@@ -4,12 +4,12 @@ All notable changes to Cartouche are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-Until the first PyPI release, every entry sits under `[Unreleased]`; once
-`v0.2.0` is tagged it will graduate to a dated release section.
 
 ## [Unreleased]
 
-Pre-PyPI hardening of v0.2.0. Targeted at first publication.
+## [0.2.0] - 2026-05-10
+
+First PyPI release.
 
 ### Added
 

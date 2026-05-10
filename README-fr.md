@@ -95,12 +95,6 @@ propre crédit. Pour l'enlever ou la reformuler, surchargez le template
 pip install cartouche-svg
 ```
 
-> **Note** : la publication PyPI est en attente. En attendant la sortie de
-> v0.2.0 sur PyPI, installation depuis les sources :
-> ```bash
-> pip install git+https://github.com/Sandjab/cartouche.git
-> ```
-
 Aucune dépendance runtime — Cartouche utilise uniquement la stdlib (`urllib`
 pour les appels API, `json`, `datetime`, `math`, `importlib.resources`).
 

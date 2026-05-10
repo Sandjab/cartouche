@@ -8,7 +8,7 @@ rather than in a public GitHub issue.
 - **Preferred channel**: open a [private security advisory](https://github.com/Sandjab/cartouche/security/advisories/new)
   on the repository (GitHub will notify the maintainer and keep the
   thread out of the public timeline).
-- **Alternative**: email the maintainer at <consulting@gavini.org>
+- **Alternative**: email the maintainer at <gh-cartouche@gavini.org>
   with `[cartouche]` in the subject.
 
 Please include:

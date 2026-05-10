@@ -94,12 +94,6 @@ template via `--lang-file`.
 pip install cartouche-svg
 ```
 
-> **Note**: PyPI release is pending. Until v0.2.0 lands on PyPI, install
-> directly from source:
-> ```bash
-> pip install git+https://github.com/Sandjab/cartouche.git
-> ```
-
 Zero runtime dependencies — Cartouche uses only the standard library
 (`urllib` for API calls, `json`, `datetime`, `math`, `importlib.resources`).
 

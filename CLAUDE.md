@@ -339,7 +339,7 @@ touching the network.
 | i18n with EN+FR + custom overlay  | ✅ stable |
 | GitHub Actions workflows          | ✅ stable |
 | Tests                             | ✅ 170 passing |
-| PyPI release                      | ⏳ not yet pushed |
+| PyPI release (`cartouche-svg`)    | ✅ v0.2.0 on PyPI |
 | Stargazer cache (TTL-based)       | ✅ stable (24h disk cache, --no-cache to skip) |
 | Stargazer cache (incremental refresh) | ⏳ planned, not implemented |
 | Custom annotation callouts        | ✅ stable via `--annotations-file PATH` (replaces auto-detected first ★ + spike) |

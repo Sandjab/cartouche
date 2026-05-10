@@ -50,7 +50,9 @@ cartouche/
 │   │   └── profile-dashboard.yml   # GH Actions workflow for profiles
 │   └── outputs/               # 34 sample SVGs (16 themes × 2 dashboards + 2 FR demos)
 └── tests/
-    └── test_render.py         # 128 tests, ~0.3s
+    ├── test_render.py         # parametrized renderer tests
+    ├── test_cache.py          # disk cache contract
+    └── test_fetch.py          # HTTP layer (urlopen monkey-patched)
 ```
 
 ## Commands
@@ -232,6 +234,12 @@ default 24h-TTL cache rooted at `$XDG_CACHE_HOME/cartouche/` is used.
 The CLI threads `--no-cache` / `--cache-ttl` / `--cache-dir` into a
 `Cache` instance via `_build_cache`.
 
+`_request` raises `fetch.RateLimitError` (subclass of `RuntimeError`)
+on 403/429 with `X-RateLimit-Remaining: 0`, with a message that
+includes the reset window and an actionable hint when no token is in
+play. Other 4xx codes propagate as the original `urllib.error.HTTPError`
+unchanged.
+
 The `_count_via_pagination` trick parses the Link header `rel="last"`
 to count without iterating. This is faster than full pagination but
 relies on GitHub's pagination format. If GitHub ever changes its Link
@@ -301,9 +309,8 @@ families (Vellum + Davinci, Botanical + Floral, Blossom + Kawai).
 
 Parametrized over themes and langs. When adding a new theme or lang the
 tests automatically include it. The test count grows multiplicatively
-(16 themes × 2 langs × 2 dashboards = 64 render tests; today 147 total
-including theme/lang/CLI tests, the notes-wrap and CANVAS_H sanity
-checks, and the cache tests in `test_cache.py`).
+(16 themes × 2 langs × 2 dashboards = 64 render tests; today **170 total**
+across `test_render.py` + `test_cache.py` + `test_fetch.py`).
 
 ### `tests/test_cache.py`
 
@@ -312,6 +319,15 @@ mode, version mismatch, path-traversal neutralization, atomic write,
 clear-one and clear-all). Also has one integration test that monkey-
 patches `_get_paginated` / `_get_json` to raise — proving that a hot
 cache really skips the network.
+
+### `tests/test_fetch.py`
+
+Integration coverage for the HTTP layer. Monkey-patches
+`urllib.request.urlopen` with a fake response factory so request
+construction (UA, Bearer header, API-version pin), every error path
+of `RateLimitError` (403/429 with reset window, anon-vs-auth message
+variants), and the pagination Link-header chain are exercised without
+touching the network.
 
 ## Status
 
@@ -322,7 +338,7 @@ cache really skips the network.
 | Profile dashboard                 | ✅ stable |
 | i18n with EN+FR + custom overlay  | ✅ stable |
 | GitHub Actions workflows          | ✅ stable |
-| Tests                             | ✅ 128 passing |
+| Tests                             | ✅ 170 passing |
 | PyPI release                      | ⏳ not yet pushed |
 | Stargazer cache (TTL-based)       | ✅ stable (24h disk cache, --no-cache to skip) |
 | Stargazer cache (incremental refresh) | ⏳ planned, not implemented |

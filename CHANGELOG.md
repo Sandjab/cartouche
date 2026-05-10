@@ -52,6 +52,23 @@ Pre-PyPI hardening of v0.2.0. Targeted at first publication.
   (`examples/lang/_overlay.json`) and a custom-annotations file
   (`examples/annotations/sample.json`) — copy-paste starting points
   for the `--lang-file` and `--annotations-file` flags.
+- **`fetch.RateLimitError`**: a dedicated exception (subclass of
+  `RuntimeError`) raised when GitHub returns 403/429 with
+  `X-RateLimit-Remaining: 0`. The message is actionable: it includes
+  the time-to-reset (parsed from `X-RateLimit-Reset`) and, for
+  anonymous calls, suggests setting `GITHUB_TOKEN` / `--token` to
+  raise the limit from 60/h to 5000/h.
+- **Project hygiene files**: `SECURITY.md` (private vulnerability
+  reporting + threat model), `CONTRIBUTING.md` (front-door for new
+  contributors), `.github/ISSUE_TEMPLATE/{bug_report,feature_request,config}.yml`,
+  and `.pre-commit-config.yaml` (ruff check + ruff format + generic
+  hygiene hooks for local pre-commit runs).
+- **`tests/test_fetch.py`** (23 new tests): integration-flavored
+  coverage for the HTTP layer with `urllib.request.urlopen` monkey-
+  patched. Exercises request construction (User-Agent, Bearer token,
+  API version pin), rate-limit detection (every error path of the
+  new `RateLimitError`), pagination (Link header chain, max_pages
+  cap, `_count_via_pagination`), and token resolution priority.
 
 ### Changed
 

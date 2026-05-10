@@ -1,0 +1,64 @@
+name: Bug report
+description: Something rendered wrong, crashed, or behaved unexpectedly.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. The faster
+        we can reproduce the problem, the faster it gets fixed —
+        please fill in as much as you can.
+  - type: input
+    id: version
+    attributes:
+      label: Cartouche version
+      description: Output of `cartouche --version` (or the commit SHA if from source).
+      placeholder: "0.2.0"
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      description: Output of `python --version`.
+      placeholder: "3.12.7"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "macOS 14.5 / Ubuntu 24.04 / Windows 11 / GitHub Actions ubuntu-latest"
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command (or Python snippet) that triggered the issue
+      description: |
+        Prefer the `--mock` form when possible, so we can reproduce
+        without your token or any private data.
+      placeholder: |
+        cartouche profile Sandjab --theme blueprint-dark --out /tmp/p.svg
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened
+      description: Include the full traceback or the rendered SVG snippet.
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Theme name, lang, custom overlays, screenshots — anything that helps.

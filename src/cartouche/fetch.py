@@ -297,6 +297,15 @@ def _resolve_token(token: str | None) -> str | None:
     return token or os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
 
 
+class RateLimitError(RuntimeError):
+    """Raised when GitHub returns 403/429 with `X-RateLimit-Remaining: 0`.
+
+    Distinct from a generic HTTPError so callers (and end users via the
+    CLI) get a message that says *what to do* — typically "set a token"
+    if running anonymous, or "wait until reset" otherwise.
+    """
+
+
 def _request(
     url: str,
     token: str | None,
@@ -314,8 +323,29 @@ def _request(
     if body is not None:
         headers["Content-Type"] = "application/json"
     req = urllib.request.Request(url, headers=headers, method=method, data=body)
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return resp.read(), dict(resp.headers)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return resp.read(), dict(resp.headers)
+    except urllib.error.HTTPError as e:
+        if e.code in (403, 429) and (e.headers.get("X-RateLimit-Remaining") == "0"):
+            raise _rate_limit_error(e, has_token=token is not None) from e
+        raise
+
+
+def _rate_limit_error(err: urllib.error.HTTPError, *, has_token: bool) -> RateLimitError:
+    """Build an actionable RateLimitError from an HTTPError + its headers."""
+    parts = ["GitHub API rate limit exceeded"]
+    reset = err.headers.get("X-RateLimit-Reset")
+    if reset and reset.isdigit():
+        reset_at = datetime.fromtimestamp(int(reset), tz=timezone.utc)
+        wait_min = max(
+            0,
+            int((reset_at - datetime.now(timezone.utc)).total_seconds() / 60) + 1,
+        )
+        parts.append(f"resets in ~{wait_min} min ({reset_at.strftime('%H:%M UTC')})")
+    if not has_token:
+        parts.append("Set GITHUB_TOKEN or pass --token to raise the limit from 60/h to 5000/h.")
+    return RateLimitError(" — ".join(parts))
 
 
 def _get_json(url: str, token: str | None, accept: str = "application/vnd.github+json") -> Any:

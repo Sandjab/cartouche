@@ -1,0 +1,30 @@
+# Pre-commit hooks for Cartouche.
+#
+# Install once:    pip install pre-commit && pre-commit install
+# Run manually:    pre-commit run --all-files
+#
+# What runs on every commit:
+#   - ruff check  (auto-fixes when safe; non-fixable violations block)
+#   - ruff format (rewrites files in place to match the project style)
+#   - generic hygiene: trailing whitespace, EOF newline, large files
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.svg$'              # SVG renders use lots of trailing whitespace
+      - id: end-of-file-fixer
+        exclude: '\.svg$'
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=1024']          # watermark PNGs are ~700kB

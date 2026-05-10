@@ -47,9 +47,9 @@ cartouche/
 │   ├── workflows/
 │   │   ├── repo-dashboard.yml      # GH Actions workflow for repos
 │   │   └── profile-dashboard.yml   # GH Actions workflow for profiles
-│   └── outputs/               # 14 sample SVGs (12 EN themes + 2 FR demos)
+│   └── outputs/               # 34 sample SVGs (16 themes × 2 dashboards + 2 FR demos)
 └── tests/
-    └── test_render.py         # 55 tests, ~0.2s
+    └── test_render.py         # 128 tests, ~0.3s
 ```
 
 ## Commands
@@ -162,7 +162,8 @@ The render pipeline is: data dict → primitives → SVG string.
    `render/repo.py` or `render/profile.py`.
 3. Call it from `render(...)` and choose Y coordinates that don't clash
    with existing figs. The current canvas is 680 wide, repo is 760 tall,
-   profile is 900 tall.
+   profile is 912 tall. Each renderer's module-level docstring lists the
+   y-bands for the existing figs — keep it updated when you move things.
 4. Add data shape requirements to the relevant `TypedDict` and produce
    them in BOTH `mock.py` (canned) and `fetch.py` (live).
 
@@ -173,7 +174,7 @@ visually because some text is longer in FR and may overflow. Open one
 sample of each in a browser:
 
 ```bash
-ls examples/outputs/  # 14 samples available
+ls examples/outputs/  # 34 samples available
 ```
 
 The heatmap in particular has tight constraints — its grid is 582px
@@ -192,7 +193,13 @@ Sixteen themes in eight light/dark families. The keys MUST match exactly:
 `blossom-kawai-light`, `blossom-kawai-dark`. Tests reference these keys
 directly. The watermarked variants are built by `_with_watermark()` from
 their parent palette plus a `watermark` token (PNG name, looked up in
-`src/cartouche/watermarks/`) and `watermark_opacity` (default 0.10).
+`src/cartouche/watermarks/`) and `watermark_opacity`. The default in
+`_with_watermark` is 0.10, but each call site overrides it: davinci and
+floral run at **0.08**, kawai at **0.05** (kawai art is denser, so a
+lower opacity is needed for it to still read as a substrate rather than
+as decoration). Note also that the `drafting` family is intentionally
+**pure grayscale** — its `data_primary` and `accent` are gray luminance
+steps, not hues. Don't "fix" them by reintroducing color.
 
 Adding tokens to a theme: update ALL 16 themes and the
 `REQUIRED_THEME_TOKENS` set in tests.
@@ -235,12 +242,28 @@ The `line_chart()` function returns a tuple `(svg, project_fn)` so
 callers can place annotations using the same coordinate transform that
 drew the line. This is intentional. Don't refactor into a class.
 
+`text()` accepts a `letter_spacing` kwarg if you need to deviate from
+the role default. Currently used by `notes_block` to tighten the
+tracking on bullet rows.
+
+`notes_block` renders one row per note at 8pt with 0.04em tracking,
+word-wrapping each note up to `max_lines_per_note` (default 2) via the
+private `_wrap_note` helper. If a note still overflows after wrapping,
+the last visible line is suffixed with an ellipsis. The default
+`max_width_px=372` assumes the cartouche starts at x=420 with an 8px
+gap. The block is designed for **≤3 notes**; beyond that it can run
+into the credit line at the bottom of the canvas.
+
 ### `src/cartouche/render/{repo,profile}.py`
 
 Y coordinates are hardcoded constants. There's no layout engine. If you
 move one component, you must move others to avoid collisions. The
 constants `CANVAS_W` and `CANVAS_H` at the top are not promises of
 parametric layout — they're documentation of what the renderer assumes.
+Today: `CANVAS_W=680` for both, `CANVAS_H=760` for repo and `912` for
+profile. The profile is 12px taller than the repo on purpose — it gives
+the notes block enough room to wrap a long bullet to a 2nd line without
+running into the credit line.
 
 Both renderers end with a `P.credit_line(handle, ...)` call that places
 a "Proudly Clauded by @<handle>" watermark in the 20-pixel band BELOW
@@ -252,12 +275,26 @@ identical in `en.json` and `fr.json` because "Clauded" is wordplay that
 doesn't translate. Users can override via `--lang-file` to remove or
 change it.
 
+### `THEMES.md`
+
+The theme catalogue at the repo root. Each preview thumbnail is wrapped
+in `<a href="...">` so clicking opens the full-size SVG in a new tab.
+**Those links go through jsDelivr** (`cdn.jsdelivr.net/gh/Sandjab/cartouche@main/...`),
+not `raw.githubusercontent.com`. The reason is GitHub raw now serves
+SVGs with `Content-Security-Policy: default-src 'none'; sandbox`, which
+silently blocks the inline `data:image/png;base64,...` watermark
+elements — the page renders, but the filigrane disappears. jsDelivr
+serves the same files with no such CSP, so the full image is visible.
+If you ever swap the CDN, regression-test all three watermarked
+families (Vellum + Davinci, Botanical + Floral, Blossom + Kawai).
+
 ### `tests/test_render.py`
 
 Parametrized over themes and langs. When adding a new theme or lang the
 tests automatically include it. The test count grows multiplicatively
-(16 themes × 2 langs × 2 dashboards = 64 render tests; today 115 total
-including theme/lang/CLI tests).
+(16 themes × 2 langs × 2 dashboards = 64 render tests; today 128 total
+including theme/lang/CLI tests, plus the notes-wrap and CANVAS_H sanity
+checks).
 
 ## Status
 
@@ -268,7 +305,7 @@ including theme/lang/CLI tests).
 | Profile dashboard                 | ✅ stable |
 | i18n with EN+FR + custom overlay  | ✅ stable |
 | GitHub Actions workflows          | ✅ stable |
-| Tests                             | ✅ 55 passing |
+| Tests                             | ✅ 128 passing |
 | PyPI release                      | ⏳ not yet pushed |
 | Stargazer cache (incremental)     | ⏳ planned, not implemented |
 | Custom annotation callouts        | ✅ stable via `--annotations-file PATH` (replaces auto-detected first ★ + spike) |

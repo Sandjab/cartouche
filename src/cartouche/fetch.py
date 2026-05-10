@@ -20,7 +20,7 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Iterator
 

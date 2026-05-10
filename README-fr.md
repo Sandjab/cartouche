@@ -2,6 +2,12 @@
 
 > 🇬🇧 [English](README.md) · 🇫🇷 **Français** (vous êtes ici)
 
+[![CI](https://github.com/Sandjab/cartouche/actions/workflows/ci.yml/badge.svg)](https://github.com/Sandjab/cartouche/actions/workflows/ci.yml)
+[![Last commit](https://img.shields.io/github/last-commit/Sandjab/cartouche)](https://github.com/Sandjab/cartouche/commits/main)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-%E2%89%A53.10-blue.svg)](https://www.python.org)
+[![Version](https://img.shields.io/badge/Version-v0.2.0-green.svg)](https://github.com/Sandjab/cartouche/releases)
+
 > Dashboards SVG façon dessin technique pour repos et profils GitHub.
 > Primitives SVG pures, seize thèmes (variantes filigranées incluses), deux langues, intégrables dans tout README via `<picture>`.
 

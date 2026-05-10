@@ -17,6 +17,15 @@
   <img src="assets/dashboard-light.svg" alt="Dashboard Cartouche pour le repo cartouche — rafraîchi toutes les 6 heures par GitHub Actions">
 </picture>
 
+<p align="center">
+  <a href="THEMES.md#drafting"><img src="examples/outputs/repo-drafting-light.svg" width="18%" alt="drafting-light"/></a>
+  <a href="THEMES.md#blueprint"><img src="examples/outputs/repo-blueprint-light.svg" width="18%" alt="blueprint-light"/></a>
+  <a href="THEMES.md#vellum--davinci"><img src="examples/outputs/repo-vellum-davinci-light.svg" width="18%" alt="vellum-davinci-light"/></a>
+  <a href="THEMES.md#botanical--floral"><img src="examples/outputs/repo-botanical-floral-light.svg" width="18%" alt="botanical-floral-light"/></a>
+  <a href="THEMES.md#blossom--kawai"><img src="examples/outputs/repo-blossom-kawai-light.svg" width="18%" alt="blossom-kawai-light"/></a>
+</p>
+<p align="center"><sub>Aperçu des thèmes light — cliquez sur une vignette pour ouvrir sa section dans <a href="THEMES.md">THEMES.md</a>, où chaque variante existe en taille réelle, light + dark.</sub></p>
+
 Cartouche prend un repo GitHub (ou un profil entier) et en tire un dashboard
 SVG dans l'esthétique du dessin technique : grille, double-cadre, courbes
 d'étoiles annotées, radar de santé, métriques, et un bloc de titre type

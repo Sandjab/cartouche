@@ -17,6 +17,15 @@
   <img src="assets/dashboard-light.svg" alt="Cartouche dashboard for the cartouche repo — refreshed every 6 hours by GitHub Actions">
 </picture>
 
+<p align="center">
+  <a href="THEMES.md#drafting"><img src="examples/outputs/repo-drafting-light.svg" width="18%" alt="drafting-light"/></a>
+  <a href="THEMES.md#blueprint"><img src="examples/outputs/repo-blueprint-light.svg" width="18%" alt="blueprint-light"/></a>
+  <a href="THEMES.md#vellum--davinci"><img src="examples/outputs/repo-vellum-davinci-light.svg" width="18%" alt="vellum-davinci-light"/></a>
+  <a href="THEMES.md#botanical--floral"><img src="examples/outputs/repo-botanical-floral-light.svg" width="18%" alt="botanical-floral-light"/></a>
+  <a href="THEMES.md#blossom--kawai"><img src="examples/outputs/repo-blossom-kawai-light.svg" width="18%" alt="blossom-kawai-light"/></a>
+</p>
+<p align="center"><sub>Light theme sampler — click any thumbnail for its section in <a href="THEMES.md">THEMES.md</a>, where every variant lives at full size in light + dark.</sub></p>
+
 Cartouche takes a GitHub repo (or a whole profile) and renders it as a
 technical-drawing SVG: grid, double-line frame, annotated star history,
 health radar, key metrics, and a *cartouche* — the architectural title

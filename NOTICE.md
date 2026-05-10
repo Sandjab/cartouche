@@ -22,14 +22,22 @@ material, no derivative work of an existing illustration. They are
 embedded inline (base64 `data:` URI) into the rendered SVG, never
 loaded from an external host.
 
-For the purposes of redistribution, we consider these files to fall
-under the same MIT license as the rest of Cartouche. If you have a
-specific compliance question for your jurisdiction (the legal status of
-AI-generated assets is an evolving topic, particularly around
-US Copyright Office guidance and the EU AI Act's training-set
-provenance rules), file an issue at
-<https://github.com/Sandjab/cartouche/issues> and we'll add the answer
-to this file.
+**Licensing**: per current US Copyright Office guidance (Compendium III
+§313.2, March 2023; *Zarya of the Dawn*, February 2023), purely
+machine-generated images without a substantial human creative
+contribution are not eligible for copyright in the United States. The
+maintainer therefore releases these three files into the **public
+domain** (treat them as **CC0 1.0 / Unlicense**, whichever your
+jurisdiction recognises). The MIT license that governs the rest of
+Cartouche covers the wheel as a whole; for the watermark PNGs
+specifically, no copyright is asserted, so anyone may use, modify, or
+redistribute them without attribution. Comparable EU posture: no
+disclosure or transparency obligation falls on the **deployer** of pure
+visual output (only on the model provider under EU AI Act Art. 50).
+
+If you have a specific compliance question for your jurisdiction, file
+an issue at <https://github.com/Sandjab/cartouche/issues> and we'll
+add the answer to this file.
 
 ## Everything else
 

@@ -32,7 +32,10 @@ name: Publish to PyPI
 on:
   push:
     tags:
-      - "v*"
+      # Restrict the trigger to tags that *look like* `vMAJOR.MINOR.PATCH`.
+      # GitHub Actions globs can't express "all-digits" precisely, so a
+      # second strict-semver check runs as the first step of the build job.
+      - "v*.*.*"
 
 # Defense in depth: default everything to read-only, then re-grant only
 # the specific permissions each job needs (id-token for OIDC publish,
@@ -45,6 +48,21 @@ jobs:
     name: Build wheel + sdist
     runs-on: ubuntu-latest
     steps:
+      - name: Validate tag is strict semver
+        # Reject tags like `v0.2.0-evil`, `vfoo`, `v1`, etc. The trigger
+        # glob (`v*.*.*`) is permissive; this step is the actual gate.
+        # SemVer 2.0.0 grammar: MAJOR.MINOR.PATCH plus optional
+        # `-prerelease` and `+build` segments using `[0-9A-Za-z.-]`.
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -e
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error title=Invalid tag::Tag '$TAG' is not strict semver. Refusing to publish."
+            exit 1
+          fi
+          echo "Tag '$TAG' is valid semver — proceeding."
+
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
 
       - name: Setup Python

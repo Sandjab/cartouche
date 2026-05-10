@@ -160,8 +160,8 @@ côte à côte de chaque variante.
 | **Botanical + Floral** | `botanical-floral-light`    | `botanical-floral-dark`    |
 | **Blossom + Kawai**    | `blossom-kawai-light`       | `blossom-kawai-dark`       |
 
-- **Drafting** — papier blanc / encre indigo. Achromatique, neutre, le ton
-  d'une note technique.
+- **Drafting** — niveaux de gris purs. Papier blanc, encre noire — aucune
+  teinte, série et accent ne sont distingués que par la luminosité.
 - **Blueprint** — cyanotype. Pâle bleu nuage clair, ou plongée nocturne dans
   le bleu de Prusse profond.
 - **Vellum** — vélin crème / sépia. Côté sombre : cuir patiné et or. Pour

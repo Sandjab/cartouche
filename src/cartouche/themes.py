@@ -24,34 +24,35 @@ drawing rendered on different paper, not like inverted colors.
 
 THEMES: dict[str, dict] = {
     # ── DRAFTING ──────────────────────────────────────────────────────────
-    # Engineering drafting paper. Achromatic, technical, neutral.
+    # Pure grayscale — achromatic technical memo. No hue at all; the data
+    # series and the accent are distinguished by lightness, not by color.
     "drafting-light": {
         "bg":                "#ffffff",
-        "grid_fine":         "#eef1f5",
-        "grid_major":        "#dde2eb",
-        "frame":             "#0f2540",
-        "frame_inner":       "#94a3b8",
-        "axis":              "#94a3b8",
-        "text_primary":      "#0a1628",
-        "text_secondary":    "#64748b",
-        "text_label":        "#1e293b",
-        "data_primary":      "#1d4ed8",
+        "grid_fine":         "#f0f0f0",
+        "grid_major":        "#d9d9d9",
+        "frame":             "#1a1a1a",
+        "frame_inner":       "#999999",
+        "axis":              "#999999",
+        "text_primary":      "#0a0a0a",
+        "text_secondary":    "#6b6b6b",
+        "text_label":        "#1f1f1f",
+        "data_primary":      "#2b2b2b",
         "data_fill_opacity": 0.14,
-        "accent":            "#c2410c",
+        "accent":            "#555555",
     },
     "drafting-dark": {
-        "bg":                "#1a1d23",
-        "grid_fine":         "#232830",
-        "grid_major":        "#2c333d",
-        "frame":             "#e2e8f0",
-        "frame_inner":       "#4a5568",
-        "axis":              "#4a5568",
-        "text_primary":      "#f1f5f9",
-        "text_secondary":    "#94a3b8",
-        "text_label":        "#e2e8f0",
-        "data_primary":      "#60a5fa",
+        "bg":                "#1a1a1a",
+        "grid_fine":         "#262626",
+        "grid_major":        "#333333",
+        "frame":             "#f0f0f0",
+        "frame_inner":       "#555555",
+        "axis":              "#555555",
+        "text_primary":      "#f5f5f5",
+        "text_secondary":    "#999999",
+        "text_label":        "#e5e5e5",
+        "data_primary":      "#e0e0e0",
         "data_fill_opacity": 0.18,
-        "accent":            "#fb923c",
+        "accent":            "#a0a0a0",
     },
 
     # ── BLUEPRINT ─────────────────────────────────────────────────────────

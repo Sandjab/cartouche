@@ -158,8 +158,8 @@ side-by-side previews of every variant.
 | **Botanical + Floral** | `botanical-floral-light`    | `botanical-floral-dark`    |
 | **Blossom + Kawai**    | `blossom-kawai-light`       | `blossom-kawai-dark`       |
 
-- **Drafting** — white paper, indigo ink. Achromatic, neutral, the tone
-  of a technical memo.
+- **Drafting** — pure grayscale. White paper, black ink — no hue at all,
+  series and accent separated by lightness only.
 - **Blueprint** — cyanotype lineage. Pale faded blue or a deep nighttime
   Prussian blue dive.
 - **Vellum** — cream parchment / sepia. Dark variant: aged leather and

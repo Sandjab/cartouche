@@ -29,11 +29,14 @@ cartouche profile Sandjab          --mock --theme blossom-kawai-light --out /tmp
 
 ## Drafting
 
-White paper, indigo ink. **Achromatic, neutral, the tone of a technical
-memo** — it disappears into a documentation page rather than calling
-attention to itself. The dark variant flips to charcoal paper without
-shifting the underlying hue family. Pick this when the dashboard sits next
-to body copy and shouldn't fight for attention.
+White paper, black ink. **Pure grayscale — the achromatic technical memo,
+dialed all the way down.** No hue at all: the data series and the accent
+are separated by *lightness* rather than color, and the chart is read on
+the same channel as the page itself. The dark variant flips to anthracite
+without introducing a tint. Pick this when the dashboard must coexist
+with strongly colored content elsewhere on the page (or when the
+embedding context is itself colored), and you want the data to recede
+into a neutral substrate.
 
 ### Repo dashboard
 

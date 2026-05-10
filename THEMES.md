@@ -39,13 +39,13 @@ to body copy and shouldn't fight for attention.
 
 | `drafting-light` | `drafting-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-drafting-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-drafting-light.svg" alt="repo · drafting-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-drafting-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-drafting-dark.svg" alt="repo · drafting-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-drafting-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-drafting-light.svg" alt="repo · drafting-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-drafting-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-drafting-dark.svg" alt="repo · drafting-dark" width="100%"/></a> |
 
 ### Profile dashboard
 
 | `drafting-light` | `drafting-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-drafting-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-drafting-light.svg" alt="profile · drafting-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-drafting-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-drafting-dark.svg" alt="profile · drafting-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-drafting-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-drafting-light.svg" alt="profile · drafting-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-drafting-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-drafting-dark.svg" alt="profile · drafting-dark" width="100%"/></a> |
 
 ---
 
@@ -61,13 +61,13 @@ dashboard to read instantly as a technical artefact.
 
 | `blueprint-light` | `blueprint-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-blueprint-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-blueprint-light.svg" alt="repo · blueprint-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-blueprint-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-blueprint-dark.svg" alt="repo · blueprint-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-blueprint-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-blueprint-light.svg" alt="repo · blueprint-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-blueprint-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-blueprint-dark.svg" alt="repo · blueprint-dark" width="100%"/></a> |
 
 ### Profile dashboard
 
 | `blueprint-light` | `blueprint-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-blueprint-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-blueprint-light.svg" alt="profile · blueprint-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-blueprint-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-blueprint-dark.svg" alt="profile · blueprint-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-blueprint-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-blueprint-light.svg" alt="profile · blueprint-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-blueprint-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-blueprint-dark.svg" alt="profile · blueprint-dark" width="100%"/></a> |
 
 ---
 
@@ -83,13 +83,13 @@ nostalgic; it makes the data feel curated rather than instrumented.
 
 | `vellum-light` | `vellum-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-vellum-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-vellum-light.svg" alt="repo · vellum-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-vellum-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-vellum-dark.svg" alt="repo · vellum-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-vellum-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-vellum-light.svg" alt="repo · vellum-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-vellum-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-vellum-dark.svg" alt="repo · vellum-dark" width="100%"/></a> |
 
 ### Profile dashboard
 
 | `vellum-light` | `vellum-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-vellum-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-vellum-light.svg" alt="profile · vellum-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-vellum-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-vellum-dark.svg" alt="profile · vellum-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-vellum-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-vellum-light.svg" alt="profile · vellum-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-vellum-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-vellum-dark.svg" alt="profile · vellum-dark" width="100%"/></a> |
 
 ---
 
@@ -105,13 +105,13 @@ catalogued rather than instrumented and measured.
 
 | `botanical-light` | `botanical-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-botanical-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-botanical-light.svg" alt="repo · botanical-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-botanical-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-botanical-dark.svg" alt="repo · botanical-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-botanical-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-botanical-light.svg" alt="repo · botanical-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-botanical-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-botanical-dark.svg" alt="repo · botanical-dark" width="100%"/></a> |
 
 ### Profile dashboard
 
 | `botanical-light` | `botanical-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-botanical-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-botanical-light.svg" alt="profile · botanical-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-botanical-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-botanical-dark.svg" alt="profile · botanical-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-botanical-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-botanical-light.svg" alt="profile · botanical-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-botanical-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-botanical-dark.svg" alt="profile · botanical-dark" width="100%"/></a> |
 
 ---
 
@@ -127,13 +127,13 @@ project that should read as joyful and crafted rather than industrial.
 
 | `blossom-light` | `blossom-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-blossom-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-blossom-light.svg" alt="repo · blossom-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-blossom-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-blossom-dark.svg" alt="repo · blossom-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-blossom-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-blossom-light.svg" alt="repo · blossom-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-blossom-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-blossom-dark.svg" alt="repo · blossom-dark" width="100%"/></a> |
 
 ### Profile dashboard
 
 | `blossom-light` | `blossom-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-blossom-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-blossom-light.svg" alt="profile · blossom-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-blossom-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-blossom-dark.svg" alt="profile · blossom-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-blossom-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-blossom-light.svg" alt="profile · blossom-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-blossom-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-blossom-dark.svg" alt="profile · blossom-dark" width="100%"/></a> |
 
 ---
 
@@ -149,13 +149,13 @@ draftsman's notebook. Pair with editorial / archival content.
 
 | `vellum-davinci-light` | `vellum-davinci-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-vellum-davinci-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-vellum-davinci-light.svg" alt="repo · vellum-davinci-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-vellum-davinci-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-vellum-davinci-dark.svg" alt="repo · vellum-davinci-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-vellum-davinci-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-vellum-davinci-light.svg" alt="repo · vellum-davinci-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-vellum-davinci-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-vellum-davinci-dark.svg" alt="repo · vellum-davinci-dark" width="100%"/></a> |
 
 ### Profile dashboard
 
 | `vellum-davinci-light` | `vellum-davinci-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-vellum-davinci-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-vellum-davinci-light.svg" alt="profile · vellum-davinci-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-vellum-davinci-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-vellum-davinci-dark.svg" alt="profile · vellum-davinci-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-vellum-davinci-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-vellum-davinci-light.svg" alt="profile · vellum-davinci-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-vellum-davinci-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-vellum-davinci-dark.svg" alt="profile · vellum-davinci-dark" width="100%"/></a> |
 
 ---
 
@@ -171,13 +171,13 @@ without sacrificing legibility of the data layer.
 
 | `botanical-floral-light` | `botanical-floral-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-botanical-floral-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-botanical-floral-light.svg" alt="repo · botanical-floral-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-botanical-floral-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-botanical-floral-dark.svg" alt="repo · botanical-floral-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-botanical-floral-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-botanical-floral-light.svg" alt="repo · botanical-floral-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-botanical-floral-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-botanical-floral-dark.svg" alt="repo · botanical-floral-dark" width="100%"/></a> |
 
 ### Profile dashboard
 
 | `botanical-floral-light` | `botanical-floral-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-botanical-floral-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-botanical-floral-light.svg" alt="profile · botanical-floral-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-botanical-floral-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-botanical-floral-dark.svg" alt="profile · botanical-floral-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-botanical-floral-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-botanical-floral-light.svg" alt="profile · botanical-floral-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-botanical-floral-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-botanical-floral-dark.svg" alt="profile · botanical-floral-dark" width="100%"/></a> |
 
 ---
 
@@ -193,13 +193,13 @@ dashboard doubles as decoration.
 
 | `blossom-kawai-light` | `blossom-kawai-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-blossom-kawai-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-blossom-kawai-light.svg" alt="repo · blossom-kawai-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/repo-blossom-kawai-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-blossom-kawai-dark.svg" alt="repo · blossom-kawai-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-blossom-kawai-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-blossom-kawai-light.svg" alt="repo · blossom-kawai-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-blossom-kawai-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/repo-blossom-kawai-dark.svg" alt="repo · blossom-kawai-dark" width="100%"/></a> |
 
 ### Profile dashboard
 
 | `blossom-kawai-light` | `blossom-kawai-dark` |
 |---|---|
-| <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-blossom-kawai-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-blossom-kawai-light.svg" alt="profile · blossom-kawai-light" width="100%"/></a> | <a href="https://raw.githubusercontent.com/Sandjab/cartouche/main/examples/outputs/profile-blossom-kawai-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-blossom-kawai-dark.svg" alt="profile · blossom-kawai-dark" width="100%"/></a> |
+| <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-blossom-kawai-light.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-blossom-kawai-light.svg" alt="profile · blossom-kawai-light" width="100%"/></a> | <a href="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/profile-blossom-kawai-dark.svg" target="_blank" rel="noopener"><img src="examples/outputs/profile-blossom-kawai-dark.svg" alt="profile · blossom-kawai-dark" width="100%"/></a> |
 
 ---
 

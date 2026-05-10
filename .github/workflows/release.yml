@@ -1,0 +1,117 @@
+# Publish a tagged release to PyPI via OIDC Trusted Publishing.
+#
+# Untrusted-input handling: the only `${{ ... }}` expressions used in
+# `run:` steps are `github.token` and `github.ref_name`, both of which
+# are passed through `env:` and quoted properly — no commit messages,
+# PR titles, or other attacker-controlled fields are interpolated.
+#
+# Trigger: push of a tag matching `v*` (e.g. `git tag v0.2.0 && git push --tags`).
+#
+# This workflow does NOT use a long-lived PyPI API token. It exchanges
+# the GitHub Actions OIDC token for a short-lived PyPI credential.
+# Before this can run successfully, the project must be configured on
+# PyPI as a trusted publisher:
+#
+#   1. Create the project at https://pypi.org/manage/account/publishing/
+#      (or claim it after a first manual upload).
+#   2. Add a trusted publisher with:
+#        - PyPI project name : cartouche-svg
+#        - Owner             : Sandjab
+#        - Repository        : cartouche
+#        - Workflow filename : release.yml
+#        - Environment       : pypi
+#   3. In this repo's Settings -> Environments, create an environment
+#      called `pypi` (no secrets needed; OIDC handles auth).
+#
+# The wheel + sdist are validated by the CI's build-wheel job on every
+# push, so by the time a tag is created, packaging is already known
+# good. This workflow re-builds them from the tagged commit and ships.
+
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: Build wheel + sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Build distributions
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+
+      - name: Verify packaged resources are present in wheel
+        run: |
+          set -e
+          wheel=$(ls dist/cartouche_svg-*.whl | head -1)
+          contents=$(python -m zipfile -l "$wheel")
+          for f in cartouche/lang/en.json cartouche/lang/fr.json \
+                   cartouche/watermarks/davinci.png \
+                   cartouche/watermarks/floral.png \
+                   cartouche/watermarks/kawai.png; do
+            echo "$contents" | grep -q "$f" || { echo "MISSING in wheel: $f"; exit 1; }
+          done
+
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: Publish to PyPI (Trusted Publishing)
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/cartouche-svg
+    permissions:
+      id-token: write  # required for OIDC -> PyPI exchange
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    name: Create GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create GitHub Release with built artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -e
+          gh release create "$TAG" dist/* \
+            --title "$TAG" \
+            --generate-notes

@@ -39,6 +39,22 @@ jobs:
       - name: Tests (pytest)
         run: pytest
 
+      - name: Smoke test (CLI end-to-end with --mock)
+        run: |
+          set -e
+          mkdir -p /tmp/smoke
+          cartouche themes | grep -q drafting-light
+          cartouche langs  | grep -q '^en$'
+          cartouche repo Sandjab/cartouche --mock --theme blueprint-light \
+            --out /tmp/smoke/repo.svg
+          cartouche profile Sandjab --mock --lang fr --theme vellum-davinci-light \
+            --out /tmp/smoke/profile.svg
+          for f in /tmp/smoke/repo.svg /tmp/smoke/profile.svg; do
+            test -s "$f"
+            head -1 "$f" | grep -q '<svg'
+            tail -1 "$f" | grep -q '</svg>'
+          done
+
   build-wheel:
     runs-on: ubuntu-latest
     needs: lint-and-test

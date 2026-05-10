@@ -49,15 +49,19 @@ def _validate_segment(kind: str, value: str) -> str:
     """Return `value` if it matches `_SEGMENT_RE`, else raise ValueError.
 
     The regex is intentionally stricter than GitHub itself (which allows
-    a few exotic edge cases for grandfathered names). For our purposes,
-    "GitHub-safe identifier" is good enough and keeps URL/GraphQL
-    interpolation safe without requiring callers to think about quoting.
+    a few exotic edge cases for grandfathered names). On top of the regex,
+    we also reject `..` substrings and trailing `.` / `-`: those don't
+    enable URL smuggling against the GitHub REST/GraphQL API today, but
+    they make filenames awkward if the value ever reaches a path-building
+    callsite (e.g. the cache), and they're never legitimate identifiers.
     """
     if not isinstance(value, str) or not _SEGMENT_RE.match(value):
         raise ValueError(
             f"invalid {kind} {value!r}: expected a GitHub-safe identifier "
             f"(alphanumeric plus . _ -, 1..100 chars, leading alphanumeric)"
         )
+    if ".." in value or value.endswith(".") or value.endswith("-"):
+        raise ValueError(f"invalid {kind} {value!r}: must not contain '..' or end with '.' or '-'")
     return value
 
 

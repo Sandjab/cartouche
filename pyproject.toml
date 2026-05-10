@@ -65,13 +65,22 @@ packages = ["src/cartouche"]
 "src/cartouche/watermarks/kawai.png"   = "cartouche/watermarks/kawai.png"
 
 [tool.hatch.build.targets.sdist]
+# Slim sdist: source + tests + the user-facing docs that users on PyPI
+# mirrors (or `pip install --no-binary`) might want. Kept out: the 34
+# example SVGs in /examples (~8 MB of preview art that lives on jsDelivr
+# anyway), and CLAUDE.md (an internal handoff document for AI-assisted
+# contributions, not part of the public API).
 include = [
     "/src",
     "/tests",
-    "/examples",
     "/README.md",
+    "/README-fr.md",
+    "/CHANGELOG.md",
+    "/CONTRIBUTING.md",
+    "/SECURITY.md",
+    "/NOTICE.md",
+    "/THEMES.md",
     "/LICENSE",
-    "/CLAUDE.md",
 ]
 
 [tool.ruff]

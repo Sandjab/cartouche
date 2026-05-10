@@ -37,13 +37,25 @@ _PACKAGE_RESOURCE = "cartouche.lang"
 
 
 class _SafeFormatter(string.Formatter):
-    """A `str.Formatter` that rejects attribute and item access in field names.
+    """A `str.Formatter` that rejects every form of templating power that
+    would let a user-supplied `--lang-file` overlay escape its sandbox:
 
-    Templates can come from a user-supplied `--lang-file` overlay. A vanilla
-    `str.format` call lets the template walk the kwargs object graph
-    (e.g. `{date.__class__.__mro__[1].__subclasses__}`), which is a classic
-    information-disclosure footgun. We allow only bare names — `{date}`, `{n}` —
-    and refuse anything containing `.` or `[`.
+    - **Attribute access** in `field_name` (`{date.__class__}`) — would walk
+      the kwargs object graph for information disclosure.
+    - **Item access** in `field_name` (`{n[0]}`) — same problem.
+    - **Conversions** (`{n!r}`, `{n!s}`, `{n!a}`) — invoke `__repr__`/`__str__`
+      on the value, which leaks class info on rich objects and produces
+      surprising quoting on strings.
+    - **Format specs** (`{n:>50000000}`, `{n:.2f}`, …) — the width field is
+      a trivial DoS (CPython materializes the full padded string), and
+      nested specs (`{n:{w}}`) reintroduce the placeholder problem one
+      level deeper.
+
+    Plain `{name}` placeholders against bare kwargs are the only thing
+    allowed. Today every built-in template fits this rule (verified by the
+    test suite); if a future template legitimately needs a format spec,
+    the policy below should be relaxed *and* extended with explicit
+    bounds-checking, not silently widened.
     """
 
     def get_field(self, field_name: str, args: tuple, kwargs: dict) -> tuple:
@@ -53,6 +65,20 @@ class _SafeFormatter(string.Formatter):
                 f"(attribute and item access are not allowed)"
             )
         return super().get_field(field_name, args, kwargs)
+
+    def parse(self, format_string):
+        for literal_text, field_name, format_spec, conversion in super().parse(format_string):
+            if conversion is not None:
+                raise ValueError(
+                    f"unsafe conversion !{conversion} in template "
+                    f"(only plain {{name}} placeholders are allowed)"
+                )
+            if format_spec:
+                raise ValueError(
+                    f"unsafe format spec {format_spec!r} in template "
+                    f"(only plain {{name}} placeholders are allowed)"
+                )
+            yield literal_text, field_name, format_spec, conversion
 
 
 _SAFE_FORMATTER = _SafeFormatter()

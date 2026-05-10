@@ -190,6 +190,99 @@ def test_clear_missing_key_returns_zero(tmp_path: Path):
 # ──────────────────────────────────────────────────────────────────────────
 
 
+# ──────────────────────────────────────────────────────────────────────────
+#  Symlink redirect (M-3) and corrupt-payload tolerance (M-4)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def test_put_refuses_symlink_redirect_outside_base_dir(tmp_path: Path):
+    """If a co-resident UID drops a symlink at <base_dir>/<part> pointing
+    elsewhere on disk, Cache.put must refuse to follow it."""
+    base = tmp_path / "cache"
+    base.mkdir()
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    # Plant the malicious symlink before any cache I/O.
+    (base / "stargazers").symlink_to(elsewhere, target_is_directory=True)
+
+    cache = Cache(base_dir=base)
+    with pytest.raises(ValueError, match="outside base_dir"):
+        cache.put(("stargazers", "owner", "repo"), {"x": 1})
+
+    # And we must not have written anything inside the redirected target.
+    assert not list(elsewhere.rglob("*.json"))
+
+
+def test_get_refuses_symlink_redirect_outside_base_dir(tmp_path: Path):
+    base = tmp_path / "cache"
+    base.mkdir()
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    # Pre-create a "valid"-looking JSON in elsewhere.
+    (elsewhere / "owner").mkdir()
+    (elsewhere / "owner" / "repo.json").write_text(
+        json.dumps({"version": 1, "fetched_at_epoch": time.time(), "data": "PWN"})
+    )
+    (base / "stargazers").symlink_to(elsewhere, target_is_directory=True)
+
+    cache = Cache(base_dir=base)
+    # Even though a syntactically-valid cache file exists at the redirected
+    # path, get() must refuse to read it (returns None, treated as a miss).
+    assert cache.get(("stargazers", "owner", "repo")) is None
+
+
+def test_clear_does_not_unlink_outside_base_dir(tmp_path: Path):
+    base = tmp_path / "cache"
+    base.mkdir()
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    sentinel = elsewhere / "important.json"
+    sentinel.write_text("{}")
+    (base / "redirect").symlink_to(elsewhere, target_is_directory=True)
+
+    Cache(base_dir=base).clear()
+    assert sentinel.exists(), "clear() escaped base_dir via the symlink"
+
+
+@pytest.mark.parametrize(
+    "corrupt_payload",
+    [
+        '"not_a_dict"',
+        "[1, 2, 3]",
+        "null",
+        "42",
+        '{"version": 1, "fetched_at_epoch": "forever", "data": []}',  # str epoch
+        '{"version": 1, "fetched_at_epoch": null, "data": []}',  # null epoch
+        '{"version": "wrong", "fetched_at_epoch": 0, "data": []}',  # bad version
+        "not even json",  # malformed
+        "",  # empty file
+    ],
+)
+def test_get_returns_none_on_corrupt_payload(tmp_path: Path, corrupt_payload: str):
+    """A forged or corrupt cache file must never crash the caller — get()
+    treats it as a miss so the next fetch refreshes cleanly."""
+    cache = Cache(base_dir=tmp_path)
+    # Write the corrupt payload directly (bypass put()) to simulate a hostile
+    # process or an interrupted previous run.
+    p = cache._path(("k",))
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(corrupt_payload)
+    assert cache.get(("k",)) is None
+
+
+def test_path_rejects_unsafe_segments_after_sanitization(tmp_path: Path):
+    """If sanitization leaves something that doesn't match the safe regex
+    (e.g. wildly long, non-ASCII), refuse the key rather than silently
+    creating a weird-looking file."""
+    cache = Cache(base_dir=tmp_path)
+    # 200 chars (exceeds the 128 cap)
+    with pytest.raises(ValueError, match="unsafe cache key part"):
+        cache._path(("a" * 200,))
+    # Empty after stripping (replace doesn't help here)
+    with pytest.raises(ValueError, match="unsafe cache key part"):
+        cache._path(("",))
+
+
 def test_fetch_helpers_skip_network_on_cache_hit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """If the cache is hot, _cached_stargazer_dates and _cached_languages
     must not call the underlying HTTP helpers — that's the whole point."""

@@ -363,7 +363,11 @@ def test_validate_segment_accepts_github_safe_identifiers(good: str):
         ".leading-dot",
         "_leading-underscore",
         "owner/name",  # path separator
-        "owner..name",  # not actually rejected by regex but smuggle-prone — covered by test below
+        "owner..name",  # `..` substring
+        "owner..",
+        "..owner",
+        "owner.",  # trailing dot
+        "owner-",  # trailing dash
         "owner with space",  # whitespace
         'owner"',  # quote
         "owner?q=foo",  # query smuggling
@@ -374,13 +378,6 @@ def test_validate_segment_accepts_github_safe_identifiers(good: str):
     ],
 )
 def test_validate_segment_rejects_unsafe_inputs(bad: str):
-    # Note: "owner..name" actually MATCHES our regex (dots are allowed); the
-    # parametrize entry is here only to flag that case for review — assert
-    # accordingly so we know exactly which inputs the regex catches today.
-    if bad == "owner..name":
-        # accepted by regex (no path separator in it)
-        assert fetch._validate_segment("test", bad) == bad
-        return
     with pytest.raises(ValueError, match="invalid test"):
         fetch._validate_segment("test", bad)
 

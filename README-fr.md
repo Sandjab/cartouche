@@ -1,30 +1,31 @@
 # Cartouche
 
-> 🇬🇧 [English](README.md) · 🇫🇷 **Français** (vous êtes ici)
+> 🇬🇧 [English](https://github.com/Sandjab/cartouche/blob/main/README.md) · 🇫🇷 **Français** (vous êtes ici)
 
 [![CI](https://github.com/Sandjab/cartouche/actions/workflows/ci.yml/badge.svg)](https://github.com/Sandjab/cartouche/actions/workflows/ci.yml)
 [![Last commit](https://img.shields.io/github/last-commit/Sandjab/cartouche)](https://github.com/Sandjab/cartouche/commits/main)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Sandjab/cartouche/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/Python-%E2%89%A53.10-blue.svg)](https://www.python.org)
 [![Version](https://img.shields.io/badge/Version-v0.2.0-green.svg)](https://github.com/Sandjab/cartouche/releases)
-[![Visitors](https://komarev.com/ghpvc/?username=sandjab-cartouche&label=Visitors&color=0e75b6&style=flat)](https://github.com/Sandjab/cartouche)
 
 > Dashboards SVG façon dessin technique pour repos et profils GitHub.
 > Primitives SVG pures, seize thèmes (variantes filigranées incluses), deux langues, intégrables dans tout README via `<picture>`.
 
+> **Nom PyPI** : `cartouche-svg` (le nom `cartouche` seul appartient à une extension Sphinx abandonnée de 2013, sans rapport). Toujours `pip install cartouche-svg`.
+
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/dashboard-dark.svg">
-  <img src="assets/dashboard-light.svg" alt="Dashboard Cartouche pour le repo cartouche — rafraîchi toutes les 6 heures par GitHub Actions">
+  <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/assets/dashboard-dark.svg">
+  <img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/assets/dashboard-light.svg" alt="Dashboard Cartouche pour le repo cartouche — rafraîchi toutes les 6 heures par GitHub Actions">
 </picture>
 
 <p align="center">
-  <a href="THEMES.md#drafting"><img src="examples/outputs/repo-drafting-light.svg" width="18%" alt="drafting-light"/></a>
-  <a href="THEMES.md#blueprint"><img src="examples/outputs/repo-blueprint-light.svg" width="18%" alt="blueprint-light"/></a>
-  <a href="THEMES.md#vellum--davinci"><img src="examples/outputs/repo-vellum-davinci-light.svg" width="18%" alt="vellum-davinci-light"/></a>
-  <a href="THEMES.md#botanical--floral"><img src="examples/outputs/repo-botanical-floral-light.svg" width="18%" alt="botanical-floral-light"/></a>
-  <a href="THEMES.md#blossom--kawai"><img src="examples/outputs/repo-blossom-kawai-light.svg" width="18%" alt="blossom-kawai-light"/></a>
+  <a href="https://github.com/Sandjab/cartouche/blob/main/THEMES.md#drafting"><img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-drafting-light.svg" width="18%" alt="drafting-light"/></a>
+  <a href="https://github.com/Sandjab/cartouche/blob/main/THEMES.md#blueprint"><img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-blueprint-light.svg" width="18%" alt="blueprint-light"/></a>
+  <a href="https://github.com/Sandjab/cartouche/blob/main/THEMES.md#vellum--davinci"><img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-vellum-davinci-light.svg" width="18%" alt="vellum-davinci-light"/></a>
+  <a href="https://github.com/Sandjab/cartouche/blob/main/THEMES.md#botanical--floral"><img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-botanical-floral-light.svg" width="18%" alt="botanical-floral-light"/></a>
+  <a href="https://github.com/Sandjab/cartouche/blob/main/THEMES.md#blossom--kawai"><img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-blossom-kawai-light.svg" width="18%" alt="blossom-kawai-light"/></a>
 </p>
-<p align="center"><sub>Aperçu des thèmes light — cliquez sur une vignette pour ouvrir sa section dans <a href="THEMES.md">THEMES.md</a>, où chaque variante existe en taille réelle, light + dark.</sub></p>
+<p align="center"><sub>Aperçu des thèmes light — cliquez sur une vignette pour ouvrir sa section dans <a href="https://github.com/Sandjab/cartouche/blob/main/THEMES.md">THEMES.md</a>, où chaque variante existe en taille réelle, light + dark.</sub></p>
 
 Cartouche prend un repo GitHub (ou un profil entier) et en tire un dashboard
 SVG dans l'esthétique du dessin technique : grille, double-cadre, courbes
@@ -199,7 +200,7 @@ Seize thèmes en huit familles, chacune avec un pendant clair et sombre.
 Les cinq premières familles sont des palettes nettes ; les trois dernières
 sont des variantes filigranées qui posent un PNG livré (planche Da Vinci,
 motif floral, perso kawaii) en arrière-plan, sous le calque de données, à
-faible opacité. Voir [THEMES.md](THEMES.md) pour les aperçus light/dark
+faible opacité. Voir [THEMES.md](https://github.com/Sandjab/cartouche/blob/main/THEMES.md) pour les aperçus light/dark
 côte à côte de chaque variante.
 
 | Famille                | Light                       | Dark                       |
@@ -327,7 +328,7 @@ src/cartouche/
 Le moteur de rendu est *token-agnostic* (les couleurs viennent de `themes`)
 et *literal-free* (les chaînes viennent de `lang`). Ajouter un septième
 thème = ajouter ~12 lignes dans `THEMES`. Ajouter une langue = déposer un
-JSON dans `lang/`. Voir [CLAUDE.md](CLAUDE.md) pour le détail des invariants
+JSON dans `lang/`. Voir [CLAUDE.md](https://github.com/Sandjab/cartouche/blob/main/CLAUDE.md) pour le détail des invariants
 architecturaux.
 
 ## Limitations connues
@@ -361,9 +362,9 @@ python -m cartouche repo Sandjab/Athanor --mock        # smoke test sans API
 python -m cartouche profile Sandjab --mock --lang fr   # version FR
 ```
 
-Pour Claude Code CLI : voir [CLAUDE.md](CLAUDE.md) pour l'architecture, les
+Pour Claude Code CLI : voir [CLAUDE.md](https://github.com/Sandjab/cartouche/blob/main/CLAUDE.md) pour l'architecture, les
 invariants, et les tâches courantes.
 
 ## Licence
 
-MIT — voir [LICENSE](LICENSE).
+MIT — voir [LICENSE](https://github.com/Sandjab/cartouche/blob/main/LICENSE).

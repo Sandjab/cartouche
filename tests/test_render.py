@@ -219,6 +219,48 @@ def test_tmpl_rejects_attribute_and_item_access(tmp_path, evil_template):
         lang_module.tmpl(pack, "delta_30d", n=5)
 
 
+@pytest.mark.parametrize(
+    "evil_template",
+    [
+        "{n!r}",
+        "{n!s}",
+        "{n!a}",
+        "leak={date!r}",
+    ],
+)
+def test_tmpl_rejects_conversion_specs(tmp_path, evil_template):
+    """`{n!r}`/`!s`/`!a` invoke `__repr__`/`__str__` on the value — leak class
+    info on rich objects and produce surprising quoting on strings."""
+    overlay = {"templates": {"delta_30d": evil_template}}
+    p = tmp_path / "evil.json"
+    p.write_text(json.dumps(overlay), encoding="utf-8")
+    pack = lang_module.load("en", overlay_path=str(p))
+    with pytest.raises(ValueError, match="unsafe conversion"):
+        lang_module.tmpl(pack, "delta_30d", n=5)
+
+
+@pytest.mark.parametrize(
+    "evil_template",
+    [
+        "{n:>50000000}",  # DoS: 50 MB output
+        "{n:^100}",
+        "{n:0>10}",
+        "{n:.2f}",
+        "{n:{w}}",  # nested spec
+        "{n:b}",
+    ],
+)
+def test_tmpl_rejects_format_specs(tmp_path, evil_template):
+    """Format specs invite a width-based DoS (`{n:>50000000}` materialises
+    50 MB) and nested-spec recursion. The sandbox forbids them all."""
+    overlay = {"templates": {"delta_30d": evil_template}}
+    p = tmp_path / "evil.json"
+    p.write_text(json.dumps(overlay), encoding="utf-8")
+    pack = lang_module.load("en", overlay_path=str(p))
+    with pytest.raises(ValueError, match="unsafe format spec"):
+        lang_module.tmpl(pack, "delta_30d", n=5, w=10)
+
+
 def test_tmpl_still_accepts_plain_placeholders(tmp_path):
     overlay = {"templates": {"delta_30d": "delta is {n} units"}}
     p = tmp_path / "ok.json"
@@ -518,6 +560,41 @@ def test_cli_repo_annotations_file_not_found():
             ]
         )
     assert exc.value.code == 2
+
+
+@pytest.mark.parametrize(
+    "bad_entry,error_match",
+    [
+        ({"date": "not-a-date", "label_top": "X", "label_bottom": "Y"}, "ISO 'YYYY-MM-DD'"),
+        ({"date": "2025-13-99", "label_top": "X", "label_bottom": "Y"}, "ISO 'YYYY-MM-DD'"),
+        ({"date": 20250101, "label_top": "X", "label_bottom": "Y"}, "must be a string"),
+        ({"date": "2025-01-01", "label_top": 42, "label_bottom": "Y"}, "must be a string"),
+        (
+            {"date": "2025-01-01", "label_top": "X", "label_bottom": "Y", "count": "5"},
+            "must be an integer",
+        ),
+        (
+            {"date": "2025-01-01", "label_top": "X", "label_bottom": "Y", "count": 1.5},
+            "must be an integer",
+        ),
+        (
+            {"date": "2025-01-01", "label_top": "X", "label_bottom": "Y", "count": "<script>"},
+            "must be an integer",
+        ),
+    ],
+)
+def test_annotations_overlay_strict_validation(tmp_path, capsys, bad_entry, error_match):
+    """`_load_annotations_overlay` rejects type-confused entries with a clear
+    stderr message instead of letting them crash mid-render."""
+    from cartouche.cli import _load_annotations_overlay
+
+    overlay = tmp_path / "bad.json"
+    overlay.write_text(json.dumps([bad_entry]))
+    with pytest.raises(SystemExit) as exc:
+        _load_annotations_overlay(str(overlay), [])
+    assert exc.value.code == 2
+    err = capsys.readouterr().err
+    assert error_match in err
 
 
 def test_cli_repo_annotations_file_invalid_json(tmp_path):

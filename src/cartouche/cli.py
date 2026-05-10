@@ -40,6 +40,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from . import __version__
@@ -230,13 +231,38 @@ def _load_annotations_overlay(path: str, star_history: list[dict]) -> list[dict]
             if required not in entry:
                 sys.stderr.write(f"error: annotation #{i}: missing required key {required!r}.\n")
                 raise SystemExit(2)
-        date = entry["date"]
-        count = entry.get("count")
-        if count is None:
-            count = _interpolate_count(date, star_history)
+        # Strict shape validation: every field is type-checked here so that
+        # the renderer never sees a string-where-an-int-was-expected from a
+        # hostile or sloppy JSON file.
+        date_raw = entry["date"]
+        if not isinstance(date_raw, str):
+            sys.stderr.write(f"error: annotation #{i}: 'date' must be a string.\n")
+            raise SystemExit(2)
+        try:
+            datetime.strptime(date_raw, "%Y-%m-%d")
+        except ValueError:
+            sys.stderr.write(
+                f"error: annotation #{i}: 'date' must be ISO 'YYYY-MM-DD', got {date_raw!r}.\n"
+            )
+            raise SystemExit(2) from None
+        for label_key in ("label_top", "label_bottom"):
+            if not isinstance(entry[label_key], str):
+                sys.stderr.write(f"error: annotation #{i}: {label_key!r} must be a string.\n")
+                raise SystemExit(2)
+        count_raw = entry.get("count")
+        if count_raw is None:
+            count = _interpolate_count(date_raw, star_history)
+        else:
+            if not isinstance(count_raw, int) or isinstance(count_raw, bool):
+                sys.stderr.write(
+                    f"error: annotation #{i}: 'count' must be an integer if provided, "
+                    f"got {type(count_raw).__name__}.\n"
+                )
+                raise SystemExit(2)
+            count = count_raw
         result.append(
             {
-                "date": date,
+                "date": date_raw,
                 "count": count,
                 "label_top": entry["label_top"],
                 "label_bottom": entry["label_bottom"],

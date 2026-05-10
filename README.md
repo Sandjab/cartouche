@@ -1,30 +1,31 @@
 # Cartouche
 
-> 🇬🇧 **English** (you are here) · 🇫🇷 [Français](README-fr.md)
+> 🇬🇧 **English** (you are here) · 🇫🇷 [Français](https://github.com/Sandjab/cartouche/blob/main/README-fr.md)
 
 [![CI](https://github.com/Sandjab/cartouche/actions/workflows/ci.yml/badge.svg)](https://github.com/Sandjab/cartouche/actions/workflows/ci.yml)
 [![Last commit](https://img.shields.io/github/last-commit/Sandjab/cartouche)](https://github.com/Sandjab/cartouche/commits/main)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-%E2%89%A53.10-blue.svg)](https://www.python.org)
 [![Version](https://img.shields.io/badge/Version-v0.2.0-green.svg)](https://github.com/Sandjab/cartouche/releases)
-[![Visitors](https://komarev.com/ghpvc/?username=sandjab-cartouche&label=Visitors&color=0e75b6&style=flat)](https://github.com/Sandjab/cartouche)
 
 > Technical-drawing SVG dashboards for GitHub repositories and profiles.
 > Pure SVG primitives, sixteen themes (incl. watermarked variants), two languages, embeddable in any README via `<picture>`.
 
+> **PyPI name**: `cartouche-svg` (the bare `cartouche` slot belongs to an unrelated, abandoned Sphinx extension from 2013). Always `pip install cartouche-svg`.
+
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/dashboard-dark.svg">
-  <img src="assets/dashboard-light.svg" alt="Cartouche dashboard for the cartouche repo — refreshed every 6 hours by GitHub Actions">
+  <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/assets/dashboard-dark.svg">
+  <img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/assets/dashboard-light.svg" alt="Cartouche dashboard for the cartouche repo — refreshed every 6 hours by GitHub Actions">
 </picture>
 
 <p align="center">
-  <a href="THEMES.md#drafting"><img src="examples/outputs/repo-drafting-light.svg" width="18%" alt="drafting-light"/></a>
-  <a href="THEMES.md#blueprint"><img src="examples/outputs/repo-blueprint-light.svg" width="18%" alt="blueprint-light"/></a>
-  <a href="THEMES.md#vellum--davinci"><img src="examples/outputs/repo-vellum-davinci-light.svg" width="18%" alt="vellum-davinci-light"/></a>
-  <a href="THEMES.md#botanical--floral"><img src="examples/outputs/repo-botanical-floral-light.svg" width="18%" alt="botanical-floral-light"/></a>
-  <a href="THEMES.md#blossom--kawai"><img src="examples/outputs/repo-blossom-kawai-light.svg" width="18%" alt="blossom-kawai-light"/></a>
+  <a href="https://github.com/Sandjab/cartouche/blob/main/THEMES.md#drafting"><img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-drafting-light.svg" width="18%" alt="drafting-light"/></a>
+  <a href="https://github.com/Sandjab/cartouche/blob/main/THEMES.md#blueprint"><img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-blueprint-light.svg" width="18%" alt="blueprint-light"/></a>
+  <a href="https://github.com/Sandjab/cartouche/blob/main/THEMES.md#vellum--davinci"><img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-vellum-davinci-light.svg" width="18%" alt="vellum-davinci-light"/></a>
+  <a href="https://github.com/Sandjab/cartouche/blob/main/THEMES.md#botanical--floral"><img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-botanical-floral-light.svg" width="18%" alt="botanical-floral-light"/></a>
+  <a href="https://github.com/Sandjab/cartouche/blob/main/THEMES.md#blossom--kawai"><img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-blossom-kawai-light.svg" width="18%" alt="blossom-kawai-light"/></a>
 </p>
-<p align="center"><sub>Light theme sampler — click any thumbnail for its section in <a href="THEMES.md">THEMES.md</a>, where every variant lives at full size in light + dark.</sub></p>
+<p align="center"><sub>Light theme sampler — click any thumbnail for its section in <a href="https://github.com/Sandjab/cartouche/blob/main/THEMES.md">THEMES.md</a>, where every variant lives at full size in light + dark.</sub></p>
 
 Cartouche takes a GitHub repo (or a whole profile) and renders it as a
 technical-drawing SVG: grid, double-line frame, annotated star history,
@@ -197,7 +198,7 @@ See `src/cartouche/lang/en.json` for the full key list.
 Sixteen themes in eight families, each with a light and a dark counterpart.
 The first five families are clean palettes; the last three are watermarked
 variants that ghost a bundled PNG (Da Vinci plate, floral motif, kawaii
-character) behind the data layer at low opacity. See [THEMES.md](THEMES.md) for
+character) behind the data layer at low opacity. See [THEMES.md](https://github.com/Sandjab/cartouche/blob/main/THEMES.md) for
 side-by-side previews of every variant.
 
 | Family                 | Light                       | Dark                       |
@@ -324,7 +325,7 @@ src/cartouche/
 The render engine is *token-agnostic* (colors come from `themes`) and
 *literal-free* (strings come from `lang`). Adding a seventh theme = ~12
 lines in `THEMES`. Adding a language = drop a JSON in `lang/`. See
-[CLAUDE.md](CLAUDE.md) for the architectural invariants in detail.
+[CLAUDE.md](https://github.com/Sandjab/cartouche/blob/main/CLAUDE.md) for the architectural invariants in detail.
 
 ## Known limitations
 
@@ -355,9 +356,9 @@ python -m cartouche repo Sandjab/Athanor --mock        # smoke test without API
 python -m cartouche profile Sandjab --mock --lang fr   # FR variant
 ```
 
-For Claude Code CLI: see [CLAUDE.md](CLAUDE.md) for architecture,
+For Claude Code CLI: see [CLAUDE.md](https://github.com/Sandjab/cartouche/blob/main/CLAUDE.md) for architecture,
 invariants, and common tasks.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](https://github.com/Sandjab/cartouche/blob/main/LICENSE).

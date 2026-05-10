@@ -606,5 +606,18 @@ def credit_line(handle: str, theme: dict, lang: dict, canvas_w: int, canvas_h: i
 
 
 def _esc(s: str) -> str:
-    """Minimal XML escape for text content."""
-    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    """XML-escape a string so it is safe in text content *and* attribute values.
+
+    Today no user-controlled data flows into a quoted attribute (every
+    `text()` call lands inside `<text>...</text>`), but escaping `"` and
+    `'` here removes the foot-gun: any future feature that does interpolate
+    a value into an attribute (e.g. `transform=`, `aria-label=`) inherits
+    a safe baseline and isn't a regression away from XSS.
+    """
+    return (
+        s.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&#39;")
+    )

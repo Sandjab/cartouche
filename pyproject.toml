@@ -14,7 +14,7 @@ authors = [
 ]
 keywords = ["github", "dashboard", "svg", "readme", "stars"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
@@ -24,8 +24,10 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Documentation",
     "Topic :: Multimedia :: Graphics :: Presentation",
+    "Typing :: Typed",
 ]
 # Zero runtime dependencies — uses stdlib urllib, json, datetime only.
 dependencies = []
@@ -40,18 +42,24 @@ dev = [
 cartouche = "cartouche.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/Sandjab/cartouche"
-Repository = "https://github.com/Sandjab/cartouche"
-Issues = "https://github.com/Sandjab/cartouche/issues"
+Homepage      = "https://github.com/Sandjab/cartouche"
+Repository    = "https://github.com/Sandjab/cartouche"
+Issues        = "https://github.com/Sandjab/cartouche/issues"
+Changelog     = "https://github.com/Sandjab/cartouche/blob/main/CHANGELOG.md"
+Themes        = "https://github.com/Sandjab/cartouche/blob/main/THEMES.md"
+Documentation = "https://github.com/Sandjab/cartouche#readme"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/cartouche"]
 
-# Resource files (language packs, watermark PNGs) must be packaged
-# into the wheel so importlib.resources can find them at runtime.
+# Resource files (language packs, watermark PNGs, py.typed marker)
+# must be packaged into the wheel so importlib.resources can find them
+# at runtime. py.typed (PEP 561) lets type-checkers like mypy / pyright
+# trust our inline type hints in downstream code.
 [tool.hatch.build.targets.wheel.force-include]
-"src/cartouche/lang/en.json" = "cartouche/lang/en.json"
-"src/cartouche/lang/fr.json" = "cartouche/lang/fr.json"
+"src/cartouche/py.typed"               = "cartouche/py.typed"
+"src/cartouche/lang/en.json"           = "cartouche/lang/en.json"
+"src/cartouche/lang/fr.json"           = "cartouche/lang/fr.json"
 "src/cartouche/watermarks/davinci.png" = "cartouche/watermarks/davinci.png"
 "src/cartouche/watermarks/floral.png"  = "cartouche/watermarks/floral.png"
 "src/cartouche/watermarks/kawai.png"   = "cartouche/watermarks/kawai.png"
@@ -69,6 +77,14 @@ include = [
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+
+[tool.ruff.lint]
+# Curated set: pycodestyle errors+warnings, pyflakes, isort, bugbear,
+# pyupgrade. Keeps the bar high without dragging in opinionated style
+# rules (D, ANN, TRY, ...) that would noise up a small lib.
+select = ["E", "F", "W", "I", "B", "UP"]
+# Allow `Optional` and similar; we already use modern syntax everywhere.
+ignore = []
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

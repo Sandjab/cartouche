@@ -72,19 +72,32 @@ jobs:
           python -m pip install --upgrade pip build
           python -m build
 
-      - name: Verify packaged resources (lang JSON + watermark PNG)
+      - name: Verify packaged resources (py.typed + lang JSON + watermark PNG)
         run: |
           set -e
           wheel=$(ls dist/cartouche_svg-*.whl | head -1)
           echo "Inspecting $wheel"
           contents=$(python -m zipfile -l "$wheel")
           echo "$contents"
-          for f in cartouche/lang/en.json cartouche/lang/fr.json \
+          for f in cartouche/py.typed \
+                   cartouche/lang/en.json cartouche/lang/fr.json \
                    cartouche/watermarks/davinci.png \
                    cartouche/watermarks/floral.png \
                    cartouche/watermarks/kawai.png; do
             echo "$contents" | grep -q "$f" || { echo "MISSING in wheel: $f"; exit 1; }
           done
+
+      - name: Smoke install from sdist (cold-pip simulation)
+        run: |
+          set -e
+          python -m venv /tmp/sdist-venv
+          /tmp/sdist-venv/bin/pip install --quiet dist/cartouche_svg-*.tar.gz
+          /tmp/sdist-venv/bin/cartouche --version
+          /tmp/sdist-venv/bin/cartouche themes | grep -q drafting-light
+          /tmp/sdist-venv/bin/cartouche repo Sandjab/cartouche --mock \
+            --theme blueprint-light --out /tmp/from-sdist.svg
+          test -s /tmp/from-sdist.svg
+          head -1 /tmp/from-sdist.svg | grep -q '<svg'
 
       - name: Upload distribution artifacts
         uses: actions/upload-artifact@v4

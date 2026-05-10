@@ -1,0 +1,18 @@
+[
+  {
+    "date":         "2025-12-15",
+    "label_top":    "// HACKER NEWS",
+    "label_bottom": "// front page"
+  },
+  {
+    "date":         "2026-04-01",
+    "label_top":    "// SHIPPED v1",
+    "label_bottom": "// public release"
+  },
+  {
+    "date":         "2026-04-15",
+    "count":        100,
+    "label_top":    "// MILESTONE",
+    "label_bottom": "// 100 stars"
+  }
+]

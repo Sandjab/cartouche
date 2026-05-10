@@ -184,8 +184,11 @@ def _fig_top_repos(data: ProfileData, theme: dict, lang: dict) -> str:
     row_h = 32
     y0 = 360
     bar_x = 130
-    bar_max_w = 180         # 10% shorter than the original 200 to give names more visual breathing room
-    name_max_chars = 14     # body role @ size 10 monospace: ~6px/char; 14 chars ≈ 84px, fits in the 90px gap before bar_x
+    # 10% shorter than the original 200 to give names more visual room.
+    bar_max_w = 180
+    # body role @ size 10 monospace: ~6px/char; 14 chars ≈ 84px, fits in
+    # the 90px gap before bar_x.
+    name_max_chars = 14
     max_stars = max(r["stars"] for r in repos)
 
     for i, r in enumerate(repos):

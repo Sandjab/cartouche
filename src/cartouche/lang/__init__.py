@@ -65,7 +65,7 @@ def t(lang: dict, key: str) -> str:
     except KeyError:
         raise KeyError(
             f"Lang pack {lang.get('code', '?')!r} missing labels.{key!r}"
-        )
+        ) from None
 
 
 def tmpl(lang: dict, key: str, **kwargs: Any) -> str:
@@ -75,7 +75,7 @@ def tmpl(lang: dict, key: str, **kwargs: Any) -> str:
     except KeyError:
         raise KeyError(
             f"Lang pack {lang.get('code', '?')!r} missing templates.{key!r}"
-        )
+        ) from None
     return template.format(**kwargs)
 
 

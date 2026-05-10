@@ -394,8 +394,9 @@ def test_annotations_layout_descends_on_collision():
     anchor would run off-chart) collide on the default track; the second
     must descend to a lower track while staying inside the FIG. 01 ↔
     x-axis band."""
-    from cartouche.render.repo import _layout_annotations
     from datetime import date
+
+    from cartouche.render.repo import _layout_annotations
 
     def project(x_data, _count):
         # Both sx > 480 → primary anchor is "end". Opposite "start" would
@@ -424,8 +425,9 @@ def test_annotations_layout_monotone_y():
     """Y is monotonically non-decreasing in date order — leftmost (earliest)
     annotation is always at or above any later one. Three annotations
     cramped on the right half so the staircase has to descend twice."""
-    from cartouche.render.repo import _layout_annotations
     from datetime import date
+
+    from cartouche.render.repo import _layout_annotations
 
     def project(x_data, _count):
         # All sx > 480 → can't flip to the left without going off-chart.
@@ -447,8 +449,9 @@ def test_annotations_layout_monotone_y():
 
 def test_annotations_layout_preserves_date_order():
     """Output is sorted by date regardless of input order."""
-    from cartouche.render.repo import _layout_annotations
     from datetime import date
+
+    from cartouche.render.repo import _layout_annotations
 
     def project(x_data, _count):
         return 100 + x_data * 2, 200

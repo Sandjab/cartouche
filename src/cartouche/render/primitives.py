@@ -16,7 +16,7 @@ because GitHub strips them when rendering README SVGs.
 from __future__ import annotations
 
 import math
-from typing import Sequence
+from collections.abc import Sequence
 
 MONO_STACK = "ui-monospace, 'SF Mono', 'JetBrains Mono', 'Cascadia Code', Consolas, monospace"
 

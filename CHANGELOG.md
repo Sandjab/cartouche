@@ -45,6 +45,13 @@ Pre-PyPI hardening of v0.2.0. Targeted at first publication.
   24h TTL by default. New CLI flags: `--no-cache`, `--cache-ttl
   SECONDS`, `--cache-dir PATH`. A second `cartouche profile` run on
   the same handle is now near-instant.
+- **`py.typed` marker** (PEP 561): downstream type-checkers
+  (mypy, pyright) now trust the inline type hints, so consumers of
+  `cartouche.fetch` / `cartouche.render` get full IDE completion.
+- **Sample overlays** under `examples/`: a lang overlay
+  (`examples/lang/_overlay.json`) and a custom-annotations file
+  (`examples/annotations/sample.json`) — copy-paste starting points
+  for the `--lang-file` and `--annotations-file` flags.
 
 ### Changed
 
@@ -77,6 +84,32 @@ Pre-PyPI hardening of v0.2.0. Targeted at first publication.
 - Two unused imports surfaced by ruff once the CI started enforcing it
   (`collections.defaultdict` in `fetch.py`, `typing.Iterable` in
   `primitives.py`).
+- B904: chained exceptions (`raise ... from None`) in CLI error paths
+  and in `lang.t` / `lang.tmpl`, so user-facing error output isn't
+  noised up by an internal-traceback chain.
+- B023: a nested `box(anchor, leader_y)` function in
+  `render.repo._layout_annotations` was closing over the loop variables
+  `sx` and `label_w`. Even though it was called within the same
+  iteration, the lint surfaces a real footgun pattern; binding both
+  via default arguments captures the per-iteration values explicitly.
+
+### Infra
+
+- **PyPI release prep**: dormant `release.yml` workflow that ships
+  the wheel + sdist via OIDC trusted publishing on `git tag v*`, plus
+  a CHANGELOG.md and the install caveat in the README until v0.2.0
+  actually lands on PyPI.
+- **Stricter ruff config**: `[tool.ruff.lint]` selects
+  `["E", "F", "W", "I", "B", "UP"]` (pycodestyle + pyflakes + isort +
+  bugbear + pyupgrade), keeping the lint floor consistent across the
+  Python 3.10 – 3.13 matrix.
+- **CI: smoke-install from sdist** in addition to wheel verification,
+  so the very `pip install cartouche_svg-X.tar.gz` path that PyPI
+  consumers will hit is tested on every push.
+- **`pyproject.toml`** modernized for the upcoming release:
+  Development Status moves from `3 - Alpha` to `4 - Beta`, Python 3.13
+  classifier added, `Typing :: Typed` classifier added, project URLs
+  extended with Changelog / Themes / Documentation.
 
 ## [0.1.0] - initial scaffold (untagged)
 

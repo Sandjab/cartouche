@@ -124,7 +124,7 @@ def mock_profile(handle: str = "Sandjab", lang: dict | None = None) -> dict:
     for week in range(53):
         col = []
         weight = 0.3 + (week / 53) * 0.7
-        for day in range(7):
+        for _ in range(7):
             r = next(rng)
             if r < 1 - weight:
                 col.append(0)

@@ -240,7 +240,11 @@ def _layout_annotations(annotations: list[dict], project, start_date) -> list[di
         primary = "start" if sx <= 480 else "end"
         opposite = "end" if primary == "start" else "start"
 
-        def box(anchor: str, leader_y: float):
+        # `sx` and `label_w` are bound as default arguments so this nested
+        # function captures the current iteration's values rather than
+        # closing over the loop variables (B023).
+        def box(anchor: str, leader_y: float,
+                sx: float = sx, label_w: float = label_w):
             lx = sx + leader_offset if anchor == "start" else sx - leader_offset
             if anchor == "start":
                 x_l, x_r = lx + text_pad, lx + text_pad + label_w

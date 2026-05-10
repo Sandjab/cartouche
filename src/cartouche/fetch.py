@@ -21,8 +21,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections import Counter
+from collections.abc import Iterator
 from datetime import date, datetime, timedelta, timezone
-from typing import Any, Iterator
+from typing import Any
 
 from . import lang as _lang_module
 from .cache import Cache
@@ -159,10 +160,13 @@ def profile_data(handle: str, token: str | None = None,
     # Top 5 repos by stars
     top_sorted = sorted(own_repos, key=lambda r: r["stargazers_count"], reverse=True)[:5]
     top_repos = []
+    since_iso = (datetime.now(timezone.utc) - timedelta(days=30)).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
     for r in top_sorted:
         commits_30d = _count_via_pagination(
-            f"{API_BASE}/repos/{handle}/{r['name']}/commits?per_page=100"
-            f"&since={(datetime.now(timezone.utc) - timedelta(days=30)).strftime('%Y-%m-%dT%H:%M:%SZ')}",
+            f"{API_BASE}/repos/{handle}/{r['name']}/commits"
+            f"?per_page=100&since={since_iso}",
             token,
         )
         top_repos.append({
@@ -483,12 +487,12 @@ def _fetch_contribution_calendar(
     counts; we bucket them by quantiles.
     """
     query = (
-        '{ user(login: "%s") { contributionsCollection { '
+        '{ user(login: "' + handle + '") { contributionsCollection { '
         'totalCommitContributions '
         'contributionCalendar { '
         'totalContributions '
         'weeks { contributionDays { contributionCount weekday } } '
-        '} } } }' % handle
+        '} } } }'
     )
     payload = _post_graphql(query, token)
     cc = payload["user"]["contributionsCollection"]

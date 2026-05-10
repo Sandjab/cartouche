@@ -42,7 +42,8 @@ import json
 import sys
 from pathlib import Path
 
-from . import __version__, lang as lang_module
+from . import __version__
+from . import lang as lang_module
 from .cache import Cache, default_cache_dir
 from .themes import get_theme, list_themes
 
@@ -120,10 +121,10 @@ def _load_lang(args: argparse.Namespace) -> dict:
         return lang_module.load(args.lang, overlay_path=args.lang_file)
     except KeyError as e:
         sys.stderr.write(f"error: {e}\n")
-        raise SystemExit(2)
+        raise SystemExit(2) from None
     except FileNotFoundError as e:
         sys.stderr.write(f"error: lang file not found: {e}\n")
-        raise SystemExit(2)
+        raise SystemExit(2) from None
 
 
 def _build_cache(args: argparse.Namespace) -> Cache:
@@ -183,10 +184,10 @@ def _load_annotations_overlay(path: str, star_history: list[dict]) -> list[dict]
             items = json.load(f)
     except FileNotFoundError:
         sys.stderr.write(f"error: annotations file not found: {path}\n")
-        raise SystemExit(2)
+        raise SystemExit(2) from None
     except json.JSONDecodeError as e:
         sys.stderr.write(f"error: annotations file is not valid JSON: {e}\n")
-        raise SystemExit(2)
+        raise SystemExit(2) from None
 
     if not isinstance(items, list):
         sys.stderr.write(

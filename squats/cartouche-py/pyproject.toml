@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cartouche-py"
+version = "0.0.1"
+description = "Placeholder for cartouche-svg. Install `cartouche-svg` instead."
+readme = "README.md"
+requires-python = ">=3.7"
+license = { text = "MIT" }
+authors = [
+    { name = "Sandjab", email = "gh-cartouche@gavini.org" },
+]
+keywords = ["placeholder", "cartouche-svg"]
+classifiers = [
+    "Development Status :: 7 - Inactive",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+# No runtime dependencies — the package raises ImportError on first import
+# rather than dragging cartouche-svg along.
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Sandjab/cartouche"
+"Real package" = "https://pypi.org/project/cartouche-svg/"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cartouche_py"]

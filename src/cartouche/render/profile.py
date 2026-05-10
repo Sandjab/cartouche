@@ -1,14 +1,15 @@
 """Render a profile dashboard SVG.
 
-Layout (680 × 900):
+Layout (680 × 912):
     header                y=0   .. 100  big handle, bio subtitle, REV/SHEET
     FIG. 01 cum. stars    y=120 .. 320  full-width line chart
     FIG. 02 top-5 repos   y=340 .. 540  left half, horizontal bars
     FIG. 03 profile radar y=340 .. 540  right half
     FIG. 04 heatmap       y=560 .. 700  53-week contribution grid
     FIG. 05 indicators    y=720 .. 780  4 metric cards in a row
-    NOTES                 y=800 .. 850  bottom-left text
+    NOTES                 y=800 .. 890  bottom-left, 8pt, wraps to 2 lines
     cartouche             y=818 .. 870  bottom-right title block
+    credit line           y=904         below outer frame, bottom-right
 
 All strings flow from the `lang` dict — see `cartouche.lang` for the schema.
 """
@@ -24,7 +25,7 @@ from ..lang import format_date_long, month_short, t, tmpl
 from . import primitives as P
 
 CANVAS_W = 680
-CANVAS_H = 900
+CANVAS_H = 912
 
 
 class StarPoint(TypedDict):

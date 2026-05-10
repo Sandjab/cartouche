@@ -101,7 +101,8 @@ def watermark(width: int, height: int, theme: dict) -> str:
 
 def text(content: str, x: float, y: float, theme: dict, *,
          role: str = "secondary", anchor: str = "start",
-         size: int | None = None, weight: int | None = None) -> str:
+         size: int | None = None, weight: int | None = None,
+         letter_spacing: str | None = None) -> str:
     """Render a <text> element, themed by role.
 
     Roles map to (default size, default weight, fill token):
@@ -113,7 +114,8 @@ def text(content: str, x: float, y: float, theme: dict, *,
         body     10  400  text_primary
         accent     9  400  accent         (annotation callouts)
 
-    Override `size` or `weight` to deviate. `anchor` ∈ {start, middle, end}.
+    Override `size`, `weight`, or `letter_spacing` to deviate from the
+    role default. `anchor` ∈ {start, middle, end}.
     """
     role_defaults = {
         "title":   (32, 700, theme["text_primary"]),
@@ -127,9 +129,10 @@ def text(content: str, x: float, y: float, theme: dict, *,
     default_size, default_weight, fill = role_defaults[role]
     s = size if size is not None else default_size
     w = weight if weight is not None else default_weight
-    letter_spacing = "0.18em" if role == "title" else (
-        "0.12em" if role == "label" else "0.08em" if role == "dim" else "normal"
-    )
+    if letter_spacing is None:
+        letter_spacing = "0.18em" if role == "title" else (
+            "0.12em" if role == "label" else "0.08em" if role == "dim" else "normal"
+        )
     return (
         f'<text x="{x}" y="{y}" font-family="{MONO_STACK}" '
         f'font-size="{s}" font-weight="{w}" fill="{fill}" '
@@ -441,13 +444,82 @@ def divider(x1: float, y: float, x2: float, theme: dict) -> str:
 
 
 def notes_block(notes: Sequence[str], x: float, y_start: float,
-                theme: dict, lang: dict, *, line_h: int = 14) -> str:
+                theme: dict, lang: dict, *,
+                line_h: int = 11,
+                font_size: int = 8,
+                max_width_px: float = 372,
+                max_lines_per_note: int = 2) -> str:
     """A list of short note lines, one per row, prefixed with ▸.
-    Header label comes from the lang pack."""
+
+    Long notes wrap to subsequent lines (without breaking words) up to
+    `max_lines_per_note`; if a note still overflows, the last visible
+    line is suffixed with an ellipsis. Continuation lines align under
+    the text after the bullet (the ▸ is not repeated). The font is
+    tuned smaller than the default `dim` role so a typical note tends
+    to fit on a single line and stays clear of the cartouche to its
+    right.
+
+    `max_width_px` is the horizontal budget for the bullet text — by
+    default 372px, leaving an 8px gap before the cartouche at x=420.
+    """
     parts = [text(lang["labels"]["notes_label"], x, y_start - 6, theme, role="label")]
-    for i, note in enumerate(notes):
-        parts.append(text(f"▸ {note}", x, y_start + 10 + i * line_h, theme, role="dim"))
+    # Approximate monospace char width at this size + letter-spacing.
+    # ui-monospace is ~0.6em wide; letter-spacing adds em on top.
+    char_w = font_size * 0.6 + font_size * 0.04
+    bullet = "▸ "
+    cont_indent = "  "  # 2 spaces, aligns under text after "▸ "
+    avail_first = max(8, int(max_width_px / char_w) - len(bullet))
+    avail_cont = max(8, int(max_width_px / char_w) - len(cont_indent))
+
+    y = y_start + 10
+    for note in notes:
+        for i, line in enumerate(_wrap_note(note, avail_first, avail_cont,
+                                            max_lines_per_note)):
+            parts.append(text(
+                (bullet if i == 0 else cont_indent) + line,
+                x, y, theme,
+                role="dim", size=font_size, letter_spacing="0.04em",
+            ))
+            y += line_h
     return "".join(parts)
+
+
+def _wrap_note(text_in: str, w_first: int, w_cont: int, max_lines: int) -> list[str]:
+    """Wrap `text_in` by word into at most `max_lines` lines.
+
+    Lines beyond `max_lines` are dropped; in that case the last visible
+    line is truncated with an ellipsis. Words are never split — a single
+    word longer than the line width is rendered as-is on its own line.
+    """
+    words = text_in.split()
+    if not words:
+        return []
+    lines: list[str] = []
+    cur: list[str] = []
+    cur_len = 0
+    for w in words:
+        avail = w_first if not lines else w_cont
+        if not cur:
+            cur, cur_len = [w], len(w)
+            continue
+        added = 1 + len(w)
+        if cur_len + added <= avail:
+            cur.append(w)
+            cur_len += added
+        else:
+            lines.append(" ".join(cur))
+            cur, cur_len = [w], len(w)
+    if cur:
+        lines.append(" ".join(cur))
+
+    if len(lines) <= max_lines:
+        return lines
+    visible = lines[:max_lines]
+    last_idx = max_lines - 1
+    last = visible[last_idx]
+    avail = w_first if last_idx == 0 else w_cont
+    visible[last_idx] = (last[: avail - 1].rstrip() + "…") if len(last) >= avail else last + "…"
+    return visible
 
 
 def credit_line(handle: str, theme: dict, lang: dict,

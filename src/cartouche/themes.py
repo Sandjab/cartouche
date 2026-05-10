@@ -198,12 +198,12 @@ def _with_watermark(base: dict, name: str, opacity: float = 0.10) -> dict:
 # ── WATERMARKED VARIANTS ──────────────────────────────────────────────────
 # Same palettes as their parent families, with a bundled PNG watermark
 # inlined behind the data layer at low opacity. See src/cartouche/watermarks/.
-THEMES["vellum-davinci-light"]   = _with_watermark(THEMES["vellum-light"],    "davinci")
-THEMES["vellum-davinci-dark"]    = _with_watermark(THEMES["vellum-dark"],     "davinci")
-THEMES["botanical-floral-light"] = _with_watermark(THEMES["botanical-light"], "floral")
-THEMES["botanical-floral-dark"]  = _with_watermark(THEMES["botanical-dark"],  "floral")
-THEMES["blossom-kawai-light"]    = _with_watermark(THEMES["blossom-light"],   "kawai")
-THEMES["blossom-kawai-dark"]     = _with_watermark(THEMES["blossom-dark"],    "kawai")
+THEMES["vellum-davinci-light"]   = _with_watermark(THEMES["vellum-light"],    "davinci", 0.08)
+THEMES["vellum-davinci-dark"]    = _with_watermark(THEMES["vellum-dark"],     "davinci", 0.08)
+THEMES["botanical-floral-light"] = _with_watermark(THEMES["botanical-light"], "floral",  0.08)
+THEMES["botanical-floral-dark"]  = _with_watermark(THEMES["botanical-dark"],  "floral",  0.08)
+THEMES["blossom-kawai-light"]    = _with_watermark(THEMES["blossom-light"],   "kawai",   0.05)
+THEMES["blossom-kawai-dark"]     = _with_watermark(THEMES["blossom-dark"],    "kawai",   0.05)
 
 
 def get_theme(name: str) -> dict:

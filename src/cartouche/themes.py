@@ -121,7 +121,7 @@ THEMES: dict[str, dict] = {
     # 19th-century herbarium plate. Sage-and-fern ink on ivory paper,
     # deep forest at night with candle-pollen accents.
     "botanical-light": {
-        "bg":                "#f3efde",
+        "bg":                "#faf6ed",
         "grid_fine":         "#e6e3cc",
         "grid_major":        "#cbd0b1",
         "frame":             "#1f3a1f",
@@ -154,7 +154,7 @@ THEMES: dict[str, dict] = {
     # deep aubergine boudoir at night, with neon-soft pink data and mint
     # complement accents.
     "blossom-light": {
-        "bg":                "#fff5f8",
+        "bg":                "#fefafc",
         "grid_fine":         "#f0e3e9",
         "grid_major":        "#dfc9d4",
         "frame":             "#5b3947",

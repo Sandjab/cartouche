@@ -475,3 +475,58 @@ def test_cli_repo_annotations_file_missing_required_key(tmp_path):
             "--mock",
         ])
     assert exc.value.code == 2
+
+
+# ──────────────────────────────────────────────────────────────────────────
+#  Notes block — word-wrap and ellipsis truncation
+# ──────────────────────────────────────────────────────────────────────────
+
+def test_wrap_note_short_fits_single_line():
+    from cartouche.render.primitives import _wrap_note
+    lines = _wrap_note("Hello world", w_first=40, w_cont=40, max_lines=2)
+    assert lines == ["Hello world"]
+
+
+def test_wrap_note_wraps_at_word_boundary():
+    """Long input wraps to a 2nd line without splitting any word."""
+    from cartouche.render.primitives import _wrap_note
+    src = "alpha beta gamma delta epsilon"
+    lines = _wrap_note(src, w_first=20, w_cont=20, max_lines=2)
+    assert lines == ["alpha beta gamma", "delta epsilon"]
+    # No word was split; rejoining recovers the original input verbatim.
+    assert " ".join(lines) == src
+
+
+def test_wrap_note_truncates_with_ellipsis_when_overflow():
+    """When the text exceeds max_lines lines, the last line ends with '…'."""
+    from cartouche.render.primitives import _wrap_note
+    lines = _wrap_note(
+        "alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu",
+        w_first=12, w_cont=12, max_lines=2,
+    )
+    assert len(lines) == 2
+    assert lines[-1].endswith("…")
+
+
+def test_notes_block_renders_at_8pt():
+    """notes_block emits its bullet rows at the smaller 8pt size, not the
+    default 9pt of role='dim', so they're less likely to crash into the
+    cartouche on the right."""
+    from cartouche.render import primitives as P
+    lang = lang_module.load("en")
+    theme = get_theme("blueprint-light")
+    svg = P.notes_block(["short note"], 40, 824, theme, lang)
+    assert 'font-size="8"' in svg
+    # The label header above the bullets stays at the role default (10).
+    assert 'font-size="10"' in svg
+
+
+def test_profile_canvas_height_is_912():
+    """Layout doc and CANVAS_H must agree (sanity guard against silent
+    drift if someone tweaks one and forgets the other)."""
+    from cartouche.render import profile as P
+    assert P.CANVAS_H == 912
+    # The viewBox in the produced SVG must reflect that.
+    svg = P.render(mock_profile(), get_theme("blueprint-light"),
+                   lang_module.load("en"))
+    assert 'viewBox="0 0 680 912"' in svg

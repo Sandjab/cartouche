@@ -18,8 +18,7 @@ from . import lang as _lang_module
 from .lang import tmpl
 
 
-def mock_repo(owner: str = "Sandjab", name: str = "Athanor",
-              lang: dict | None = None) -> dict:
+def mock_repo(owner: str = "Sandjab", name: str = "Athanor", lang: dict | None = None) -> dict:
     """Return a plausible repo data fixture: small Python project, ~8 months
     old, 23 stars, with two annotation events (first star + a small spike)."""
     if lang is None:
@@ -27,9 +26,9 @@ def mock_repo(owner: str = "Sandjab", name: str = "Athanor",
 
     start = date(2025, 9, 1)
     counts = [
-        (start,                       0),
-        (start + timedelta(days=37),  1),   # first star event
-        (start + timedelta(days=72),  3),
+        (start, 0),
+        (start + timedelta(days=37), 1),  # first star event
+        (start + timedelta(days=72), 3),
         (start + timedelta(days=110), 7),
         (start + timedelta(days=150), 12),  # post-HN spike
         (start + timedelta(days=158), 18),
@@ -57,25 +56,25 @@ def mock_repo(owner: str = "Sandjab", name: str = "Athanor",
         "star_history": star_history,
         "annotations": [
             {
-                "date":         first_date,
-                "count":        1,
-                "label_top":    tmpl(lang, "first_star_top", date=first_date),
+                "date": first_date,
+                "count": 1,
+                "label_top": tmpl(lang, "first_star_top", date=first_date),
                 "label_bottom": tmpl(lang, "first_star_bottom"),
             },
             {
-                "date":         spike_date,
-                "count":        12,
-                "label_top":    tmpl(lang, "spike_top", n=6),
+                "date": spike_date,
+                "count": 12,
+                "label_top": tmpl(lang, "spike_top", n=6),
                 "label_bottom": tmpl(lang, "spike_bottom", date=spike_date),
             },
         ],
         "radar": {
-            "stars":   0.25,
-            "forks":   0.15,
+            "stars": 0.25,
+            "forks": 0.15,
             "commits": 0.75,
-            "code":    0.60,
-            "tests":   0.45,
-            "docs":    0.80,
+            "code": 0.60,
+            "tests": 0.45,
+            "docs": 0.80,
         },
         "notes": [
             "Pipeline: atomic claims → SQLite + embeddings → 3-tier dedup → wiki MD",
@@ -96,25 +95,25 @@ def mock_profile(handle: str = "Sandjab", lang: dict | None = None) -> dict:
 
     start = date(2023, 4, 1)
     counts = [
-        (start,                          0),
-        (start + timedelta(days=90),     2),
-        (start + timedelta(days=210),    8),
-        (start + timedelta(days=340),   23),
-        (start + timedelta(days=470),   47),
-        (start + timedelta(days=600),   78),
-        (start + timedelta(days=720),  112),
-        (start + timedelta(days=840),  146),
-        (start + timedelta(days=950),  168),
+        (start, 0),
+        (start + timedelta(days=90), 2),
+        (start + timedelta(days=210), 8),
+        (start + timedelta(days=340), 23),
+        (start + timedelta(days=470), 47),
+        (start + timedelta(days=600), 78),
+        (start + timedelta(days=720), 112),
+        (start + timedelta(days=840), 146),
+        (start + timedelta(days=950), 168),
         (start + timedelta(days=1040), 184),
     ]
     star_history = [{"date": d.isoformat(), "count": c} for d, c in counts]
 
     top_repos = [
-        {"name": "athanor",          "stars": 23, "language": "Python",     "commits_30d": 67},
-        {"name": "kabbalah",         "stars": 19, "language": "TypeScript", "commits_30d": 12},
-        {"name": "mercure-mcp",      "stars": 17, "language": "Python",     "commits_30d": 4},
-        {"name": "cartouche",        "stars": 14, "language": "Python",     "commits_30d": 88},
-        {"name": "apikoltar-corpus", "stars": 12, "language": "Markdown",   "commits_30d": 6},
+        {"name": "athanor", "stars": 23, "language": "Python", "commits_30d": 67},
+        {"name": "kabbalah", "stars": 19, "language": "TypeScript", "commits_30d": 12},
+        {"name": "mercure-mcp", "stars": 17, "language": "Python", "commits_30d": 4},
+        {"name": "cartouche", "stars": 14, "language": "Python", "commits_30d": 88},
+        {"name": "apikoltar-corpus", "stars": 12, "language": "Markdown", "commits_30d": 6},
     ]
 
     # Synthetic 53-week × 7-day contribution heatmap. Values are 0..4 intensity
@@ -158,22 +157,24 @@ def mock_profile(handle: str = "Sandjab", lang: dict | None = None) -> dict:
         "top_repos": top_repos,
         "contribution_heatmap": heatmap,
         "radar": {
-            "reach":      0.55,
-            "activity":   0.78,
-            "breadth":    0.45,
-            "depth":      0.60,
-            "polyglot":   0.50,
+            "reach": 0.55,
+            "activity": 0.78,
+            "breadth": 0.45,
+            "depth": 0.60,
+            "polyglot": 0.50,
             "engagement": 0.40,
         },
         "bio": "Knowledge compiler, AI policy, French popularization.",
         "notes": [
-            tmpl(lang, "profile_notes_totals",
-                 n_repos=12, n_stars=184, n_commits=1247),
-            tmpl(lang, "profile_notes_stack",
-                 summary="Python 62% · TypeScript 18% · Markdown 12%"),
-            tmpl(lang, "profile_notes_top",
-                 name="athanor", stars=23,
-                 description="knowledge compiler"),
+            tmpl(lang, "profile_notes_totals", n_repos=12, n_stars=184, n_commits=1247),
+            tmpl(lang, "profile_notes_stack", summary="Python 62% · TypeScript 18% · Markdown 12%"),
+            tmpl(
+                lang,
+                "profile_notes_top",
+                name="athanor",
+                stars=23,
+                description="knowledge compiler",
+            ),
         ],
         "rev": "A.04",
         "date": "2026-05-09",

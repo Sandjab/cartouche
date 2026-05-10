@@ -1,4 +1,5 @@
 """Allow `python -m cartouche` invocation."""
+
 from .cli import main
 
 if __name__ == "__main__":

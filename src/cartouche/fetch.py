@@ -25,22 +25,31 @@ from collections.abc import Iterator
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
+from . import __version__
 from . import lang as _lang_module
 from .cache import Cache
 from .lang import tmpl
 
 API_BASE = "https://api.github.com"
 GRAPHQL_URL = "https://api.github.com/graphql"
-USER_AGENT = "cartouche-svg/0.1"
+# Derived from the package version so it tracks releases automatically;
+# GitHub doesn't enforce anything specific, but a sensible UA helps when
+# debugging rate-limit traces in their server logs.
+USER_AGENT = f"cartouche-svg/{__version__}"
 
 
 # ──────────────────────────────────────────────────────────────────────────
 #  Public entry points
 # ──────────────────────────────────────────────────────────────────────────
 
-def repo_data(owner: str, name: str, token: str | None = None,
-              lang: dict | None = None,
-              cache: Cache | None = None) -> dict:
+
+def repo_data(
+    owner: str,
+    name: str,
+    token: str | None = None,
+    lang: dict | None = None,
+    cache: Cache | None = None,
+) -> dict:
     """Fetch and aggregate everything needed for the repo dashboard.
 
     `lang` is a language pack (see cartouche.lang). Defaults to English.
@@ -69,7 +78,8 @@ def repo_data(owner: str, name: str, token: str | None = None,
     # Closed issues — use search to count without paginating all of them.
     # `is:issue` excludes PRs which the issues endpoint conflates.
     closed = _count_search(
-        f"repo:{owner}/{name} is:issue is:closed", token,
+        f"repo:{owner}/{name} is:issue is:closed",
+        token,
     )
 
     # Commit counts: 30-day window via paginated /commits + total via stats endpoint.
@@ -79,7 +89,8 @@ def repo_data(owner: str, name: str, token: str | None = None,
         token,
     )
     commits_total = _count_via_pagination(
-        f"{API_BASE}/repos/{owner}/{name}/commits?per_page=100", token,
+        f"{API_BASE}/repos/{owner}/{name}/commits?per_page=100",
+        token,
     )
 
     # Stars/forks delta over 30 days: rough estimate from the cumulative curve.
@@ -89,39 +100,39 @@ def repo_data(owner: str, name: str, token: str | None = None,
 
     # Radar values (normalized 0..1 with reasonable caps for small repos)
     radar = {
-        "stars":   min(1.0, repo["stargazers_count"] / 100),
-        "forks":   min(1.0, repo["forks_count"] / 30),
+        "stars": min(1.0, repo["stargazers_count"] / 100),
+        "forks": min(1.0, repo["forks_count"] / 30),
         "commits": min(1.0, commits_30d / 100),
-        "code":    min(1.0, sum(lang_bytes.values()) / 500_000),
-        "tests":   _estimate_tests_ratio(owner, name, token),
-        "docs":    _estimate_docs_ratio(owner, name, token),
+        "code": min(1.0, sum(lang_bytes.values()) / 500_000),
+        "tests": _estimate_tests_ratio(owner, name, token),
+        "docs": _estimate_docs_ratio(owner, name, token),
     }
 
     return {
-        "owner":            owner,
-        "name":             name,
-        "stars":            repo["stargazers_count"],
-        "forks":            repo["forks_count"],
-        "open_issues":      repo["open_issues_count"],
-        "closed_issues":    closed,
-        "commits_30d":      commits_30d,
-        "commits_total":    commits_total,
-        "stars_30d_delta":  stars_30d_delta,
-        "forks_30d_delta":  0,   # GitHub doesn't expose fork timestamps cheaply
-        "languages":        languages,
-        "star_history":     star_history,
-        "annotations":      _detect_annotations(star_history, lang),
-        "radar":            radar,
-        "notes":            _build_notes_repo(repo, languages, lang),
-        "rev":              _next_rev(),
-        "date":             today.isoformat(),
-        "drawn_by":         owner,
+        "owner": owner,
+        "name": name,
+        "stars": repo["stargazers_count"],
+        "forks": repo["forks_count"],
+        "open_issues": repo["open_issues_count"],
+        "closed_issues": closed,
+        "commits_30d": commits_30d,
+        "commits_total": commits_total,
+        "stars_30d_delta": stars_30d_delta,
+        "forks_30d_delta": 0,  # GitHub doesn't expose fork timestamps cheaply
+        "languages": languages,
+        "star_history": star_history,
+        "annotations": _detect_annotations(star_history, lang),
+        "radar": radar,
+        "notes": _build_notes_repo(repo, languages, lang),
+        "rev": _next_rev(),
+        "date": today.isoformat(),
+        "drawn_by": owner,
     }
 
 
-def profile_data(handle: str, token: str | None = None,
-                 lang: dict | None = None,
-                 cache: Cache | None = None) -> dict:
+def profile_data(
+    handle: str, token: str | None = None, lang: dict | None = None, cache: Cache | None = None
+) -> dict:
     """Fetch and aggregate everything needed for the profile dashboard.
 
     `lang` defaults to English; used to format auto-generated notes.
@@ -137,10 +148,12 @@ def profile_data(handle: str, token: str | None = None,
     user = _get_json(f"{API_BASE}/users/{handle}", token)
 
     # All public repos (paginated)
-    repos = list(_get_paginated(
-        f"{API_BASE}/users/{handle}/repos?per_page=100&sort=updated",
-        token,
-    ))
+    repos = list(
+        _get_paginated(
+            f"{API_BASE}/users/{handle}/repos?per_page=100&sort=updated",
+            token,
+        )
+    )
     # Filter out forks for top-5; full list still informs totals
     own_repos = [r for r in repos if not r["fork"]]
 
@@ -150,9 +163,15 @@ def profile_data(handle: str, token: str | None = None,
         if r["stargazers_count"] == 0:
             continue
         try:
-            all_star_dates.extend(_cached_stargazer_dates(
-                handle, r["name"], token, cache, max_pages=5,
-            ))
+            all_star_dates.extend(
+                _cached_stargazer_dates(
+                    handle,
+                    r["name"],
+                    token,
+                    cache,
+                    max_pages=5,
+                )
+            )
         except urllib.error.HTTPError:
             continue
     star_history = _build_cumulative_history(sorted(all_star_dates))
@@ -160,21 +179,20 @@ def profile_data(handle: str, token: str | None = None,
     # Top 5 repos by stars
     top_sorted = sorted(own_repos, key=lambda r: r["stargazers_count"], reverse=True)[:5]
     top_repos = []
-    since_iso = (datetime.now(timezone.utc) - timedelta(days=30)).strftime(
-        "%Y-%m-%dT%H:%M:%SZ"
-    )
+    since_iso = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
     for r in top_sorted:
         commits_30d = _count_via_pagination(
-            f"{API_BASE}/repos/{handle}/{r['name']}/commits"
-            f"?per_page=100&since={since_iso}",
+            f"{API_BASE}/repos/{handle}/{r['name']}/commits?per_page=100&since={since_iso}",
             token,
         )
-        top_repos.append({
-            "name":        r["name"],
-            "stars":       r["stargazers_count"],
-            "language":    r["language"] or "—",
-            "commits_30d": commits_30d,
-        })
+        top_repos.append(
+            {
+                "name": r["name"],
+                "stars": r["stargazers_count"],
+                "language": r["language"] or "—",
+                "commits_30d": commits_30d,
+            }
+        )
 
     # Aggregate languages (bytes-weighted) — cached per repo.
     lang_totals: Counter[str] = Counter()
@@ -187,7 +205,8 @@ def profile_data(handle: str, token: str | None = None,
 
     # Contribution heatmap (GraphQL)
     heatmap, total_contribs, total_commits_year = _fetch_contribution_calendar(
-        handle, token,
+        handle,
+        token,
     )
 
     # Totals
@@ -195,35 +214,35 @@ def profile_data(handle: str, token: str | None = None,
     total_forks = sum(r["forks_count"] for r in own_repos)
 
     radar = {
-        "reach":      min(1.0, user["followers"] / 200),
-        "activity":   min(1.0, total_commits_year / 1500),
-        "breadth":    min(1.0, len(own_repos) / 30),
-        "depth":      min(1.0, sum(lang_totals.values()) / 5_000_000),
-        "polyglot":   min(1.0, len(lang_totals) / 8),
+        "reach": min(1.0, user["followers"] / 200),
+        "activity": min(1.0, total_commits_year / 1500),
+        "breadth": min(1.0, len(own_repos) / 30),
+        "depth": min(1.0, sum(lang_totals.values()) / 5_000_000),
+        "polyglot": min(1.0, len(lang_totals) / 8),
         "engagement": min(1.0, total_contribs / 2000),
     }
 
     return {
-        "handle":               handle,
-        "name":                 user.get("name") or handle,
-        "bio":                  user.get("bio") or "GITHUB PROFILE TELEMETRY",
-        "joined":               user["created_at"][:10],
-        "followers":            user["followers"],
-        "following":            user["following"],
-        "public_repos":         len(own_repos),
-        "total_stars":          total_stars,
-        "total_forks":          total_forks,
-        "total_commits_year":   total_commits_year,
-        "languages":            languages,
-        "star_history":         star_history,
-        "top_repos":            top_repos,
+        "handle": handle,
+        "name": user.get("name") or handle,
+        "bio": user.get("bio") or "GITHUB PROFILE TELEMETRY",
+        "joined": user["created_at"][:10],
+        "followers": user["followers"],
+        "following": user["following"],
+        "public_repos": len(own_repos),
+        "total_stars": total_stars,
+        "total_forks": total_forks,
+        "total_commits_year": total_commits_year,
+        "languages": languages,
+        "star_history": star_history,
+        "top_repos": top_repos,
         "contribution_heatmap": heatmap,
-        "radar":                radar,
-        "notes":                _build_notes_profile(user, own_repos, total_stars,
-                                                    total_commits_year, languages,
-                                                    lang),
-        "rev":                  _next_rev(),
-        "date":                 date.today().isoformat(),
+        "radar": radar,
+        "notes": _build_notes_profile(
+            user, own_repos, total_stars, total_commits_year, languages, lang
+        ),
+        "rev": _next_rev(),
+        "date": date.today().isoformat(),
     }
 
 
@@ -231,8 +250,10 @@ def profile_data(handle: str, token: str | None = None,
 #  Cached fetchers (the two hot paths)
 # ──────────────────────────────────────────────────────────────────────────
 
-def _cached_stargazer_dates(owner: str, name: str, token: str | None,
-                            cache: Cache, max_pages: int = 50) -> list[date]:
+
+def _cached_stargazer_dates(
+    owner: str, name: str, token: str | None, cache: Cache, max_pages: int = 50
+) -> list[date]:
     """Return the list of star event dates for a repo, using the cache.
 
     The full, untrimmed list of dates is what we cache (as ISO strings),
@@ -256,8 +277,7 @@ def _cached_stargazer_dates(owner: str, name: str, token: str | None,
     return dates
 
 
-def _cached_languages(owner: str, name: str, token: str | None,
-                      cache: Cache) -> dict[str, int]:
+def _cached_languages(owner: str, name: str, token: str | None, cache: Cache) -> dict[str, int]:
     """Return the {language: bytes} mapping for a repo, using the cache."""
     key = ("languages", owner, name)
     cached = cache.get(key)
@@ -272,13 +292,18 @@ def _cached_languages(owner: str, name: str, token: str | None,
 #  HTTP helpers
 # ──────────────────────────────────────────────────────────────────────────
 
+
 def _resolve_token(token: str | None) -> str | None:
     return token or os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
 
 
-def _request(url: str, token: str | None,
-             accept: str = "application/vnd.github+json",
-             method: str = "GET", body: bytes | None = None) -> tuple[bytes, dict]:
+def _request(
+    url: str,
+    token: str | None,
+    accept: str = "application/vnd.github+json",
+    method: str = "GET",
+    body: bytes | None = None,
+) -> tuple[bytes, dict]:
     headers = {
         "Accept": accept,
         "User-Agent": USER_AGENT,
@@ -293,15 +318,14 @@ def _request(url: str, token: str | None,
         return resp.read(), dict(resp.headers)
 
 
-def _get_json(url: str, token: str | None,
-              accept: str = "application/vnd.github+json") -> Any:
+def _get_json(url: str, token: str | None, accept: str = "application/vnd.github+json") -> Any:
     data, _ = _request(url, token, accept=accept)
     return json.loads(data)
 
 
-def _get_paginated(url: str, token: str | None,
-                   accept: str = "application/vnd.github+json",
-                   max_pages: int = 50) -> Iterator[dict]:
+def _get_paginated(
+    url: str, token: str | None, accept: str = "application/vnd.github+json", max_pages: int = 50
+) -> Iterator[dict]:
     """Yield items from a paginated endpoint, following Link rel="next"."""
     next_url = url
     pages = 0
@@ -352,8 +376,7 @@ def _count_search(query: str, token: str | None) -> int:
 def _post_graphql(query: str, token: str | None) -> dict:
     if not token:
         raise RuntimeError(
-            "GraphQL contribution calendar requires a token; "
-            "set GITHUB_TOKEN or pass --token."
+            "GraphQL contribution calendar requires a token; set GITHUB_TOKEN or pass --token."
         )
     body = json.dumps({"query": query}).encode("utf-8")
     data, _ = _request(GRAPHQL_URL, token, method="POST", body=body)
@@ -366,6 +389,7 @@ def _post_graphql(query: str, token: str | None) -> dict:
 # ──────────────────────────────────────────────────────────────────────────
 #  Aggregation helpers
 # ──────────────────────────────────────────────────────────────────────────
+
 
 def _parse_iso(s: str) -> date:
     """Parse a GitHub timestamp (UTC, 'Z'-suffixed) to a date."""
@@ -403,8 +427,10 @@ def _bytes_to_pct(lang_bytes: dict[str, int]) -> list[tuple[str, float]]:
     total = sum(lang_bytes.values())
     if total == 0:
         return []
-    return [(name, 100 * b / total) for name, b in
-            sorted(lang_bytes.items(), key=lambda kv: kv[1], reverse=True)]
+    return [
+        (name, 100 * b / total)
+        for name, b in sorted(lang_bytes.items(), key=lambda kv: kv[1], reverse=True)
+    ]
 
 
 def _delta_since(history: list[dict], cutoff: date) -> int:
@@ -413,8 +439,11 @@ def _delta_since(history: list[dict], cutoff: date) -> int:
         return 0
     final = history[-1]["count"]
     earlier = next(
-        (h["count"] for h in reversed(history)
-         if datetime.strptime(h["date"], "%Y-%m-%d").date() <= cutoff),
+        (
+            h["count"]
+            for h in reversed(history)
+            if datetime.strptime(h["date"], "%Y-%m-%d").date() <= cutoff
+        ),
         0,
     )
     return max(0, final - earlier)
@@ -431,25 +460,29 @@ def _detect_annotations(history: list[dict], lang: dict) -> list[dict]:
     # First star event
     first_nonzero = next((h for h in history if h["count"] > 0), None)
     if first_nonzero:
-        annotations.append({
-            "date":         first_nonzero["date"],
-            "count":        first_nonzero["count"],
-            "label_top":    tmpl(lang, "first_star_top",
-                                 date=first_nonzero["date"]),
-            "label_bottom": tmpl(lang, "first_star_bottom"),
-        })
+        annotations.append(
+            {
+                "date": first_nonzero["date"],
+                "count": first_nonzero["count"],
+                "label_top": tmpl(lang, "first_star_top", date=first_nonzero["date"]),
+                "label_bottom": tmpl(lang, "first_star_bottom"),
+            }
+        )
     # Largest single-step spike
-    deltas = [(history[i]["count"] - history[i - 1]["count"], history[i])
-              for i in range(1, len(history))]
+    deltas = [
+        (history[i]["count"] - history[i - 1]["count"], history[i]) for i in range(1, len(history))
+    ]
     deltas.sort(reverse=True)
     if deltas and deltas[0][0] >= 3:
         delta, h = deltas[0]
-        annotations.append({
-            "date":         h["date"],
-            "count":        h["count"],
-            "label_top":    tmpl(lang, "spike_top", n=delta),
-            "label_bottom": tmpl(lang, "spike_bottom", date=h["date"]),
-        })
+        annotations.append(
+            {
+                "date": h["date"],
+                "count": h["count"],
+                "label_top": tmpl(lang, "spike_top", n=delta),
+                "label_bottom": tmpl(lang, "spike_bottom", date=h["date"]),
+            }
+        )
     return annotations
 
 
@@ -479,7 +512,8 @@ def _estimate_docs_ratio(owner: str, name: str, token: str | None) -> float:
 
 
 def _fetch_contribution_calendar(
-    handle: str, token: str | None,
+    handle: str,
+    token: str | None,
 ) -> tuple[list[list[int]], int, int]:
     """Return (heatmap, total_contribs, total_commits_year).
 
@@ -488,11 +522,11 @@ def _fetch_contribution_calendar(
     """
     query = (
         '{ user(login: "' + handle + '") { contributionsCollection { '
-        'totalCommitContributions '
-        'contributionCalendar { '
-        'totalContributions '
-        'weeks { contributionDays { contributionCount weekday } } '
-        '} } } }'
+        "totalCommitContributions "
+        "contributionCalendar { "
+        "totalContributions "
+        "weeks { contributionDays { contributionCount weekday } } "
+        "} } } }"
     )
     payload = _post_graphql(query, token)
     cc = payload["user"]["contributionsCollection"]
@@ -501,14 +535,10 @@ def _fetch_contribution_calendar(
     total_commits = cc["totalCommitContributions"]
 
     # Compute thresholds so we have 5 visually distinct buckets
-    all_counts = [d["contributionCount"]
-                  for w in cal["weeks"] for d in w["contributionDays"]]
+    all_counts = [d["contributionCount"] for w in cal["weeks"] for d in w["contributionDays"]]
     nonzero = sorted(c for c in all_counts if c > 0)
     if nonzero:
-        thresholds = [
-            nonzero[int(len(nonzero) * f) - 1]
-            for f in (0.25, 0.5, 0.75, 1.0)
-        ]
+        thresholds = [nonzero[int(len(nonzero) * f) - 1] for f in (0.25, 0.5, 0.75, 1.0)]
     else:
         thresholds = [1, 2, 3, 4]
 
@@ -534,38 +564,48 @@ def _fetch_contribution_calendar(
     return heatmap[-53:], total, total_commits
 
 
-def _build_notes_repo(repo: dict, languages: list[tuple[str, float]],
-                      lang: dict) -> list[str]:
+def _build_notes_repo(repo: dict, languages: list[tuple[str, float]], lang: dict) -> list[str]:
     desc = repo.get("description") or "(no description)"
     lang_summary = " · ".join(f"{n} {p:.0f}%" for n, p in languages[:3])
     notes = [desc]
     if lang_summary:
         notes.append(tmpl(lang, "stack_summary", summary=lang_summary))
     if repo.get("license"):
-        notes.append(tmpl(lang, "license_summary",
-                          license=repo["license"].get("spdx_id", "?")))
+        notes.append(tmpl(lang, "license_summary", license=repo["license"].get("spdx_id", "?")))
     return notes[:3]
 
 
-def _build_notes_profile(user: dict, repos: list[dict],
-                         total_stars: int, total_commits: int,
-                         languages: list[tuple[str, float]],
-                         lang: dict) -> list[str]:
+def _build_notes_profile(
+    user: dict,
+    repos: list[dict],
+    total_stars: int,
+    total_commits: int,
+    languages: list[tuple[str, float]],
+    lang: dict,
+) -> list[str]:
     notes = [
-        tmpl(lang, "profile_notes_totals",
-             n_repos=len(repos),
-             n_stars=total_stars,
-             n_commits=total_commits),
+        tmpl(
+            lang,
+            "profile_notes_totals",
+            n_repos=len(repos),
+            n_stars=total_stars,
+            n_commits=total_commits,
+        ),
     ]
     if languages:
         top3 = " · ".join(f"{n} {p:.0f}%" for n, p in languages[:3])
         notes.append(tmpl(lang, "profile_notes_stack", summary=top3))
     if repos:
         top = max(repos, key=lambda r: r["stargazers_count"])
-        notes.append(tmpl(lang, "profile_notes_top",
-                          name=top["name"],
-                          stars=top["stargazers_count"],
-                          description=(top.get("description") or "")[:60]))
+        notes.append(
+            tmpl(
+                lang,
+                "profile_notes_top",
+                name=top["name"],
+                stars=top["stargazers_count"],
+                description=(top.get("description") or "")[:60],
+            )
+        )
     return notes[:3]
 
 

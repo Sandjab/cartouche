@@ -26,8 +26,8 @@ CANVAS_H = 760
 
 
 class StarPoint(TypedDict):
-    date: str       # YYYY-MM-DD
-    count: int      # cumulative stargazers
+    date: str  # YYYY-MM-DD
+    count: int  # cumulative stargazers
 
 
 class Annotation(TypedDict):
@@ -62,6 +62,7 @@ class RepoData(TypedDict, total=False):
 #  Top-level entry point
 # ──────────────────────────────────────────────────────────────────────────
 
+
 def render(data: RepoData, theme: dict, lang: dict | None = None) -> str:
     """Return a complete SVG document for a single repo dashboard.
 
@@ -73,26 +74,33 @@ def render(data: RepoData, theme: dict, lang: dict | None = None) -> str:
 
     parts: list[str] = []
 
-    parts.append(P.svg_open(
-        CANVAS_W, CANVAS_H,
-        title=f"{data['owner']}/{data['name']} — Cartouche dashboard",
-        desc=(f"Repository telemetry for {data['owner']}/{data['name']}: "
-              f"star history, health radar, key metrics."),
-    ))
+    parts.append(
+        P.svg_open(
+            CANVAS_W,
+            CANVAS_H,
+            title=f"{data['owner']}/{data['name']} — Cartouche dashboard",
+            desc=(
+                f"Repository telemetry for {data['owner']}/{data['name']}: "
+                f"star history, health radar, key metrics."
+            ),
+        )
+    )
     parts.append(P.defs(theme))
     parts.append(P.background(CANVAS_W, CANVAS_H, theme))
     parts.append(P.watermark(CANVAS_W, CANVAS_H, theme))
     parts.append(P.frame(CANVAS_W, CANVAS_H, theme))
 
     # Header
-    parts.append(P.header(
-        title=data["name"].upper(),
-        subtitle=f"{data['owner'].upper()} · {t(lang, 'subtitle_repo')}",
-        rev=f"{t(lang, 'rev_prefix')} {data['rev']}",
-        sheet=t(lang, "sheet_label"),
-        theme=theme,
-        width=CANVAS_W,
-    ))
+    parts.append(
+        P.header(
+            title=data["name"].upper(),
+            subtitle=f"{data['owner'].upper()} · {t(lang, 'subtitle_repo')}",
+            rev=f"{t(lang, 'rev_prefix')} {data['rev']}",
+            sheet=t(lang, "sheet_label"),
+            theme=theme,
+            width=CANVAS_W,
+        )
+    )
 
     # FIG. 01 — Star history
     parts.append(_fig_star_history(data, theme, lang))
@@ -112,16 +120,21 @@ def render(data: RepoData, theme: dict, lang: dict | None = None) -> str:
     # Notes + cartouche bottom strip
     parts.append(P.divider(40, 600, CANVAS_W - 40, theme))
     parts.append(P.notes_block(data.get("notes", []), 40, 624, theme, lang))
-    parts.append(P.cartouche(
-        handle=data["drawn_by"],
-        date=data["date"],
-        rev=data["rev"],
-        label=tmpl(lang, "label_repo_full",
-                   name=data["name"].upper(),
-                   label=t(lang, "label_repo_telemetry")),
-        theme=theme,
-        lang=lang,
-    ))
+    parts.append(
+        P.cartouche(
+            handle=data["drawn_by"],
+            date=data["date"],
+            rev=data["rev"],
+            label=tmpl(
+                lang,
+                "label_repo_full",
+                name=data["name"].upper(),
+                label=t(lang, "label_repo_telemetry"),
+            ),
+            theme=theme,
+            lang=lang,
+        )
+    )
 
     parts.append(P.credit_line(data["drawn_by"], theme, lang, CANVAS_W, CANVAS_H))
     parts.append(P.svg_close())
@@ -132,15 +145,18 @@ def render(data: RepoData, theme: dict, lang: dict | None = None) -> str:
 #  FIG. 01 — Star history line chart with annotations
 # ──────────────────────────────────────────────────────────────────────────
 
+
 def _fig_star_history(data: RepoData, theme: dict, lang: dict) -> str:
     history = data["star_history"]
     if not history:
         return P.section_label(
-            tmpl(lang, "fig_star_history", start="—", end="—"), 40, 124, theme,
+            tmpl(lang, "fig_star_history", start="—", end="—"),
+            40,
+            124,
+            theme,
         )
 
-    parsed = [(datetime.strptime(p["date"], "%Y-%m-%d").date(), p["count"])
-              for p in history]
+    parsed = [(datetime.strptime(p["date"], "%Y-%m-%d").date(), p["count"]) for p in history]
     start = parsed[0][0]
     end = parsed[-1][0]
     span_days = max((end - start).days, 1)
@@ -151,30 +167,46 @@ def _fig_star_history(data: RepoData, theme: dict, lang: dict) -> str:
     y_ticks = [(int(y_max * i / 4), str(int(y_max * i / 4))) for i in range(5)]
     x_ticks = _month_ticks(start, end, lang)
 
-    parts = [P.section_label(
-        tmpl(lang, "fig_star_history",
-             start=format_date_long(lang, start),
-             end=format_date_long(lang, end)),
-        40, 124, theme,
-    )]
+    parts = [
+        P.section_label(
+            tmpl(
+                lang,
+                "fig_star_history",
+                start=format_date_long(lang, start),
+                end=format_date_long(lang, end),
+            ),
+            40,
+            124,
+            theme,
+        )
+    ]
     chart_svg, project = P.line_chart(
         points=points,
-        x0=60, y0=160, x1=640, y1=320,
-        x_max=span_days, y_max=y_max,
-        x_ticks=x_ticks, y_ticks=y_ticks,
+        x0=60,
+        y0=160,
+        x1=640,
+        y1=320,
+        x_max=span_days,
+        y_max=y_max,
+        x_ticks=x_ticks,
+        y_ticks=y_ticks,
         theme=theme,
     )
     parts.append(chart_svg)
 
     for placed in _layout_annotations(data.get("annotations", []), project, start):
-        parts.append(P.annotation(
-            placed["sx"], placed["sy"],
-            placed["leader_x"], placed["leader_y"],
-            primary=placed["label_top"],
-            secondary=placed["label_bottom"],
-            theme=theme,
-            label_anchor=placed["anchor"],
-        ))
+        parts.append(
+            P.annotation(
+                placed["sx"],
+                placed["sy"],
+                placed["leader_x"],
+                placed["leader_y"],
+                primary=placed["label_top"],
+                secondary=placed["label_bottom"],
+                theme=theme,
+                label_anchor=placed["anchor"],
+            )
+        )
 
     last_x, last_y = project(points[-1][0], points[-1][1])
     parts.append(P.endpoint_marker(last_x, last_y, str(parsed[-1][1]), theme))
@@ -218,14 +250,14 @@ def _layout_annotations(annotations: list[dict], project, start_date) -> list[di
 
     # Geometry constants matching the chart layout in _fig_star_history
     # and the annotation primitive (size=7).
-    char_w = 4.2        # monospace advance at font-size 7
+    char_w = 4.2  # monospace advance at font-size 7
     chart_x_min = 60
     chart_x_max = 640
-    text_pad = 2        # gap between leader_x and the text glyphs
+    text_pad = 2  # gap between leader_x and the text glyphs
     leader_offset = 50  # horizontal length of the L-shaped leader
-    base_track = 146    # highest track, just under the FIG. 01 title
-    track_step = 20     # vertical spacing between successive tracks
-    max_track = 290     # lowest track, ~30px above the x-axis (y=320)
+    base_track = 146  # highest track, just under the FIG. 01 title
+    track_step = 20  # vertical spacing between successive tracks
+    max_track = 290  # lowest track, ~30px above the x-axis (y=320)
 
     sorted_ann = sorted(annotations, key=lambda a: a["date"])
     placed_boxes: list[tuple[float, float, float, float]] = []
@@ -243,8 +275,7 @@ def _layout_annotations(annotations: list[dict], project, start_date) -> list[di
         # `sx` and `label_w` are bound as default arguments so this nested
         # function captures the current iteration's values rather than
         # closing over the loop variables (B023).
-        def box(anchor: str, leader_y: float,
-                sx: float = sx, label_w: float = label_w):
+        def box(anchor: str, leader_y: float, sx: float = sx, label_w: float = label_w):
             lx = sx + leader_offset if anchor == "start" else sx - leader_offset
             if anchor == "start":
                 x_l, x_r = lx + text_pad, lx + text_pad + label_w
@@ -259,8 +290,10 @@ def _layout_annotations(annotations: list[dict], project, start_date) -> list[di
                 x_l, x_r, y_t, y_b, lx = box(anchor, ly)
                 if x_l < chart_x_min - 24 or x_r > chart_x_max + 24:
                     continue
-                if any(x_l < pr and pl < x_r and y_t < pb and pt < y_b
-                       for pl, pr, pt, pb in placed_boxes):
+                if any(
+                    x_l < pr and pl < x_r and y_t < pb and pt < y_b
+                    for pl, pr, pt, pb in placed_boxes
+                ):
                     continue
                 chosen = (anchor, ly, lx, x_l, x_r, y_t, y_b)
                 break
@@ -274,12 +307,16 @@ def _layout_annotations(annotations: list[dict], project, start_date) -> list[di
         anchor, ly, lx, x_l, x_r, y_t, y_b = chosen
         placed_boxes.append((x_l, x_r, y_t, y_b))
         current_floor = ly  # later annotations may not rise above this track
-        result.append({
-            **ann,
-            "sx": sx, "sy": sy,
-            "leader_x": lx, "leader_y": ly,
-            "anchor": anchor,
-        })
+        result.append(
+            {
+                **ann,
+                "sx": sx,
+                "sy": sy,
+                "leader_x": lx,
+                "leader_y": ly,
+                "anchor": anchor,
+            }
+        )
 
     return result
 
@@ -288,44 +325,66 @@ def _layout_annotations(annotations: list[dict], project, start_date) -> list[di
 #  FIG. 03 — Metric cards + language bar
 # ──────────────────────────────────────────────────────────────────────────
 
+
 def _fig_metrics(data: RepoData, theme: dict, lang: dict) -> str:
     parts = [P.section_label(t(lang, "fig_indicators_repo"), 350, 370, theme)]
 
-    parts.append(P.metric_card(
-        350, 384, 135, 58,
-        t(lang, "card_stargazers"),
-        str(data["stars"]),
-        tmpl(lang, "delta_30d", n=data["stars_30d_delta"]),
-        theme,
-    ))
-    parts.append(P.metric_card(
-        495, 384, 135, 58,
-        t(lang, "card_forks"),
-        str(data["forks"]),
-        tmpl(lang, "delta_30d", n=data["forks_30d_delta"]),
-        theme,
-    ))
-    parts.append(P.metric_card(
-        350, 450, 135, 58,
-        t(lang, "card_issues_open"),
-        str(data["open_issues"]),
-        tmpl(lang, "issues_closed", n=data["closed_issues"]),
-        theme,
-    ))
-    parts.append(P.metric_card(
-        495, 450, 135, 58,
-        t(lang, "card_commits_30d"),
-        str(data["commits_30d"]),
-        tmpl(lang, "commits_total", n=data["commits_total"]),
-        theme,
-    ))
+    parts.append(
+        P.metric_card(
+            350,
+            384,
+            135,
+            58,
+            t(lang, "card_stargazers"),
+            str(data["stars"]),
+            tmpl(lang, "delta_30d", n=data["stars_30d_delta"]),
+            theme,
+        )
+    )
+    parts.append(
+        P.metric_card(
+            495,
+            384,
+            135,
+            58,
+            t(lang, "card_forks"),
+            str(data["forks"]),
+            tmpl(lang, "delta_30d", n=data["forks_30d_delta"]),
+            theme,
+        )
+    )
+    parts.append(
+        P.metric_card(
+            350,
+            450,
+            135,
+            58,
+            t(lang, "card_issues_open"),
+            str(data["open_issues"]),
+            tmpl(lang, "issues_closed", n=data["closed_issues"]),
+            theme,
+        )
+    )
+    parts.append(
+        P.metric_card(
+            495,
+            450,
+            135,
+            58,
+            t(lang, "card_commits_30d"),
+            str(data["commits_30d"]),
+            tmpl(lang, "commits_total", n=data["commits_total"]),
+            theme,
+        )
+    )
 
     parts.append(_language_bar(data["languages"], 350, 516, 280, 58, theme, lang))
     return "".join(parts)
 
 
-def _language_bar(langs: list[tuple[str, float]], x: int, y: int,
-                  w: int, h: int, theme: dict, lang: dict) -> str:
+def _language_bar(
+    langs: list[tuple[str, float]], x: int, y: int, w: int, h: int, theme: dict, lang: dict
+) -> str:
     parts = [
         f'<rect x="{x}" y="{y}" width="{w}" height="{h}" '
         f'fill="none" stroke="{theme["frame_inner"]}" stroke-width="0.5"/>',
@@ -352,6 +411,7 @@ def _language_bar(langs: list[tuple[str, float]], x: int, y: int,
 # ──────────────────────────────────────────────────────────────────────────
 #  Internal helpers
 # ──────────────────────────────────────────────────────────────────────────
+
 
 def _nice_ceil(n: int) -> int:
     if n <= 0:

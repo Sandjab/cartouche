@@ -33,10 +33,7 @@ def load(name: str) -> bytes:
     pkg = files(__name__)
     path = pkg / f"{name}.png"
     if not path.is_file():
-        raise KeyError(
-            f"Unknown watermark {name!r}. "
-            f"Available: {', '.join(list_builtin())}"
-        )
+        raise KeyError(f"Unknown watermark {name!r}. Available: {', '.join(list_builtin())}")
     return path.read_bytes()
 
 

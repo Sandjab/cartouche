@@ -23,14 +23,15 @@ from cartouche.cache import (
 #  Default location
 # ──────────────────────────────────────────────────────────────────────────
 
-def test_default_cache_dir_uses_xdg_when_set(monkeypatch: pytest.MonkeyPatch,
-                                             tmp_path: Path):
+
+def test_default_cache_dir_uses_xdg_when_set(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path))
     assert default_cache_dir() == tmp_path / "cartouche"
 
 
 def test_default_cache_dir_falls_back_to_home_cache(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ):
     monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
@@ -40,6 +41,7 @@ def test_default_cache_dir_falls_back_to_home_cache(
 # ──────────────────────────────────────────────────────────────────────────
 #  Basic round trip
 # ──────────────────────────────────────────────────────────────────────────
+
 
 def test_get_miss_returns_none(tmp_path: Path):
     cache = Cache(base_dir=tmp_path)
@@ -73,6 +75,7 @@ def test_file_format_carries_version_and_timestamp(tmp_path: Path):
 #  Disabled mode
 # ──────────────────────────────────────────────────────────────────────────
 
+
 def test_disabled_cache_never_writes(tmp_path: Path):
     cache = Cache(base_dir=tmp_path, enabled=False)
     cache.put(("k",), {"x": 1})
@@ -90,6 +93,7 @@ def test_disabled_cache_always_misses(tmp_path: Path):
 #  TTL
 # ──────────────────────────────────────────────────────────────────────────
 
+
 def test_ttl_zero_treats_everything_as_stale(tmp_path: Path):
     """TTL=0 is the `--cache-ttl 0` knob: write, then immediately miss."""
     cache = Cache(base_dir=tmp_path, ttl_seconds=0)
@@ -97,8 +101,7 @@ def test_ttl_zero_treats_everything_as_stale(tmp_path: Path):
     assert cache.get(("k",)) is None
 
 
-def test_ttl_expired_returns_none(tmp_path: Path,
-                                  monkeypatch: pytest.MonkeyPatch):
+def test_ttl_expired_returns_none(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Older-than-TTL entries are treated as misses."""
     cache = Cache(base_dir=tmp_path, ttl_seconds=10)
     cache.put(("k",), {"x": 1})
@@ -115,6 +118,7 @@ def test_default_ttl_is_24h():
 #  Robustness
 # ──────────────────────────────────────────────────────────────────────────
 
+
 def test_corrupt_json_treated_as_miss(tmp_path: Path):
     cache = Cache(base_dir=tmp_path)
     p = tmp_path / "k.json"
@@ -127,11 +131,15 @@ def test_version_mismatch_treated_as_miss(tmp_path: Path):
     cache = Cache(base_dir=tmp_path)
     p = tmp_path / "k.json"
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps({
-        "version": CACHE_VERSION + 99,
-        "fetched_at_epoch": time.time(),
-        "data": "stale-format",
-    }))
+    p.write_text(
+        json.dumps(
+            {
+                "version": CACHE_VERSION + 99,
+                "fetched_at_epoch": time.time(),
+                "data": "stale-format",
+            }
+        )
+    )
     assert cache.get(("k",)) is None
 
 
@@ -154,6 +162,7 @@ def test_atomic_write_leaves_no_tempfile(tmp_path: Path):
 #  Clearing
 # ──────────────────────────────────────────────────────────────────────────
 
+
 def test_clear_specific_key(tmp_path: Path):
     cache = Cache(base_dir=tmp_path)
     cache.put(("a",), 1)
@@ -166,7 +175,7 @@ def test_clear_specific_key(tmp_path: Path):
 def test_clear_all_under_base_dir(tmp_path: Path):
     cache = Cache(base_dir=tmp_path)
     cache.put(("stargazers", "X", "Y"), [])
-    cache.put(("languages",  "X", "Y"), {})
+    cache.put(("languages", "X", "Y"), {})
     cache.put(("stargazers", "X", "Z"), [])
     assert cache.clear() == 3
     assert cache.get(("stargazers", "X", "Y")) is None
@@ -180,18 +189,16 @@ def test_clear_missing_key_returns_zero(tmp_path: Path):
 #  Integration: fetch.py uses the cache
 # ──────────────────────────────────────────────────────────────────────────
 
-def test_fetch_helpers_skip_network_on_cache_hit(tmp_path: Path,
-                                                 monkeypatch: pytest.MonkeyPatch):
+
+def test_fetch_helpers_skip_network_on_cache_hit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """If the cache is hot, _cached_stargazer_dates and _cached_languages
     must not call the underlying HTTP helpers — that's the whole point."""
     from cartouche import fetch
 
     # Pre-fill the cache with what these helpers expect to read.
     cache = Cache(base_dir=tmp_path)
-    cache.put(("stargazers", "Sandjab", "cartouche"),
-              ["2025-01-01", "2025-02-02"])
-    cache.put(("languages",  "Sandjab", "cartouche"),
-              {"Python": 1234})
+    cache.put(("stargazers", "Sandjab", "cartouche"), ["2025-01-01", "2025-02-02"])
+    cache.put(("languages", "Sandjab", "cartouche"), {"Python": 1234})
 
     def boom(*a, **kw):
         raise AssertionError("network call made despite hot cache")

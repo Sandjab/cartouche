@@ -33,8 +33,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
 
-      - name: Lint (ruff)
+      - name: Lint (ruff check)
         run: ruff check .
+
+      - name: Format (ruff format --check)
+        run: ruff format --check .
 
       - name: Tests (pytest)
         run: pytest

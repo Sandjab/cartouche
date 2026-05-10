@@ -53,19 +53,23 @@ def main(argv: list[str] | None = None) -> int:
         prog="cartouche",
         description="Technical-drawing dashboards for GitHub repos and profiles.",
     )
-    parser.add_argument("--version", action="version",
-                        version=f"cartouche {__version__}")
+    parser.add_argument("--version", action="version", version=f"cartouche {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
 
     # repo
     p_repo = sub.add_parser("repo", help="Render a repository dashboard")
-    p_repo.add_argument("target", metavar="OWNER/REPO",
-                        help="GitHub repository, e.g. Sandjab/Athanor")
+    p_repo.add_argument(
+        "target", metavar="OWNER/REPO", help="GitHub repository, e.g. Sandjab/Athanor"
+    )
     _add_common_args(p_repo)
-    p_repo.add_argument("--annotations-file", default=None, dest="annotations_file",
-                        help="Path to a JSON file with custom annotations on "
-                             "the star-history line. Replaces the auto-detected "
-                             "first-star + biggest-spike callouts.")
+    p_repo.add_argument(
+        "--annotations-file",
+        default=None,
+        dest="annotations_file",
+        help="Path to a JSON file with custom annotations on "
+        "the star-history line. Replaces the auto-detected "
+        "first-star + biggest-spike callouts.",
+    )
 
     # profile
     p_prof = sub.add_parser("profile", help="Render a user profile dashboard")
@@ -92,28 +96,50 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _add_common_args(p: argparse.ArgumentParser) -> None:
-    p.add_argument("--theme", default="blueprint-light",
-                   choices=list_themes(),
-                   help="Theme name (default: blueprint-light)")
-    p.add_argument("--lang", default="en",
-                   help="Language pack code (default: en). "
-                        "Use `cartouche langs` to list built-in packs.")
-    p.add_argument("--lang-file", default=None, dest="lang_file",
-                   help="Path to a JSON file that overlays the base lang pack. "
-                        "Only specify keys you want to override.")
-    p.add_argument("--out", default="-",
-                   help="Output file path (default: stdout)")
-    p.add_argument("--token", default=None,
-                   help="GitHub token; falls back to $GITHUB_TOKEN / $GH_TOKEN")
-    p.add_argument("--mock", action="store_true",
-                   help="Use canned data (no API call) — for testing layouts")
-    p.add_argument("--no-cache", action="store_true", dest="no_cache",
-                   help="Disable the on-disk cache (force fresh API fetches)")
-    p.add_argument("--cache-ttl", type=int, default=None, dest="cache_ttl",
-                   help="Cache TTL in seconds (default 86400 = 24h). "
-                        "Set to 0 to force a one-shot refresh.")
-    p.add_argument("--cache-dir", default=None, dest="cache_dir",
-                   help=f"Cache directory (default: {default_cache_dir()})")
+    p.add_argument(
+        "--theme",
+        default="blueprint-light",
+        choices=list_themes(),
+        help="Theme name (default: blueprint-light)",
+    )
+    p.add_argument(
+        "--lang",
+        default="en",
+        help="Language pack code (default: en). Use `cartouche langs` to list built-in packs.",
+    )
+    p.add_argument(
+        "--lang-file",
+        default=None,
+        dest="lang_file",
+        help="Path to a JSON file that overlays the base lang pack. "
+        "Only specify keys you want to override.",
+    )
+    p.add_argument("--out", default="-", help="Output file path (default: stdout)")
+    p.add_argument(
+        "--token", default=None, help="GitHub token; falls back to $GITHUB_TOKEN / $GH_TOKEN"
+    )
+    p.add_argument(
+        "--mock", action="store_true", help="Use canned data (no API call) — for testing layouts"
+    )
+    p.add_argument(
+        "--no-cache",
+        action="store_true",
+        dest="no_cache",
+        help="Disable the on-disk cache (force fresh API fetches)",
+    )
+    p.add_argument(
+        "--cache-ttl",
+        type=int,
+        default=None,
+        dest="cache_ttl",
+        help="Cache TTL in seconds (default 86400 = 24h). Set to 0 to force a one-shot refresh.",
+    )
+    p.add_argument(
+        "--cache-dir",
+        default=None,
+        dest="cache_dir",
+        help=f"Cache directory (default: {default_cache_dir()})",
+    )
 
 
 def _load_lang(args: argparse.Namespace) -> dict:
@@ -145,22 +171,24 @@ def _render_repo(args: argparse.Namespace) -> int:
 
     if args.mock:
         from .mock import mock_repo
+
         data = mock_repo(owner, name, lang=lang)
     else:
         from . import fetch
+
         try:
-            data = fetch.repo_data(owner, name, token=args.token, lang=lang,
-                                   cache=_build_cache(args))
+            data = fetch.repo_data(
+                owner, name, token=args.token, lang=lang, cache=_build_cache(args)
+            )
         except Exception as e:
             sys.stderr.write(f"error: {e}\n")
             return 3
 
     if args.annotations_file:
-        data["annotations"] = _load_annotations_overlay(
-            args.annotations_file, data["star_history"]
-        )
+        data["annotations"] = _load_annotations_overlay(args.annotations_file, data["star_history"])
 
     from .render import repo as repo_render
+
     svg = repo_render.render(data, get_theme(args.theme), lang=lang)
     return _write(svg, args.out)
 
@@ -190,9 +218,7 @@ def _load_annotations_overlay(path: str, star_history: list[dict]) -> list[dict]
         raise SystemExit(2) from None
 
     if not isinstance(items, list):
-        sys.stderr.write(
-            "error: annotations file must contain a JSON list at the top level.\n"
-        )
+        sys.stderr.write("error: annotations file must contain a JSON list at the top level.\n")
         raise SystemExit(2)
 
     result: list[dict] = []
@@ -202,20 +228,20 @@ def _load_annotations_overlay(path: str, star_history: list[dict]) -> list[dict]
             raise SystemExit(2)
         for required in ("date", "label_top", "label_bottom"):
             if required not in entry:
-                sys.stderr.write(
-                    f"error: annotation #{i}: missing required key {required!r}.\n"
-                )
+                sys.stderr.write(f"error: annotation #{i}: missing required key {required!r}.\n")
                 raise SystemExit(2)
         date = entry["date"]
         count = entry.get("count")
         if count is None:
             count = _interpolate_count(date, star_history)
-        result.append({
-            "date":         date,
-            "count":        count,
-            "label_top":    entry["label_top"],
-            "label_bottom": entry["label_bottom"],
-        })
+        result.append(
+            {
+                "date": date,
+                "count": count,
+                "label_top": entry["label_top"],
+                "label_bottom": entry["label_bottom"],
+            }
+        )
     return result
 
 
@@ -237,17 +263,21 @@ def _render_profile(args: argparse.Namespace) -> int:
 
     if args.mock:
         from .mock import mock_profile
+
         data = mock_profile(args.target, lang=lang)
     else:
         from . import fetch
+
         try:
-            data = fetch.profile_data(args.target, token=args.token, lang=lang,
-                                      cache=_build_cache(args))
+            data = fetch.profile_data(
+                args.target, token=args.token, lang=lang, cache=_build_cache(args)
+            )
         except Exception as e:
             sys.stderr.write(f"error: {e}\n")
             return 3
 
     from .render import profile as profile_render
+
     svg = profile_render.render(data, get_theme(args.theme), lang=lang)
     return _write(svg, args.out)
 

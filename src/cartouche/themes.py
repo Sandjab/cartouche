@@ -22,6 +22,10 @@ Light/dark pairs share an aesthetic family and should look like the same
 drawing rendered on different paper, not like inverted colors.
 """
 
+# ruff format would collapse the deliberately-aligned hex columns below
+# into a single space. Keep the alignment so diffs between themes stay
+# easy to scan.
+# fmt: off
 THEMES: dict[str, dict] = {
     # ── DRAFTING ──────────────────────────────────────────────────────────
     # Pure grayscale — achromatic technical memo. No hue at all; the data
@@ -182,6 +186,7 @@ THEMES: dict[str, dict] = {
         "accent":            "#9be3d2",
     },
 }
+# fmt: on
 
 # Watermark tokens — every theme has them, defaulting to no watermark.
 # Watermarked variants below override these two fields.
@@ -198,20 +203,20 @@ def _with_watermark(base: dict, name: str, opacity: float = 0.10) -> dict:
 # ── WATERMARKED VARIANTS ──────────────────────────────────────────────────
 # Same palettes as their parent families, with a bundled PNG watermark
 # inlined behind the data layer at low opacity. See src/cartouche/watermarks/.
+# fmt: off
 THEMES["vellum-davinci-light"]   = _with_watermark(THEMES["vellum-light"],    "davinci", 0.08)
 THEMES["vellum-davinci-dark"]    = _with_watermark(THEMES["vellum-dark"],     "davinci", 0.08)
 THEMES["botanical-floral-light"] = _with_watermark(THEMES["botanical-light"], "floral",  0.08)
 THEMES["botanical-floral-dark"]  = _with_watermark(THEMES["botanical-dark"],  "floral",  0.08)
 THEMES["blossom-kawai-light"]    = _with_watermark(THEMES["blossom-light"],   "kawai",   0.05)
 THEMES["blossom-kawai-dark"]     = _with_watermark(THEMES["blossom-dark"],    "kawai",   0.05)
+# fmt: on
 
 
 def get_theme(name: str) -> dict:
     """Return a theme dict by name. Raises KeyError with a helpful message."""
     if name not in THEMES:
-        raise KeyError(
-            f"Unknown theme {name!r}. Available: {', '.join(sorted(THEMES))}"
-        )
+        raise KeyError(f"Unknown theme {name!r}. Available: {', '.join(sorted(THEMES))}")
     return THEMES[name]
 
 

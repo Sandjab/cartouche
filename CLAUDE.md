@@ -357,6 +357,31 @@ Things that look reasonable but are wrong:
 - Dict literals over kwargs to constructors when the dict is data.
 - Imports sorted: stdlib, third-party (none here), local relative.
 
+## Cutting a release
+
+The release pipeline is dormant until you push a tag matching `v*`.
+Steps to ship a new version:
+
+1. **Land all the changes** that go into the release on `main`. Run
+   `pytest` + `ruff check .` + `ruff format --check .` locally.
+2. **Bump `version`** in `pyproject.toml` *and* `__version__` in
+   `src/cartouche/__init__.py` (these two are the source of truth;
+   `fetch.USER_AGENT` reads `__version__`).
+3. **Update `CHANGELOG.md`**: rename the topmost `## [Unreleased]`
+   section to `## [X.Y.Z] - YYYY-MM-DD`, add a fresh empty
+   `## [Unreleased]` above it.
+4. **Commit + push** the version + changelog bump to `main`.
+5. **Tag**: `git tag vX.Y.Z && git push --tags`. The
+   `release.yml` workflow takes it from there:
+     - rebuilds wheel + sdist from the tagged commit
+     - re-verifies all the packaged resources
+     - publishes to PyPI via OIDC trusted publishing (no token)
+     - creates a GitHub Release with auto-generated notes attached
+
+For the *first* tag ever, also do the one-time setup documented in
+the header comment of `.github/workflows/release.yml` (PyPI Trusted
+Publisher + GitHub Environment named `pypi`).
+
 ## When in doubt
 
 Read the file. Each module is short enough to understand in one sitting.

@@ -25,42 +25,94 @@ from cartouche.render import profile, repo
 from cartouche.themes import THEMES, get_theme, list_themes
 
 REQUIRED_THEME_TOKENS = {
-    "bg", "grid_fine", "grid_major", "frame", "frame_inner", "axis",
-    "text_primary", "text_secondary", "text_label",
-    "data_primary", "data_fill_opacity", "accent",
-    "watermark", "watermark_opacity",
+    "bg",
+    "grid_fine",
+    "grid_major",
+    "frame",
+    "frame_inner",
+    "axis",
+    "text_primary",
+    "text_secondary",
+    "text_label",
+    "data_primary",
+    "data_fill_opacity",
+    "accent",
+    "watermark",
+    "watermark_opacity",
 }
 
 # These tokens are not hex colors and shouldn't be validated as such.
 NON_COLOR_TOKENS = {"data_fill_opacity", "watermark", "watermark_opacity"}
 
 REQUIRED_LANG_LABELS = {
-    "subtitle_repo", "subtitle_profile", "rev_prefix", "sheet_label",
-    "fig_radar_health", "fig_indicators_repo", "fig_top_repos",
-    "fig_radar_profile", "fig_heatmap", "fig_indicators_profile",
-    "card_stargazers", "card_forks", "card_issues_open", "card_commits_30d",
-    "card_total_stars", "card_total_forks", "card_commits_year", "card_since",
-    "languages_breakdown", "notes_label", "drawn_by", "date_label", "rev_label",
-    "less", "more",
-    "radar_axis_stars", "radar_axis_forks", "radar_axis_commits",
-    "radar_axis_code", "radar_axis_tests", "radar_axis_docs",
-    "radar_axis_reach", "radar_axis_activity", "radar_axis_breadth",
-    "radar_axis_depth", "radar_axis_polyglot", "radar_axis_engage",
-    "label_repo_telemetry", "label_profile_telemetry",
-    "day_mon", "day_wed", "day_fri",
+    "subtitle_repo",
+    "subtitle_profile",
+    "rev_prefix",
+    "sheet_label",
+    "fig_radar_health",
+    "fig_indicators_repo",
+    "fig_top_repos",
+    "fig_radar_profile",
+    "fig_heatmap",
+    "fig_indicators_profile",
+    "card_stargazers",
+    "card_forks",
+    "card_issues_open",
+    "card_commits_30d",
+    "card_total_stars",
+    "card_total_forks",
+    "card_commits_year",
+    "card_since",
+    "languages_breakdown",
+    "notes_label",
+    "drawn_by",
+    "date_label",
+    "rev_label",
+    "less",
+    "more",
+    "radar_axis_stars",
+    "radar_axis_forks",
+    "radar_axis_commits",
+    "radar_axis_code",
+    "radar_axis_tests",
+    "radar_axis_docs",
+    "radar_axis_reach",
+    "radar_axis_activity",
+    "radar_axis_breadth",
+    "radar_axis_depth",
+    "radar_axis_polyglot",
+    "radar_axis_engage",
+    "label_repo_telemetry",
+    "label_profile_telemetry",
+    "day_mon",
+    "day_wed",
+    "day_fri",
 }
 
 REQUIRED_LANG_TEMPLATES = {
-    "fig_star_history", "fig_cum_stars",
-    "first_star_top", "first_star_bottom",
-    "spike_top", "spike_bottom",
-    "delta_30d", "issues_closed", "commits_total",
-    "n_repos", "n_followers", "n_following", "n_years",
+    "fig_star_history",
+    "fig_cum_stars",
+    "first_star_top",
+    "first_star_bottom",
+    "spike_top",
+    "spike_bottom",
+    "delta_30d",
+    "issues_closed",
+    "commits_total",
+    "n_repos",
+    "n_followers",
+    "n_following",
+    "n_years",
     "contribs_total",
-    "top_repo_stars", "top_repo_sub",
-    "stack_summary", "license_summary",
-    "profile_notes_totals", "profile_notes_stack", "profile_notes_top",
-    "label_repo_full", "label_profile_full",
+    "top_repo_stars",
+    "top_repo_sub",
+    "stack_summary",
+    "license_summary",
+    "profile_notes_totals",
+    "profile_notes_stack",
+    "profile_notes_top",
+    "label_repo_full",
+    "label_profile_full",
     "proudly_clauded",
 }
 
@@ -68,6 +120,7 @@ REQUIRED_LANG_TEMPLATES = {
 # ──────────────────────────────────────────────────────────────────────────
 #  Theme contract
 # ──────────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.parametrize("name", list_themes())
 def test_theme_has_all_tokens(name: str):
@@ -96,6 +149,7 @@ def test_themes_count():
 # ──────────────────────────────────────────────────────────────────────────
 #  Lang contract
 # ──────────────────────────────────────────────────────────────────────────
+
 
 def test_two_builtin_langs():
     assert set(lang_module.list_builtin()) == {"en", "fr"}
@@ -146,12 +200,12 @@ def test_lang_helpers():
 #  Renderers — across 16 themes × 2 langs = 32 combinations each
 # ──────────────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.parametrize("theme_name", list_themes())
 @pytest.mark.parametrize("lang_code", lang_module.list_builtin())
 def test_repo_render_well_formed(theme_name: str, lang_code: str):
     pack = lang_module.load(lang_code)
-    svg = repo.render(mock_repo("Sandjab", "Athanor", lang=pack),
-                      get_theme(theme_name), lang=pack)
+    svg = repo.render(mock_repo("Sandjab", "Athanor", lang=pack), get_theme(theme_name), lang=pack)
     root = ET.fromstring(svg)
     assert root.tag.endswith("svg")
     assert "ATHANOR" in svg
@@ -167,8 +221,7 @@ def test_repo_render_well_formed(theme_name: str, lang_code: str):
 @pytest.mark.parametrize("lang_code", lang_module.list_builtin())
 def test_profile_render_well_formed(theme_name: str, lang_code: str):
     pack = lang_module.load(lang_code)
-    svg = profile.render(mock_profile("Sandjab", lang=pack),
-                         get_theme(theme_name), lang=pack)
+    svg = profile.render(mock_profile("Sandjab", lang=pack), get_theme(theme_name), lang=pack)
     root = ET.fromstring(svg)
     assert root.tag.endswith("svg")
     assert "@SANDJAB" in svg
@@ -189,8 +242,9 @@ def test_render_defaults_to_english():
 
 def test_render_french_uses_french():
     fr = lang_module.load("fr")
-    svg = repo.render(mock_repo("Sandjab", "Athanor", lang=fr),
-                      get_theme("blueprint-light"), lang=fr)
+    svg = repo.render(
+        mock_repo("Sandjab", "Athanor", lang=fr), get_theme("blueprint-light"), lang=fr
+    )
     assert "RADAR DE SANTÉ" in svg
     assert "INDICATEURS" in svg
     assert "PREMIÈRE ÉTOILE" in svg
@@ -201,8 +255,9 @@ def test_profile_truncates_long_repo_names():
     ellipsis so it never touches the star bar. Mock data ships with
     'apikoltar-corpus' (16 chars) which exercises this path."""
     pack = lang_module.load("en")
-    svg = profile.render(mock_profile("Sandjab", lang=pack),
-                         get_theme("blueprint-light"), lang=pack)
+    svg = profile.render(
+        mock_profile("Sandjab", lang=pack), get_theme("blueprint-light"), lang=pack
+    )
     # The full name must NOT be present, the truncated version must.
     assert "apikoltar-corpus" not in svg
     assert "apikoltar-cor…" in svg
@@ -216,16 +271,19 @@ def test_credit_line_present_on_both_dashboards():
     both repo and profile dashboards. It uses the data's handle / owner so
     different users get their own credit automatically."""
     pack = lang_module.load("en")
-    repo_svg = repo.render(mock_repo("Sandjab", "Athanor", lang=pack),
-                           get_theme("blueprint-light"), lang=pack)
-    prof_svg = profile.render(mock_profile("Sandjab", lang=pack),
-                              get_theme("blueprint-light"), lang=pack)
+    repo_svg = repo.render(
+        mock_repo("Sandjab", "Athanor", lang=pack), get_theme("blueprint-light"), lang=pack
+    )
+    prof_svg = profile.render(
+        mock_profile("Sandjab", lang=pack), get_theme("blueprint-light"), lang=pack
+    )
     assert "Proudly Clauded by @Sandjab" in repo_svg
     assert "Proudly Clauded by @Sandjab" in prof_svg
 
     # Different handle → different credit
-    other = repo.render(mock_repo("Octocat", "myrepo", lang=pack),
-                        get_theme("blueprint-light"), lang=pack)
+    other = repo.render(
+        mock_repo("Octocat", "myrepo", lang=pack), get_theme("blueprint-light"), lang=pack
+    )
     assert "Proudly Clauded by @Octocat" in other
     assert "Proudly Clauded by @Sandjab" not in other
 
@@ -234,8 +292,10 @@ def test_credit_line_present_on_both_dashboards():
 #  CLI
 # ──────────────────────────────────────────────────────────────────────────
 
+
 def test_cli_themes(capsys):
     from cartouche.cli import main
+
     rc = main(["themes"])
     out = capsys.readouterr().out.splitlines()
     assert rc == 0
@@ -244,6 +304,7 @@ def test_cli_themes(capsys):
 
 def test_cli_langs(capsys):
     from cartouche.cli import main
+
     rc = main(["langs"])
     out = capsys.readouterr().out.splitlines()
     assert rc == 0
@@ -252,6 +313,7 @@ def test_cli_langs(capsys):
 
 def test_cli_repo_mock_default_lang(tmp_path):
     from cartouche.cli import main
+
     out_path = tmp_path / "out.svg"
     rc = main(["repo", "Sandjab/Athanor", "--out", str(out_path), "--mock"])
     assert rc == 0
@@ -263,13 +325,19 @@ def test_cli_repo_mock_default_lang(tmp_path):
 
 def test_cli_repo_mock_french(tmp_path):
     from cartouche.cli import main
+
     out_path = tmp_path / "out.svg"
-    rc = main([
-        "repo", "Sandjab/Athanor",
-        "--lang", "fr",
-        "--out", str(out_path),
-        "--mock",
-    ])
+    rc = main(
+        [
+            "repo",
+            "Sandjab/Athanor",
+            "--lang",
+            "fr",
+            "--out",
+            str(out_path),
+            "--mock",
+        ]
+    )
     assert rc == 0
     content = out_path.read_text()
     assert "RADAR DE SANTÉ" in content
@@ -277,17 +345,27 @@ def test_cli_repo_mock_french(tmp_path):
 
 def test_cli_repo_lang_file(tmp_path):
     from cartouche.cli import main
+
     overlay_path = tmp_path / "custom.json"
-    overlay_path.write_text(json.dumps({
-        "labels": {"fig_radar_health": "FIG. 02 — VITAL SIGNS"},
-    }))
+    overlay_path.write_text(
+        json.dumps(
+            {
+                "labels": {"fig_radar_health": "FIG. 02 — VITAL SIGNS"},
+            }
+        )
+    )
     out_path = tmp_path / "out.svg"
-    rc = main([
-        "repo", "Sandjab/Athanor",
-        "--lang-file", str(overlay_path),
-        "--out", str(out_path),
-        "--mock",
-    ])
+    rc = main(
+        [
+            "repo",
+            "Sandjab/Athanor",
+            "--lang-file",
+            str(overlay_path),
+            "--out",
+            str(out_path),
+            "--mock",
+        ]
+    )
     assert rc == 0
     content = out_path.read_text()
     assert "VITAL SIGNS" in content
@@ -295,14 +373,21 @@ def test_cli_repo_lang_file(tmp_path):
 
 def test_cli_profile_mock_french(tmp_path):
     from cartouche.cli import main
+
     out_path = tmp_path / "out.svg"
-    rc = main([
-        "profile", "Sandjab",
-        "--lang", "fr",
-        "--theme", "vellum-light",
-        "--out", str(out_path),
-        "--mock",
-    ])
+    rc = main(
+        [
+            "profile",
+            "Sandjab",
+            "--lang",
+            "fr",
+            "--theme",
+            "vellum-light",
+            "--out",
+            str(out_path),
+            "--mock",
+        ]
+    )
     assert rc == 0
     content = out_path.read_text()
     assert "@SANDJAB" in content
@@ -311,6 +396,7 @@ def test_cli_profile_mock_french(tmp_path):
 
 def test_cli_rejects_unknown_lang():
     from cartouche.cli import main
+
     with pytest.raises(SystemExit) as exc:
         main(["repo", "Sandjab/Athanor", "--lang", "xx", "--mock"])
     assert exc.value.code == 2
@@ -318,6 +404,7 @@ def test_cli_rejects_unknown_lang():
 
 def test_cli_rejects_bad_repo_target():
     from cartouche.cli import main
+
     rc = main(["repo", "no-slash", "--mock"])
     assert rc == 2
 
@@ -325,20 +412,36 @@ def test_cli_rejects_bad_repo_target():
 def test_cli_repo_annotations_file_overrides_auto(tmp_path):
     """Custom annotations replace the auto-detected first-star + spike pair."""
     from cartouche.cli import main
+
     overlay = tmp_path / "events.json"
-    overlay.write_text(json.dumps([
-        {"date": "2025-12-15",
-         "label_top": "// HACKER NEWS", "label_bottom": "// front page"},
-        {"date": "2026-04-01",
-         "label_top": "// SHIPPED v1", "label_bottom": "// public release"},
-    ]))
+    overlay.write_text(
+        json.dumps(
+            [
+                {
+                    "date": "2025-12-15",
+                    "label_top": "// HACKER NEWS",
+                    "label_bottom": "// front page",
+                },
+                {
+                    "date": "2026-04-01",
+                    "label_top": "// SHIPPED v1",
+                    "label_bottom": "// public release",
+                },
+            ]
+        )
+    )
     out_path = tmp_path / "out.svg"
-    rc = main([
-        "repo", "Sandjab/Athanor",
-        "--annotations-file", str(overlay),
-        "--out", str(out_path),
-        "--mock",
-    ])
+    rc = main(
+        [
+            "repo",
+            "Sandjab/Athanor",
+            "--annotations-file",
+            str(overlay),
+            "--out",
+            str(out_path),
+            "--mock",
+        ]
+    )
     assert rc == 0
     content = out_path.read_text()
     assert "HACKER NEWS" in content
@@ -350,16 +453,21 @@ def test_cli_repo_annotations_file_overrides_auto(tmp_path):
 def test_cli_repo_annotations_file_count_interpolated(tmp_path):
     """Annotations without explicit `count` get one derived from star_history."""
     from cartouche.cli import _load_annotations_overlay
+
     history = [
         {"date": "2025-09-01", "count": 0},
         {"date": "2025-12-01", "count": 5},
         {"date": "2026-03-01", "count": 12},
     ]
     overlay_path = tmp_path / "events.json"
-    overlay_path.write_text(json.dumps([
-        # Date between Dec and Mar: count should be 5 (latest ≤ target)
-        {"date": "2026-01-15", "label_top": "X", "label_bottom": "Y"},
-    ]))
+    overlay_path.write_text(
+        json.dumps(
+            [
+                # Date between Dec and Mar: count should be 5 (latest ≤ target)
+                {"date": "2026-01-15", "label_top": "X", "label_bottom": "Y"},
+            ]
+        )
+    )
     result = _load_annotations_overlay(str(overlay_path), history)
     assert len(result) == 1
     assert result[0]["count"] == 5
@@ -367,25 +475,35 @@ def test_cli_repo_annotations_file_count_interpolated(tmp_path):
 
 def test_cli_repo_annotations_file_not_found():
     from cartouche.cli import main
+
     with pytest.raises(SystemExit) as exc:
-        main([
-            "repo", "Sandjab/Athanor",
-            "--annotations-file", "/nonexistent/path.json",
-            "--mock",
-        ])
+        main(
+            [
+                "repo",
+                "Sandjab/Athanor",
+                "--annotations-file",
+                "/nonexistent/path.json",
+                "--mock",
+            ]
+        )
     assert exc.value.code == 2
 
 
 def test_cli_repo_annotations_file_invalid_json(tmp_path):
     from cartouche.cli import main
+
     bad = tmp_path / "broken.json"
     bad.write_text("[ this is not json ]")
     with pytest.raises(SystemExit) as exc:
-        main([
-            "repo", "Sandjab/Athanor",
-            "--annotations-file", str(bad),
-            "--mock",
-        ])
+        main(
+            [
+                "repo",
+                "Sandjab/Athanor",
+                "--annotations-file",
+                str(bad),
+                "--mock",
+            ]
+        )
     assert exc.value.code == 2
 
 
@@ -407,10 +525,18 @@ def test_annotations_layout_descends_on_collision():
 
     start = date(2025, 9, 1)
     anns = [
-        {"date": "2025-09-01", "count": 0,
-         "label_top": "// VERY LONG LABEL FIRST EVENT", "label_bottom": "// extra detail one"},
-        {"date": "2025-10-01", "count": 5,
-         "label_top": "// VERY LONG LABEL SECOND EVENT", "label_bottom": "// extra detail two"},
+        {
+            "date": "2025-09-01",
+            "count": 0,
+            "label_top": "// VERY LONG LABEL FIRST EVENT",
+            "label_bottom": "// extra detail one",
+        },
+        {
+            "date": "2025-10-01",
+            "count": 5,
+            "label_top": "// VERY LONG LABEL SECOND EVENT",
+            "label_bottom": "// extra detail two",
+        },
     ]
     placed = _layout_annotations(anns, project, start)
     assert len(placed) == 2
@@ -437,8 +563,7 @@ def test_annotations_layout_monotone_y():
     long_top = "// LONG TITLE THAT NEEDS ROOM"
     long_bot = "// long descriptive subtext"
     anns = [
-        {"date": f"2025-09-{day:02d}", "count": i,
-         "label_top": long_top, "label_bottom": long_bot}
+        {"date": f"2025-09-{day:02d}", "count": i, "label_top": long_top, "label_bottom": long_bot}
         for i, day in enumerate([1, 5, 9], start=1)
     ]
     placed = _layout_annotations(anns, project, start)
@@ -459,7 +584,7 @@ def test_annotations_layout_preserves_date_order():
     start = date(2025, 9, 1)
     anns = [
         {"date": "2026-04-01", "count": 20, "label_top": "// LATE", "label_bottom": "// later"},
-        {"date": "2025-10-01", "count": 5,  "label_top": "// EARLY", "label_bottom": "// earlier"},
+        {"date": "2025-10-01", "count": 5, "label_top": "// EARLY", "label_bottom": "// earlier"},
     ]
     placed = _layout_annotations(anns, project, start)
     assert [p["date"] for p in placed] == ["2025-10-01", "2026-04-01"]
@@ -467,16 +592,25 @@ def test_annotations_layout_preserves_date_order():
 
 def test_cli_repo_annotations_file_missing_required_key(tmp_path):
     from cartouche.cli import main
+
     overlay = tmp_path / "events.json"
-    overlay.write_text(json.dumps([
-        {"date": "2026-01-01"},  # missing label_top + label_bottom
-    ]))
+    overlay.write_text(
+        json.dumps(
+            [
+                {"date": "2026-01-01"},  # missing label_top + label_bottom
+            ]
+        )
+    )
     with pytest.raises(SystemExit) as exc:
-        main([
-            "repo", "Sandjab/Athanor",
-            "--annotations-file", str(overlay),
-            "--mock",
-        ])
+        main(
+            [
+                "repo",
+                "Sandjab/Athanor",
+                "--annotations-file",
+                str(overlay),
+                "--mock",
+            ]
+        )
     assert exc.value.code == 2
 
 
@@ -484,8 +618,10 @@ def test_cli_repo_annotations_file_missing_required_key(tmp_path):
 #  Notes block — word-wrap and ellipsis truncation
 # ──────────────────────────────────────────────────────────────────────────
 
+
 def test_wrap_note_short_fits_single_line():
     from cartouche.render.primitives import _wrap_note
+
     lines = _wrap_note("Hello world", w_first=40, w_cont=40, max_lines=2)
     assert lines == ["Hello world"]
 
@@ -493,6 +629,7 @@ def test_wrap_note_short_fits_single_line():
 def test_wrap_note_wraps_at_word_boundary():
     """Long input wraps to a 2nd line without splitting any word."""
     from cartouche.render.primitives import _wrap_note
+
     src = "alpha beta gamma delta epsilon"
     lines = _wrap_note(src, w_first=20, w_cont=20, max_lines=2)
     assert lines == ["alpha beta gamma", "delta epsilon"]
@@ -503,9 +640,12 @@ def test_wrap_note_wraps_at_word_boundary():
 def test_wrap_note_truncates_with_ellipsis_when_overflow():
     """When the text exceeds max_lines lines, the last line ends with '…'."""
     from cartouche.render.primitives import _wrap_note
+
     lines = _wrap_note(
         "alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu",
-        w_first=12, w_cont=12, max_lines=2,
+        w_first=12,
+        w_cont=12,
+        max_lines=2,
     )
     assert len(lines) == 2
     assert lines[-1].endswith("…")
@@ -516,6 +656,7 @@ def test_notes_block_renders_at_8pt():
     default 9pt of role='dim', so they're less likely to crash into the
     cartouche on the right."""
     from cartouche.render import primitives as P
+
     lang = lang_module.load("en")
     theme = get_theme("blueprint-light")
     svg = P.notes_block(["short note"], 40, 824, theme, lang)
@@ -528,8 +669,8 @@ def test_profile_canvas_height_is_912():
     """Layout doc and CANVAS_H must agree (sanity guard against silent
     drift if someone tweaks one and forgets the other)."""
     from cartouche.render import profile as P
+
     assert P.CANVAS_H == 912
     # The viewBox in the produced SVG must reflect that.
-    svg = P.render(mock_profile(), get_theme("blueprint-light"),
-                   lang_module.load("en"))
+    svg = P.render(mock_profile(), get_theme("blueprint-light"), lang_module.load("en"))
     assert 'viewBox="0 0 680 912"' in svg

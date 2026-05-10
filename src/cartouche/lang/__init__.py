@@ -63,9 +63,7 @@ def t(lang: dict, key: str) -> str:
     try:
         return lang["labels"][key]
     except KeyError:
-        raise KeyError(
-            f"Lang pack {lang.get('code', '?')!r} missing labels.{key!r}"
-        ) from None
+        raise KeyError(f"Lang pack {lang.get('code', '?')!r} missing labels.{key!r}") from None
 
 
 def tmpl(lang: dict, key: str, **kwargs: Any) -> str:
@@ -73,9 +71,7 @@ def tmpl(lang: dict, key: str, **kwargs: Any) -> str:
     try:
         template = lang["templates"][key]
     except KeyError:
-        raise KeyError(
-            f"Lang pack {lang.get('code', '?')!r} missing templates.{key!r}"
-        ) from None
+        raise KeyError(f"Lang pack {lang.get('code', '?')!r} missing templates.{key!r}") from None
     return template.format(**kwargs)
 
 
@@ -97,6 +93,7 @@ def format_date_long(lang: dict, d: _date) -> str:
 # ──────────────────────────────────────────────────────────────────────────
 #  Internal helpers
 # ──────────────────────────────────────────────────────────────────────────
+
 
 def _load_builtin(code: str) -> dict:
     candidate = resources.files(_PACKAGE_RESOURCE).joinpath(f"{code}.json")

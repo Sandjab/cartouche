@@ -58,31 +58,39 @@ class ProfileData(TypedDict, total=False):
 #  Top-level entry point
 # ──────────────────────────────────────────────────────────────────────────
 
+
 def render(data: ProfileData, theme: dict, lang: dict | None = None) -> str:
     if lang is None:
         lang = _lang_module.load("en")
 
     parts: list[str] = []
 
-    parts.append(P.svg_open(
-        CANVAS_W, CANVAS_H,
-        title=f"{data['handle']} — Cartouche profile dashboard",
-        desc=(f"Profile telemetry for @{data['handle']}: cumulative star history, "
-              f"top repos, contribution heatmap, profile radar."),
-    ))
+    parts.append(
+        P.svg_open(
+            CANVAS_W,
+            CANVAS_H,
+            title=f"{data['handle']} — Cartouche profile dashboard",
+            desc=(
+                f"Profile telemetry for @{data['handle']}: cumulative star history, "
+                f"top repos, contribution heatmap, profile radar."
+            ),
+        )
+    )
     parts.append(P.defs(theme))
     parts.append(P.background(CANVAS_W, CANVAS_H, theme))
     parts.append(P.watermark(CANVAS_W, CANVAS_H, theme))
     parts.append(P.frame(CANVAS_W, CANVAS_H, theme))
 
-    parts.append(P.header(
-        title=f"@{data['handle'].upper()}",
-        subtitle=data.get("bio", t(lang, "subtitle_profile")).upper(),
-        rev=f"{t(lang, 'rev_prefix')} {data['rev']}",
-        sheet=t(lang, "sheet_label"),
-        theme=theme,
-        width=CANVAS_W,
-    ))
+    parts.append(
+        P.header(
+            title=f"@{data['handle'].upper()}",
+            subtitle=data.get("bio", t(lang, "subtitle_profile")).upper(),
+            rev=f"{t(lang, 'rev_prefix')} {data['rev']}",
+            sheet=t(lang, "sheet_label"),
+            theme=theme,
+            width=CANVAS_W,
+        )
+    )
 
     # FIG. 01 — Cumulative star history
     parts.append(_fig_cum_stars(data, theme, lang))
@@ -110,17 +118,23 @@ def render(data: ProfileData, theme: dict, lang: dict | None = None) -> str:
     # Notes + cartouche
     parts.append(P.divider(40, 800, CANVAS_W - 40, theme))
     parts.append(P.notes_block(data.get("notes", []), 40, 824, theme, lang))
-    parts.append(P.cartouche(
-        handle=data["handle"],
-        date=data["date"],
-        rev=data["rev"],
-        label=tmpl(lang, "label_profile_full",
-                   handle=data["handle"].upper(),
-                   label=t(lang, "label_profile_telemetry")),
-        theme=theme,
-        lang=lang,
-        x=420, y=818,
-    ))
+    parts.append(
+        P.cartouche(
+            handle=data["handle"],
+            date=data["date"],
+            rev=data["rev"],
+            label=tmpl(
+                lang,
+                "label_profile_full",
+                handle=data["handle"].upper(),
+                label=t(lang, "label_profile_telemetry"),
+            ),
+            theme=theme,
+            lang=lang,
+            x=420,
+            y=818,
+        )
+    )
 
     parts.append(P.credit_line(data["handle"], theme, lang, CANVAS_W, CANVAS_H))
     parts.append(P.svg_close())
@@ -131,15 +145,18 @@ def render(data: ProfileData, theme: dict, lang: dict | None = None) -> str:
 #  FIG. 01 — Cumulative star history
 # ──────────────────────────────────────────────────────────────────────────
 
+
 def _fig_cum_stars(data: ProfileData, theme: dict, lang: dict) -> str:
     history = data["star_history"]
     if not history:
         return P.section_label(
-            tmpl(lang, "fig_cum_stars", start="—", end="—"), 40, 124, theme,
+            tmpl(lang, "fig_cum_stars", start="—", end="—"),
+            40,
+            124,
+            theme,
         )
 
-    parsed = [(datetime.strptime(p["date"], "%Y-%m-%d").date(), p["count"])
-              for p in history]
+    parsed = [(datetime.strptime(p["date"], "%Y-%m-%d").date(), p["count"]) for p in history]
     start, end = parsed[0][0], parsed[-1][0]
     span_days = max((end - start).days, 1)
     max_stars = max(c for _, c in parsed)
@@ -149,17 +166,29 @@ def _fig_cum_stars(data: ProfileData, theme: dict, lang: dict) -> str:
     y_ticks = [(int(y_max * i / 4), str(int(y_max * i / 4))) for i in range(5)]
     x_ticks = _quarter_ticks(start, end, lang)
 
-    parts = [P.section_label(
-        tmpl(lang, "fig_cum_stars",
-             start=format_date_long(lang, start),
-             end=format_date_long(lang, end)),
-        40, 124, theme,
-    )]
+    parts = [
+        P.section_label(
+            tmpl(
+                lang,
+                "fig_cum_stars",
+                start=format_date_long(lang, start),
+                end=format_date_long(lang, end),
+            ),
+            40,
+            124,
+            theme,
+        )
+    ]
     chart_svg, project = P.line_chart(
         points=points,
-        x0=60, y0=160, x1=640, y1=300,
-        x_max=span_days, y_max=y_max,
-        x_ticks=x_ticks, y_ticks=y_ticks,
+        x0=60,
+        y0=160,
+        x1=640,
+        y1=300,
+        x_max=span_days,
+        y_max=y_max,
+        x_ticks=x_ticks,
+        y_ticks=y_ticks,
         theme=theme,
     )
     parts.append(chart_svg)
@@ -173,6 +202,7 @@ def _fig_cum_stars(data: ProfileData, theme: dict, lang: dict) -> str:
 # ──────────────────────────────────────────────────────────────────────────
 #  FIG. 02 — Top 5 repos as horizontal bars
 # ──────────────────────────────────────────────────────────────────────────
+
 
 def _fig_top_repos(data: ProfileData, theme: dict, lang: dict) -> str:
     repos = data.get("top_repos", [])[:5]
@@ -197,7 +227,7 @@ def _fig_top_repos(data: ProfileData, theme: dict, lang: dict) -> str:
         # in the underlying data — only the rendered glyph is shortened.
         name = r["name"]
         if len(name) > name_max_chars:
-            name = name[:name_max_chars - 1] + "…"
+            name = name[: name_max_chars - 1] + "…"
         parts.append(P.text(name, 40, ry + 14, theme, role="body"))
         bar_w = bar_max_w * (r["stars"] / max_stars)
         parts.append(
@@ -208,15 +238,24 @@ def _fig_top_repos(data: ProfileData, theme: dict, lang: dict) -> str:
             f'<rect x="{bar_x}" y="{ry + 4}" width="{bar_w:.2f}" height="14" '
             f'fill="{theme["data_primary"]}"/>'
         )
-        parts.append(P.text(
-            tmpl(lang, "top_repo_stars", n=r["stars"]),
-            bar_x + bar_max_w + 8, ry + 14, theme, role="dim",
-        ))
-        parts.append(P.text(
-            tmpl(lang, "top_repo_sub",
-                 language=r["language"], commits=r["commits_30d"]),
-            40, ry + 28, theme, role="dim",
-        ))
+        parts.append(
+            P.text(
+                tmpl(lang, "top_repo_stars", n=r["stars"]),
+                bar_x + bar_max_w + 8,
+                ry + 14,
+                theme,
+                role="dim",
+            )
+        )
+        parts.append(
+            P.text(
+                tmpl(lang, "top_repo_sub", language=r["language"], commits=r["commits_30d"]),
+                40,
+                ry + 28,
+                theme,
+                role="dim",
+            )
+        )
 
     return "".join(parts)
 
@@ -224,6 +263,7 @@ def _fig_top_repos(data: ProfileData, theme: dict, lang: dict) -> str:
 # ──────────────────────────────────────────────────────────────────────────
 #  FIG. 04 — 53-week contribution heatmap
 # ──────────────────────────────────────────────────────────────────────────
+
 
 def _fig_heatmap(data: ProfileData, theme: dict, lang: dict) -> str:
     grid = data.get("contribution_heatmap", [])
@@ -256,8 +296,7 @@ def _fig_heatmap(data: ProfileData, theme: dict, lang: dict) -> str:
     label_x = grid_x - 6
     for row_i, key in [(1, "day_mon"), (3, "day_wed"), (5, "day_fri")]:
         ly = grid_y + row_i * (cell + gap) + cell - 2
-        parts.append(P.text(t(lang, key), label_x, ly, theme,
-                            role="dim", anchor="end"))
+        parts.append(P.text(t(lang, key), label_x, ly, theme, role="dim", anchor="end"))
 
     grid_h = 7 * (cell + gap) - gap
     for col_i in range(0, cols, 4):
@@ -271,12 +310,13 @@ def _fig_heatmap(data: ProfileData, theme: dict, lang: dict) -> str:
     # bottom-right. Splitting them avoids the overlap that occurred when the
     # legend was packed near the right edge alongside the counter text.
     legend_y = grid_y + grid_h + 12
-    legend_left_x = grid_x                    # "LESS"/"MOINS" anchored here
-    legend_cells_x = legend_left_x + 40       # 40px reserves room for ≤7-char labels
+    legend_left_x = grid_x  # "LESS"/"MOINS" anchored here
+    legend_cells_x = legend_left_x + 40  # 40px reserves room for ≤7-char labels
     legend_cells_end = legend_cells_x + 5 * (cell + gap) - gap
 
-    parts.append(P.text(t(lang, "less"), legend_left_x, legend_y + 8, theme,
-                        role="dim", anchor="start"))
+    parts.append(
+        P.text(t(lang, "less"), legend_left_x, legend_y + 8, theme, role="dim", anchor="start")
+    )
     for level in range(5):
         fill, alpha = intensity_fill(level)
         lx = legend_cells_x + level * (cell + gap)
@@ -284,14 +324,23 @@ def _fig_heatmap(data: ProfileData, theme: dict, lang: dict) -> str:
             f'<rect x="{lx}" y="{legend_y}" width="{cell}" height="{cell}" '
             f'fill="{fill}" fill-opacity="{min(alpha, 1.0):.2f}" rx="1"/>'
         )
-    parts.append(P.text(t(lang, "more"), legend_cells_end + 6, legend_y + 8,
-                        theme, role="dim", anchor="start"))
+    parts.append(
+        P.text(
+            t(lang, "more"), legend_cells_end + 6, legend_y + 8, theme, role="dim", anchor="start"
+        )
+    )
 
     total = sum(sum(week) for week in grid)
-    parts.append(P.text(
-        tmpl(lang, "contribs_total", n=total),
-        grid_x + grid_w, legend_y + 8, theme, role="dim", anchor="end",
-    ))
+    parts.append(
+        P.text(
+            tmpl(lang, "contribs_total", n=total),
+            grid_x + grid_w,
+            legend_y + 8,
+            theme,
+            role="dim",
+            anchor="end",
+        )
+    )
 
     return "".join(parts)
 
@@ -299,6 +348,7 @@ def _fig_heatmap(data: ProfileData, theme: dict, lang: dict) -> str:
 # ──────────────────────────────────────────────────────────────────────────
 #  FIG. 05 — Indicator row
 # ──────────────────────────────────────────────────────────────────────────
+
 
 def _fig_indicators(data: ProfileData, theme: dict, lang: dict) -> str:
     parts = [P.section_label(t(lang, "fig_indicators_profile"), 40, 720, theme)]
@@ -308,18 +358,26 @@ def _fig_indicators(data: ProfileData, theme: dict, lang: dict) -> str:
     y = 736
 
     cards = [
-        (t(lang, "card_total_stars"),
-         str(data.get("total_stars", 0)),
-         tmpl(lang, "n_repos", n=data.get("public_repos", 0))),
-        (t(lang, "card_total_forks"),
-         str(data.get("total_forks", 0)),
-         tmpl(lang, "n_followers", n=data.get("followers", 0))),
-        (t(lang, "card_commits_year"),
-         str(data.get("total_commits_year", 0)),
-         tmpl(lang, "n_following", n=data.get("following", 0))),
-        (t(lang, "card_since"),
-         data.get("joined", "?")[:7],
-         tmpl(lang, "n_years", n=_age_years(data.get("joined", "2024-01-01")))),
+        (
+            t(lang, "card_total_stars"),
+            str(data.get("total_stars", 0)),
+            tmpl(lang, "n_repos", n=data.get("public_repos", 0)),
+        ),
+        (
+            t(lang, "card_total_forks"),
+            str(data.get("total_forks", 0)),
+            tmpl(lang, "n_followers", n=data.get("followers", 0)),
+        ),
+        (
+            t(lang, "card_commits_year"),
+            str(data.get("total_commits_year", 0)),
+            tmpl(lang, "n_following", n=data.get("following", 0)),
+        ),
+        (
+            t(lang, "card_since"),
+            data.get("joined", "?")[:7],
+            tmpl(lang, "n_years", n=_age_years(data.get("joined", "2024-01-01"))),
+        ),
     ]
 
     for i, (label, val, sub) in enumerate(cards):
@@ -332,6 +390,7 @@ def _fig_indicators(data: ProfileData, theme: dict, lang: dict) -> str:
 # ──────────────────────────────────────────────────────────────────────────
 #  Internal helpers
 # ──────────────────────────────────────────────────────────────────────────
+
 
 def _nice_ceil(n: int) -> int:
     if n <= 0:

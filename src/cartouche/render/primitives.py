@@ -24,12 +24,13 @@ MONO_STACK = "ui-monospace, 'SF Mono', 'JetBrains Mono', 'Cascadia Code', Consol
 #  Document-level
 # ──────────────────────────────────────────────────────────────────────────
 
+
 def svg_open(width: int, height: int, title: str, desc: str) -> str:
     """Opening <svg> tag with title/desc for accessibility."""
     return (
         f'<svg width="100%" viewBox="0 0 {width} {height}" '
         f'xmlns="http://www.w3.org/2000/svg" role="img">'
-        f'<title>{_esc(title)}</title><desc>{_esc(desc)}</desc>'
+        f"<title>{_esc(title)}</title><desc>{_esc(desc)}</desc>"
     )
 
 
@@ -42,12 +43,12 @@ def defs(theme: dict) -> str:
     fine = theme["grid_fine"]
     major = theme["grid_major"]
     return (
-        '<defs>'
+        "<defs>"
         f'<pattern id="grid-fine" width="10" height="10" patternUnits="userSpaceOnUse">'
         f'<path d="M10 0H0V10" fill="none" stroke="{fine}" stroke-width="0.4"/></pattern>'
         f'<pattern id="grid-major" width="50" height="50" patternUnits="userSpaceOnUse">'
         f'<path d="M50 0H0V50" fill="none" stroke="{major}" stroke-width="0.5"/></pattern>'
-        '</defs>'
+        "</defs>"
     )
 
 
@@ -65,10 +66,10 @@ def frame(width: int, height: int, theme: dict, margin: int = 20) -> str:
     inset = margin + 4
     return (
         f'<rect x="{margin}" y="{margin}" '
-        f'width="{width - 2*margin}" height="{height - 2*margin}" '
+        f'width="{width - 2 * margin}" height="{height - 2 * margin}" '
         f'fill="none" stroke="{theme["frame"]}" stroke-width="0.7"/>'
         f'<rect x="{inset}" y="{inset}" '
-        f'width="{width - 2*inset}" height="{height - 2*inset}" '
+        f'width="{width - 2 * inset}" height="{height - 2 * inset}" '
         f'fill="none" stroke="{theme["frame_inner"]}" stroke-width="0.4"/>'
     )
 
@@ -86,6 +87,7 @@ def watermark(width: int, height: int, theme: dict) -> str:
     if not name:
         return ""
     from .. import watermarks
+
     uri = watermarks.as_data_uri(name)
     opacity = theme.get("watermark_opacity", 0.10)
     return (
@@ -99,10 +101,19 @@ def watermark(width: int, height: int, theme: dict) -> str:
 #  Text helpers
 # ──────────────────────────────────────────────────────────────────────────
 
-def text(content: str, x: float, y: float, theme: dict, *,
-         role: str = "secondary", anchor: str = "start",
-         size: int | None = None, weight: int | None = None,
-         letter_spacing: str | None = None) -> str:
+
+def text(
+    content: str,
+    x: float,
+    y: float,
+    theme: dict,
+    *,
+    role: str = "secondary",
+    anchor: str = "start",
+    size: int | None = None,
+    weight: int | None = None,
+    letter_spacing: str | None = None,
+) -> str:
     """Render a <text> element, themed by role.
 
     Roles map to (default size, default weight, fill token):
@@ -118,20 +129,22 @@ def text(content: str, x: float, y: float, theme: dict, *,
     role default. `anchor` ∈ {start, middle, end}.
     """
     role_defaults = {
-        "title":   (32, 700, theme["text_primary"]),
-        "label":   (10, 400, theme["text_label"]),
-        "num":     (22, 700, theme["text_primary"]),
-        "dim":     (9,  400, theme["text_secondary"]),
+        "title": (32, 700, theme["text_primary"]),
+        "label": (10, 400, theme["text_label"]),
+        "num": (22, 700, theme["text_primary"]),
+        "dim": (9, 400, theme["text_secondary"]),
         "caption": (11, 400, theme["text_secondary"]),
-        "body":    (10, 400, theme["text_primary"]),
-        "accent":  (9,  400, theme["accent"]),
+        "body": (10, 400, theme["text_primary"]),
+        "accent": (9, 400, theme["accent"]),
     }
     default_size, default_weight, fill = role_defaults[role]
     s = size if size is not None else default_size
     w = weight if weight is not None else default_weight
     if letter_spacing is None:
-        letter_spacing = "0.18em" if role == "title" else (
-            "0.12em" if role == "label" else "0.08em" if role == "dim" else "normal"
+        letter_spacing = (
+            "0.18em"
+            if role == "title"
+            else ("0.12em" if role == "label" else "0.08em" if role == "dim" else "normal")
         )
     return (
         f'<text x="{x}" y="{y}" font-family="{MONO_STACK}" '
@@ -144,8 +157,10 @@ def text(content: str, x: float, y: float, theme: dict, *,
 #  Header strip + cartouche
 # ──────────────────────────────────────────────────────────────────────────
 
-def header(title: str, subtitle: str, rev: str, sheet: str,
-           theme: dict, *, width: int = 680) -> str:
+
+def header(
+    title: str, subtitle: str, rev: str, sheet: str, theme: dict, *, width: int = 680
+) -> str:
     """Top header strip: big title on the left, REV/SHEET on the right.
     Closes with a horizontal divider.
 
@@ -163,9 +178,19 @@ def header(title: str, subtitle: str, rev: str, sheet: str,
     return "".join(parts)
 
 
-def cartouche(handle: str, date: str, rev: str, label: str,
-              theme: dict, lang: dict, *, x: int = 420, y: int = 678,
-              w: int = 220, h: int = 52) -> str:
+def cartouche(
+    handle: str,
+    date: str,
+    rev: str,
+    label: str,
+    theme: dict,
+    lang: dict,
+    *,
+    x: int = 420,
+    y: int = 678,
+    w: int = 220,
+    h: int = 52,
+) -> str:
     """The bottom-right title block, in three rows like a real architectural
     drawing title block:
 
@@ -182,8 +207,8 @@ def cartouche(handle: str, date: str, rev: str, label: str,
     col1 = x + 90
     col2 = x + 155
     # Three rows separated by two horizontal dividers
-    labels_row_bottom = y + 13      # between labels row and values row
-    values_row_bottom = y + 38      # between values row and title row
+    labels_row_bottom = y + 13  # between labels row and values row
+    values_row_bottom = y + 38  # between values row and title row
     parts = [
         # Outer frame
         f'<rect x="{x}" y="{y}" width="{w}" height="{h}" '
@@ -217,12 +242,19 @@ def cartouche(handle: str, date: str, rev: str, label: str,
 #  Chart axes + curve
 # ──────────────────────────────────────────────────────────────────────────
 
-def line_chart(points: Sequence[tuple[float, float]],
-               x0: float, y0: float, x1: float, y1: float,
-               x_max: float, y_max: float,
-               x_ticks: Sequence[tuple[float, str]],
-               y_ticks: Sequence[tuple[float, str]],
-               theme: dict) -> tuple[str, callable]:
+
+def line_chart(
+    points: Sequence[tuple[float, float]],
+    x0: float,
+    y0: float,
+    x1: float,
+    y1: float,
+    x_max: float,
+    y_max: float,
+    x_ticks: Sequence[tuple[float, str]],
+    y_ticks: Sequence[tuple[float, str]],
+    theme: dict,
+) -> tuple[str, callable]:
     """Render a line chart in the rect (x0,y0)-(x1,y1) and return:
        - the SVG fragment
        - a `project(data_x, data_y) -> (svg_x, svg_y)` function for callers
@@ -231,6 +263,7 @@ def line_chart(points: Sequence[tuple[float, float]],
     `points` are (data_x, data_y) tuples.
     `x_ticks` / `y_ticks` are (data_value, label) pairs.
     """
+
     def project(dx: float, dy: float) -> tuple[float, float]:
         sx = x0 + (dx / x_max) * (x1 - x0)
         sy = y1 - (dy / y_max) * (y1 - y0)
@@ -282,11 +315,18 @@ def line_chart(points: Sequence[tuple[float, float]],
     return "".join(parts), project
 
 
-def annotation(svg_x: float, svg_y: float,
-               leader_to_x: float, leader_to_y: float,
-               primary: str, secondary: str,
-               theme: dict, *, label_anchor: str = "start",
-               size: int = 7) -> str:
+def annotation(
+    svg_x: float,
+    svg_y: float,
+    leader_to_x: float,
+    leader_to_y: float,
+    primary: str,
+    secondary: str,
+    theme: dict,
+    *,
+    label_anchor: str = "start",
+    size: int = 7,
+) -> str:
     """Drop a circular marker at (svg_x, svg_y), draw an L-shaped dashed leader
     to (leader_to_x, leader_to_y), and place a two-line callout at the leader end.
 
@@ -304,10 +344,12 @@ def annotation(svg_x: float, svg_y: float,
         f'<line x1="{svg_x}" y1="{leader_to_y}" x2="{leader_to_x}" y2="{leader_to_y}" '
         f'stroke="{theme["accent"]}" stroke-width="0.5" '
         f'stroke-dasharray="2,2" fill="none"/>'
-        + text(primary,   text_x, leader_to_y - 2, theme, role="accent",
-               anchor=label_anchor, size=size)
-        + text(secondary, text_x, leader_to_y + 6, theme, role="dim",
-               anchor=label_anchor, size=size)
+        + text(
+            primary, text_x, leader_to_y - 2, theme, role="accent", anchor=label_anchor, size=size
+        )
+        + text(
+            secondary, text_x, leader_to_y + 6, theme, role="dim", anchor=label_anchor, size=size
+        )
     )
 
 
@@ -324,9 +366,17 @@ def endpoint_marker(svg_x: float, svg_y: float, value: str, theme: dict) -> str:
 #  Radar chart
 # ──────────────────────────────────────────────────────────────────────────
 
-def radar(cx: float, cy: float, radius: float,
-          axis_labels: Sequence[str], values: Sequence[float],
-          theme: dict, *, levels: int = 4) -> str:
+
+def radar(
+    cx: float,
+    cy: float,
+    radius: float,
+    axis_labels: Sequence[str],
+    values: Sequence[float],
+    theme: dict,
+    *,
+    levels: int = 4,
+) -> str:
     """Render a hexagonal radar (or n-gon if len(axis_labels) != 6).
 
     `values` are normalized 0..1 distances along each axis.
@@ -340,8 +390,7 @@ def radar(cx: float, cy: float, radius: float,
     def axis_point(i: int, scale: float) -> tuple[float, float]:
         # Start at top (-90° in math coords), go clockwise
         angle = -math.pi / 2 + 2 * math.pi * i / n
-        return (cx + scale * radius * math.cos(angle),
-                cy + scale * radius * math.sin(angle))
+        return (cx + scale * radius * math.cos(angle), cy + scale * radius * math.sin(angle))
 
     parts = []
 
@@ -373,10 +422,7 @@ def radar(cx: float, cy: float, radius: float,
         f'stroke="{theme["data_primary"]}" stroke-width="1.2"/>'
     )
     for x, y in data_pts:
-        parts.append(
-            f'<circle cx="{x:.2f}" cy="{y:.2f}" r="2.2" '
-            f'fill="{theme["data_primary"]}"/>'
-        )
+        parts.append(f'<circle cx="{x:.2f}" cy="{y:.2f}" r="2.2" fill="{theme["data_primary"]}"/>')
 
     # Axis labels (placed slightly outside the outer ring)
     label_radius = radius + 14
@@ -398,8 +444,10 @@ def radar(cx: float, cy: float, radius: float,
 #  Metric cards & misc
 # ──────────────────────────────────────────────────────────────────────────
 
-def metric_card(x: float, y: float, w: float, h: float,
-                label: str, value: str, sub: str, theme: dict) -> str:
+
+def metric_card(
+    x: float, y: float, w: float, h: float, label: str, value: str, sub: str, theme: dict
+) -> str:
     """A bordered card with a small label, a big number, and a small sublabel."""
     return (
         f'<rect x="{x}" y="{y}" width="{w}" height="{h}" '
@@ -410,9 +458,9 @@ def metric_card(x: float, y: float, w: float, h: float,
     )
 
 
-def stacked_bar(x: float, y: float, w: float, h: float,
-                segments: Sequence[tuple[float, str]],
-                theme: dict) -> str:
+def stacked_bar(
+    x: float, y: float, w: float, h: float, segments: Sequence[tuple[float, str]], theme: dict
+) -> str:
     """Horizontal stacked bar. `segments` are (fraction_0_to_1, color_token_name).
 
     Color tokens accepted: 'data_primary', 'accent', 'frame_inner'.
@@ -425,30 +473,36 @@ def stacked_bar(x: float, y: float, w: float, h: float,
     for frac, token in segments:
         seg_w = w * frac
         parts.append(
-            f'<rect x="{cursor}" y="{y}" width="{seg_w:.2f}" height="{h}" '
-            f'fill="{theme[token]}"/>'
+            f'<rect x="{cursor}" y="{y}" width="{seg_w:.2f}" height="{h}" fill="{theme[token]}"/>'
         )
         cursor += seg_w
     return "".join(parts)
 
 
-def section_label(label: str, x: float, y: float, theme: dict, *,
-                  width: int = 680) -> str:
+def section_label(label: str, x: float, y: float, theme: dict, *, width: int = 680) -> str:
     """A FIG. header with a short rule line under it."""
     return text(label, x, y, theme, role="label")
 
 
 def divider(x1: float, y: float, x2: float, theme: dict) -> str:
-    return (f'<line x1="{x1}" y1="{y}" x2="{x2}" y2="{y}" '
-            f'stroke="{theme["frame"]}" stroke-width="0.7"/>')
+    return (
+        f'<line x1="{x1}" y1="{y}" x2="{x2}" y2="{y}" '
+        f'stroke="{theme["frame"]}" stroke-width="0.7"/>'
+    )
 
 
-def notes_block(notes: Sequence[str], x: float, y_start: float,
-                theme: dict, lang: dict, *,
-                line_h: int = 11,
-                font_size: int = 8,
-                max_width_px: float = 372,
-                max_lines_per_note: int = 2) -> str:
+def notes_block(
+    notes: Sequence[str],
+    x: float,
+    y_start: float,
+    theme: dict,
+    lang: dict,
+    *,
+    line_h: int = 11,
+    font_size: int = 8,
+    max_width_px: float = 372,
+    max_lines_per_note: int = 2,
+) -> str:
     """A list of short note lines, one per row, prefixed with ▸.
 
     Long notes wrap to subsequent lines (without breaking words) up to
@@ -473,13 +527,18 @@ def notes_block(notes: Sequence[str], x: float, y_start: float,
 
     y = y_start + 10
     for note in notes:
-        for i, line in enumerate(_wrap_note(note, avail_first, avail_cont,
-                                            max_lines_per_note)):
-            parts.append(text(
-                (bullet if i == 0 else cont_indent) + line,
-                x, y, theme,
-                role="dim", size=font_size, letter_spacing="0.04em",
-            ))
+        for i, line in enumerate(_wrap_note(note, avail_first, avail_cont, max_lines_per_note)):
+            parts.append(
+                text(
+                    (bullet if i == 0 else cont_indent) + line,
+                    x,
+                    y,
+                    theme,
+                    role="dim",
+                    size=font_size,
+                    letter_spacing="0.04em",
+                )
+            )
             y += line_h
     return "".join(parts)
 
@@ -522,8 +581,7 @@ def _wrap_note(text_in: str, w_first: int, w_cont: int, max_lines: int) -> list[
     return visible
 
 
-def credit_line(handle: str, theme: dict, lang: dict,
-                canvas_w: int, canvas_h: int) -> str:
+def credit_line(handle: str, theme: dict, lang: dict, canvas_w: int, canvas_h: int) -> str:
     """Watermark placed below the outer frame, bottom-right.
 
     Lives in the 20-pixel band between the outer frame (which ends at
@@ -533,8 +591,12 @@ def credit_line(handle: str, theme: dict, lang: dict,
     """
     return text(
         lang["templates"]["proudly_clauded"].format(handle=handle),
-        canvas_w - 22, canvas_h - 8,
-        theme, role="dim", anchor="end", size=8,
+        canvas_w - 22,
+        canvas_h - 8,
+        theme,
+        role="dim",
+        anchor="end",
+        size=8,
     )
 
 
@@ -542,8 +604,7 @@ def credit_line(handle: str, theme: dict, lang: dict,
 #  Internal helpers
 # ──────────────────────────────────────────────────────────────────────────
 
+
 def _esc(s: str) -> str:
     """Minimal XML escape for text content."""
-    return (s.replace("&", "&amp;")
-             .replace("<", "&lt;")
-             .replace(">", "&gt;"))
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")

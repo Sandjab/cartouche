@@ -42,7 +42,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-DEFAULT_TTL_SECONDS = 24 * 60 * 60   # 24 hours
+DEFAULT_TTL_SECONDS = 24 * 60 * 60  # 24 hours
 CACHE_VERSION = 1
 
 
@@ -70,9 +70,13 @@ class Cache:
     is atomic on the same filesystem.
     """
 
-    def __init__(self, base_dir: Path | None = None, *,
-                 ttl_seconds: int = DEFAULT_TTL_SECONDS,
-                 enabled: bool = True) -> None:
+    def __init__(
+        self,
+        base_dir: Path | None = None,
+        *,
+        ttl_seconds: int = DEFAULT_TTL_SECONDS,
+        enabled: bool = True,
+    ) -> None:
         self.base_dir = Path(base_dir) if base_dir else default_cache_dir()
         self.ttl_seconds = ttl_seconds
         self.enabled = enabled

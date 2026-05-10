@@ -196,6 +196,37 @@ def test_lang_helpers():
     assert lang_module.month_long(en, 1) == "Jan"
 
 
+@pytest.mark.parametrize(
+    "evil_template",
+    [
+        "{n.__class__}",
+        "{n.__class__.__mro__}",
+        "{date.__class__.__bases__}",
+        "{n[0]}",
+        "{date[year]}",
+        "before {n.__doc__} after",
+    ],
+)
+def test_tmpl_rejects_attribute_and_item_access(tmp_path, evil_template):
+    """A `--lang-file` overlay must not be able to introspect kwargs via
+    `str.format`'s implicit attribute/item access. The format-string is
+    sandboxed by `lang._SafeFormatter`."""
+    overlay = {"templates": {"delta_30d": evil_template}}
+    p = tmp_path / "evil.json"
+    p.write_text(json.dumps(overlay), encoding="utf-8")
+    pack = lang_module.load("en", overlay_path=str(p))
+    with pytest.raises(ValueError, match="unsafe placeholder"):
+        lang_module.tmpl(pack, "delta_30d", n=5)
+
+
+def test_tmpl_still_accepts_plain_placeholders(tmp_path):
+    overlay = {"templates": {"delta_30d": "delta is {n} units"}}
+    p = tmp_path / "ok.json"
+    p.write_text(json.dumps(overlay), encoding="utf-8")
+    pack = lang_module.load("en", overlay_path=str(p))
+    assert lang_module.tmpl(pack, "delta_30d", n=5) == "delta is 5 units"
+
+
 # ──────────────────────────────────────────────────────────────────────────
 #  Renderers — across 16 themes × 2 langs = 32 combinations each
 # ──────────────────────────────────────────────────────────────────────────

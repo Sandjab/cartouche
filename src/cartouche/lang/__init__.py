@@ -28,11 +28,34 @@ from __future__ import annotations
 
 import importlib.resources as resources
 import json
+import string
 from datetime import date as _date
 from pathlib import Path
 from typing import Any
 
 _PACKAGE_RESOURCE = "cartouche.lang"
+
+
+class _SafeFormatter(string.Formatter):
+    """A `str.Formatter` that rejects attribute and item access in field names.
+
+    Templates can come from a user-supplied `--lang-file` overlay. A vanilla
+    `str.format` call lets the template walk the kwargs object graph
+    (e.g. `{date.__class__.__mro__[1].__subclasses__}`), which is a classic
+    information-disclosure footgun. We allow only bare names — `{date}`, `{n}` —
+    and refuse anything containing `.` or `[`.
+    """
+
+    def get_field(self, field_name: str, args: tuple, kwargs: dict) -> tuple:
+        if "." in field_name or "[" in field_name:
+            raise ValueError(
+                f"unsafe placeholder {field_name!r} in template "
+                f"(attribute and item access are not allowed)"
+            )
+        return super().get_field(field_name, args, kwargs)
+
+
+_SAFE_FORMATTER = _SafeFormatter()
 
 
 def load(code: str = "en", overlay_path: str | Path | None = None) -> dict:
@@ -67,12 +90,17 @@ def t(lang: dict, key: str) -> str:
 
 
 def tmpl(lang: dict, key: str, **kwargs: Any) -> str:
-    """Format a template string with kwargs."""
+    """Format a template string with kwargs.
+
+    Templates are resolved through `_SafeFormatter`, which forbids `.` and `[`
+    in field names so a malicious `--lang-file` overlay cannot introspect the
+    kwargs object graph (e.g. `{date.__class__}`).
+    """
     try:
         template = lang["templates"][key]
     except KeyError:
         raise KeyError(f"Lang pack {lang.get('code', '?')!r} missing templates.{key!r}") from None
-    return template.format(**kwargs)
+    return _SAFE_FORMATTER.vformat(template, (), kwargs)
 
 
 def month_short(lang: dict, month_1_to_12: int) -> str:

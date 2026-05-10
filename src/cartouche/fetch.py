@@ -37,6 +37,29 @@ GRAPHQL_URL = "https://api.github.com/graphql"
 # debugging rate-limit traces in their server logs.
 USER_AGENT = f"cartouche-svg/{__version__}"
 
+# A GitHub-safe identifier: alphanumeric plus `.`, `_`, `-`, leading alnum,
+# 1..100 chars. Tighter than what GitHub allows but a superset of every
+# real owner/repo/handle. Used to fail fast on user-supplied segments
+# before they reach an interpolated f-string URL — defense-in-depth
+# against URL/query smuggling.
+_SEGMENT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$")
+
+
+def _validate_segment(kind: str, value: str) -> str:
+    """Return `value` if it matches `_SEGMENT_RE`, else raise ValueError.
+
+    The regex is intentionally stricter than GitHub itself (which allows
+    a few exotic edge cases for grandfathered names). For our purposes,
+    "GitHub-safe identifier" is good enough and keeps URL/GraphQL
+    interpolation safe without requiring callers to think about quoting.
+    """
+    if not isinstance(value, str) or not _SEGMENT_RE.match(value):
+        raise ValueError(
+            f"invalid {kind} {value!r}: expected a GitHub-safe identifier "
+            f"(alphanumeric plus . _ -, 1..100 chars, leading alphanumeric)"
+        )
+    return value
+
 
 # ──────────────────────────────────────────────────────────────────────────
 #  Public entry points
@@ -64,6 +87,8 @@ def repo_data(
         lang = _lang_module.load("en")
     if cache is None:
         cache = Cache()
+    owner = _validate_segment("owner", owner)
+    name = _validate_segment("repo name", name)
     token = _resolve_token(token)
     repo = _get_json(f"{API_BASE}/repos/{owner}/{name}", token)
 
@@ -144,6 +169,7 @@ def profile_data(
         lang = _lang_module.load("en")
     if cache is None:
         cache = Cache()
+    handle = _validate_segment("handle", handle)
     token = _resolve_token(token)
     user = _get_json(f"{API_BASE}/users/{handle}", token)
 
@@ -154,8 +180,10 @@ def profile_data(
             token,
         )
     )
-    # Filter out forks for top-5; full list still informs totals
-    own_repos = [r for r in repos if not r["fork"]]
+    # Filter out forks for top-5; full list still informs totals.
+    # Drop any repo whose name (from the API) doesn't match our segment
+    # regex — paranoid, but cheap, and keeps every f-string URL safe.
+    own_repos = [r for r in repos if not r["fork"] and _SEGMENT_RE.match(r["name"] or "")]
 
     # Aggregate star history across all owned repos — cached per repo.
     all_star_dates: list[date] = []
@@ -181,8 +209,9 @@ def profile_data(
     top_repos = []
     since_iso = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
     for r in top_sorted:
+        repo_name = _validate_segment("repo name", r["name"])
         commits_30d = _count_via_pagination(
-            f"{API_BASE}/repos/{handle}/{r['name']}/commits?per_page=100&since={since_iso}",
+            f"{API_BASE}/repos/{handle}/{repo_name}/commits?per_page=100&since={since_iso}",
             token,
         )
         top_repos.append(
@@ -261,6 +290,8 @@ def _cached_stargazer_dates(
     to changes in the downsampling logic and lets the same cache feed
     both `repo_data` (full curve) and `profile_data` (sum across repos).
     """
+    owner = _validate_segment("owner", owner)
+    name = _validate_segment("repo name", name)
     key = ("stargazers", owner, name)
     cached = cache.get(key)
     if cached is not None:
@@ -279,6 +310,8 @@ def _cached_stargazer_dates(
 
 def _cached_languages(owner: str, name: str, token: str | None, cache: Cache) -> dict[str, int]:
     """Return the {language: bytes} mapping for a repo, using the cache."""
+    owner = _validate_segment("owner", owner)
+    name = _validate_segment("repo name", name)
     key = ("languages", owner, name)
     cached = cache.get(key)
     if cached is not None:
@@ -306,6 +339,39 @@ class RateLimitError(RuntimeError):
     """
 
 
+_ALLOWED_HOSTS = frozenset({"api.github.com"})
+
+
+class _SameHostRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Refuse to follow redirects that leave `api.github.com`.
+
+    GitHub's REST and GraphQL endpoints don't issue cross-host redirects in
+    normal operation; a redirect anywhere else would mean either a
+    misconfigured proxy or an active MITM trying to capture the bearer
+    token. urllib's default behavior is to follow the redirect and re-emit
+    every header — including `Authorization` — so we must intercept BEFORE
+    the next request is built.
+    """
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):  # type: ignore[override]
+        new_host = urllib.parse.urlsplit(newurl).hostname
+        if new_host not in _ALLOWED_HOSTS:
+            raise urllib.error.HTTPError(
+                req.full_url,
+                code,
+                f"refusing redirect to non-GitHub host {new_host!r}",
+                headers,
+                fp,
+            )
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+# Module-level alias so tests can monkeypatch the network layer cleanly
+# (`monkeypatch.setattr(fetch, "_urlopen", fake)`) without touching the
+# global `urllib.request.urlopen`.
+_urlopen = urllib.request.build_opener(_SameHostRedirectHandler()).open
+
+
 def _request(
     url: str,
     token: str | None,
@@ -324,7 +390,7 @@ def _request(
         headers["Content-Type"] = "application/json"
     req = urllib.request.Request(url, headers=headers, method=method, data=body)
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with _urlopen(req, timeout=30) as resp:
             return resp.read(), dict(resp.headers)
     except urllib.error.HTTPError as e:
         if e.code in (403, 429) and (e.headers.get("X-RateLimit-Remaining") == "0"):
@@ -403,17 +469,27 @@ def _count_search(query: str, token: str | None) -> int:
     return data.get("total_count", 0)
 
 
-def _post_graphql(query: str, token: str | None) -> dict:
+def _post_graphql(query: str, token: str | None, variables: dict | None = None) -> dict:
+    """POST a GraphQL query, with optional `variables` passed alongside.
+
+    Always pass user-controlled values via `variables` rather than splicing
+    them into the query string — string interpolation in a GraphQL document
+    is the GraphQL equivalent of SQL injection (alias smuggling, complexity
+    DoS, type confusion).
+    """
     if not token:
         raise RuntimeError(
             "GraphQL contribution calendar requires a token; set GITHUB_TOKEN or pass --token."
         )
-    body = json.dumps({"query": query}).encode("utf-8")
+    payload = {"query": query}
+    if variables is not None:
+        payload["variables"] = variables
+    body = json.dumps(payload).encode("utf-8")
     data, _ = _request(GRAPHQL_URL, token, method="POST", body=body)
-    payload = json.loads(data)
-    if "errors" in payload:
-        raise RuntimeError(f"GraphQL errors: {payload['errors']}")
-    return payload["data"]
+    response = json.loads(data)
+    if "errors" in response:
+        raise RuntimeError(f"GraphQL errors: {response['errors']}")
+    return response["data"]
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -551,14 +627,14 @@ def _fetch_contribution_calendar(
     counts; we bucket them by quantiles.
     """
     query = (
-        '{ user(login: "' + handle + '") { contributionsCollection { '
+        "query($login: String!) { user(login: $login) { contributionsCollection { "
         "totalCommitContributions "
         "contributionCalendar { "
         "totalContributions "
         "weeks { contributionDays { contributionCount weekday } } "
         "} } } }"
     )
-    payload = _post_graphql(query, token)
+    payload = _post_graphql(query, token, variables={"login": handle})
     cc = payload["user"]["contributionsCollection"]
     cal = cc["contributionCalendar"]
     total = cal["totalContributions"]

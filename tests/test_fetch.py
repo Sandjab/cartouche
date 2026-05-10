@@ -70,7 +70,13 @@ def _http_error(code: int, headers: dict[str, str] | None = None) -> urllib.erro
 
 
 def _patch_urlopen(monkeypatch: pytest.MonkeyPatch, response_fn):
-    """Replace urlopen with a fake that calls `response_fn(req)`.
+    """Replace `fetch._urlopen` with a fake that calls `response_fn(req)`.
+
+    Note: `fetch._urlopen` is the module-level alias for the same-host
+    redirect-blocking opener (see `fetch._SameHostRedirectHandler`).
+    We patch the alias rather than `urllib.request.urlopen` so that the
+    redirect-handler wiring is exercised in production paths and bypassed
+    here on purpose for unit-level isolation.
 
     `response_fn` returns a `_FakeResp` (used directly) or an
     `Exception` (raised). Captured request is exposed via the returned
@@ -86,7 +92,7 @@ def _patch_urlopen(monkeypatch: pytest.MonkeyPatch, response_fn):
             raise result
         return result
 
-    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(fetch, "_urlopen", fake_urlopen)
     return captured
 
 
@@ -334,3 +340,178 @@ def test_resolve_token_returns_none_when_nothing_set(
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
     monkeypatch.delenv("GH_TOKEN", raising=False)
     assert fetch._resolve_token(None) is None
+
+
+# ──────────────────────────────────────────────────────────────────────────
+#  Segment validation (defense against URL/query/GraphQL smuggling)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "good",
+    ["Sandjab", "actions", "a", "actions-runner", "my-repo.git", "user_name", "0xdeadbeef"],
+)
+def test_validate_segment_accepts_github_safe_identifiers(good: str):
+    assert fetch._validate_segment("test", good) == good
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "",  # empty
+        "-leading-dash",  # leading non-alnum
+        ".leading-dot",
+        "_leading-underscore",
+        "owner/name",  # path separator
+        "owner..name",  # not actually rejected by regex but smuggle-prone — covered by test below
+        "owner with space",  # whitespace
+        'owner"',  # quote
+        "owner?q=foo",  # query smuggling
+        "owner#frag",
+        "owner&extra",
+        "a" * 101,  # too long
+        "owner\nname",  # newline
+    ],
+)
+def test_validate_segment_rejects_unsafe_inputs(bad: str):
+    # Note: "owner..name" actually MATCHES our regex (dots are allowed); the
+    # parametrize entry is here only to flag that case for review — assert
+    # accordingly so we know exactly which inputs the regex catches today.
+    if bad == "owner..name":
+        # accepted by regex (no path separator in it)
+        assert fetch._validate_segment("test", bad) == bad
+        return
+    with pytest.raises(ValueError, match="invalid test"):
+        fetch._validate_segment("test", bad)
+
+
+def test_validate_segment_rejects_non_string():
+    with pytest.raises(ValueError, match="invalid test"):
+        fetch._validate_segment("test", 123)  # type: ignore[arg-type]
+
+
+def test_repo_data_rejects_smuggled_owner(monkeypatch: pytest.MonkeyPatch):
+    """A smuggled owner like `foo/../search/code?q=secret` must be rejected
+    BEFORE the URL is constructed, not silently encoded."""
+    _patch_urlopen(monkeypatch, lambda req: _FakeResp(b'{"stargazers_count": 0}'))
+    with pytest.raises(ValueError, match="invalid owner"):
+        fetch.repo_data("foo/../search", "x", token="t")
+
+
+def test_profile_data_rejects_smuggled_handle(monkeypatch: pytest.MonkeyPatch):
+    _patch_urlopen(monkeypatch, lambda req: _FakeResp(b"{}"))
+    with pytest.raises(ValueError, match="invalid handle"):
+        fetch.profile_data('foo"} } x{', token="t")
+
+
+# ──────────────────────────────────────────────────────────────────────────
+#  GraphQL: variables, not string interpolation
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def test_post_graphql_passes_variables_in_body(monkeypatch: pytest.MonkeyPatch):
+    captured: dict = {}
+
+    def fake(req):
+        captured["body"] = req.data
+        return _FakeResp(json.dumps({"data": {"x": 1}}).encode())
+
+    _patch_urlopen(monkeypatch, fake)
+    fetch._post_graphql(
+        "query($login: String!) { x }",
+        token="t",
+        variables={"login": "Sandjab"},
+    )
+    body = json.loads(captured["body"])
+    assert body == {
+        "query": "query($login: String!) { x }",
+        "variables": {"login": "Sandjab"},
+    }
+
+
+def test_post_graphql_omits_variables_when_none(monkeypatch: pytest.MonkeyPatch):
+    captured: dict = {}
+
+    def fake(req):
+        captured["body"] = req.data
+        return _FakeResp(json.dumps({"data": {"x": 1}}).encode())
+
+    _patch_urlopen(monkeypatch, fake)
+    fetch._post_graphql("{ x }", token="t")
+    body = json.loads(captured["body"])
+    assert body == {"query": "{ x }"}
+    assert "variables" not in body
+
+
+# ──────────────────────────────────────────────────────────────────────────
+#  Cross-host redirect blocking
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def _make_redirect_handler_args(target: str):
+    """Build the (req, fp, code, msg, headers, newurl) tuple that
+    HTTPRedirectHandler.redirect_request expects."""
+    req = urllib.request.Request("https://api.github.com/start")
+    fp = io.BytesIO(b"")
+    msg = Message()
+    msg["Location"] = target
+    return req, fp, 302, "Found", msg, target
+
+
+def test_redirect_handler_allows_same_host():
+    handler = fetch._SameHostRedirectHandler()
+    args = _make_redirect_handler_args("https://api.github.com/elsewhere")
+    new_req = handler.redirect_request(*args)
+    # urllib's default behavior: returns a new Request to follow.
+    assert new_req is not None
+    assert "api.github.com" in new_req.full_url
+
+
+def test_redirect_handler_blocks_cross_host():
+    handler = fetch._SameHostRedirectHandler()
+    args = _make_redirect_handler_args("https://attacker.example/leak")
+    with pytest.raises(urllib.error.HTTPError, match="non-GitHub host"):
+        handler.redirect_request(*args)
+
+
+def test_redirect_handler_blocks_subdomain():
+    """`raw.githubusercontent.com` is GitHub's but not the API host —
+    a token-bearing redirect there would still leak credentials."""
+    handler = fetch._SameHostRedirectHandler()
+    args = _make_redirect_handler_args("https://raw.githubusercontent.com/leak")
+    with pytest.raises(urllib.error.HTTPError, match="non-GitHub host"):
+        handler.redirect_request(*args)
+
+
+def test_contribution_calendar_uses_graphql_variables(monkeypatch: pytest.MonkeyPatch):
+    """The handle must travel as a `$login` variable — never spliced into
+    the query string. Otherwise alias/complexity smuggling becomes possible."""
+    captured: dict = {}
+
+    def fake(req):
+        captured["body"] = req.data
+        return _FakeResp(
+            json.dumps(
+                {
+                    "data": {
+                        "user": {
+                            "contributionsCollection": {
+                                "totalCommitContributions": 0,
+                                "contributionCalendar": {
+                                    "totalContributions": 0,
+                                    "weeks": [],
+                                },
+                            }
+                        }
+                    }
+                }
+            ).encode()
+        )
+
+    _patch_urlopen(monkeypatch, fake)
+    fetch._fetch_contribution_calendar("Sandjab", token="t")
+    body = json.loads(captured["body"])
+    # Handle must NOT appear in the query string itself.
+    assert "Sandjab" not in body["query"]
+    # It must travel as a variable.
+    assert body["variables"] == {"login": "Sandjab"}

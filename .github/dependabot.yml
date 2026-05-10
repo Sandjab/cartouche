@@ -1,0 +1,30 @@
+# Dependabot keeps the SHA-pinned third-party actions in sync. Without it,
+# the SHA pins from `.github/workflows/*.yml` will silently drift away from
+# upstream patches. Dependabot opens one PR per stale action with the new
+# SHA + tag in the comment, so review is a one-click read.
+#
+# Python dev extras (pytest, ruff) are also tracked weekly; the project
+# itself has zero runtime dependencies, so this section only watches the
+# build/lint toolchain.
+
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore"
+    labels:
+      - "dependencies"
+      - "python"

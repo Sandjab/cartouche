@@ -35,9 +35,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
         with:
           python-version: "3.12"
 
@@ -46,13 +46,20 @@ jobs:
 
       - name: Render light + dark variants
         env:
+          # Pass repo identity via env (not direct ${{ }} interpolation in
+          # `run:`) so that the bash script never embeds untrusted-context
+          # values directly. Today `github.repository` is set by GitHub
+          # itself, but propagating the safe pattern here means anyone
+          # extending this template (e.g. with a PR title or issue body)
+          # starts from a non-injectable baseline.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
         run: |
           mkdir -p assets
-          cartouche repo "${{ github.repository }}" \
+          cartouche repo "$REPO" \
             --theme blueprint-light \
             --out assets/dashboard-light.svg
-          cartouche repo "${{ github.repository }}" \
+          cartouche repo "$REPO" \
             --theme blueprint-dark \
             --out assets/dashboard-dark.svg
 

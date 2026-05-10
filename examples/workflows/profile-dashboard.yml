@@ -33,9 +33,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
         with:
           python-version: "3.12"
 
@@ -46,14 +46,17 @@ jobs:
         env:
           # GITHUB_TOKEN is required for the GraphQL contribution calendar.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Pass identity via env (not ${{ }} interpolation in `run:`) so
+          # that the bash script never embeds workflow-context values
+          # directly. github.repository_owner is your handle when this
+          # workflow runs in your profile repo.
+          OWNER: ${{ github.repository_owner }}
         run: |
           mkdir -p assets
-          # ${{ github.repository_owner }} is your handle when this workflow
-          # runs in your profile repo.
-          cartouche profile "${{ github.repository_owner }}" \
+          cartouche profile "$OWNER" \
             --theme blueprint-light \
             --out assets/profile-light.svg
-          cartouche profile "${{ github.repository_owner }}" \
+          cartouche profile "$OWNER" \
             --theme blueprint-dark \
             --out assets/profile-dark.svg
 

@@ -128,6 +128,41 @@ First PyPI release.
   classifier added, `Typing :: Typed` classifier added, project URLs
   extended with Changelog / Themes / Documentation.
 
+### Security
+
+A pre-publication audit shaped the security baseline of this first
+release. Surfaced and fixed before any wheel left CI:
+
+- **`lang.tmpl` format-string sandbox** (`_SafeFormatter`): a malicious
+  `--lang-file` overlay can no longer introspect kwargs via attribute
+  or item access (`{date.__class__.__mro__}`-style probes). Plain
+  placeholders like `{n}` continue to work; anything containing `.` or
+  `[` is rejected with a clear `ValueError`.
+- **GitHub-safe segment validation** (`fetch._validate_segment`): every
+  `owner` / `repo name` / `handle` flowing into an interpolated f-string
+  URL is matched against `^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$`. A
+  smuggled value like `foo/../search/code?q=secret` is rejected before
+  any HTTP request is built.
+- **GraphQL variables, not string interpolation**: the contribution-
+  calendar query passes `handle` as a `$login: String!` variable.
+  Closes alias-smuggling and complexity-DoS via crafted handles.
+- **Cross-host redirect blocking** (`fetch._SameHostRedirectHandler`):
+  redirects to any host other than `api.github.com` are refused, so
+  the bearer token never travels along an unexpected hop.
+- **Supply-chain hardening of the release pipeline**: every third-party
+  GitHub Action is SHA-pinned (with the previous tag in a trailing
+  comment), Dependabot keeps those pins current, and
+  `permissions: contents: read` is declared at the workflow level on
+  `ci.yml` and `release.yml` so jobs default to read-only and have to
+  opt in for more.
+- **Defense-in-depth elsewhere**: example workflows demonstrate the
+  `env: REPO/OWNER` pattern instead of splicing
+  `${{ github.repository }}` directly into `run:` blocks; `.gitignore`
+  covers `.env*`, `*.pem`, `*.key`, IDE configs, and OS files.
+
+Coverage: 36 new tests in `test_render.py` + `test_fetch.py` exercise
+every fix above (170 → 206 passing).
+
 ## [0.1.0] - initial scaffold (untagged)
 
 The first public commit set up the project skeleton: pyproject with

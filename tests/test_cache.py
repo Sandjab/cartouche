@@ -256,6 +256,15 @@ def test_clear_does_not_unlink_outside_base_dir(tmp_path: Path):
         '{"version": "wrong", "fetched_at_epoch": 0, "data": []}',  # bad version
         "not even json",  # malformed
         "",  # empty file
+        # JSON allows `Infinity` / `NaN` by default. Without an explicit
+        # `math.isfinite` guard, `time.time() - inf < ttl` is False and
+        # the entry is forever-valid (TTL bypass).
+        '{"version": 1, "fetched_at_epoch": Infinity, "data": "PWN"}',
+        '{"version": 1, "fetched_at_epoch": -Infinity, "data": "PWN"}',
+        '{"version": 1, "fetched_at_epoch": NaN, "data": "PWN"}',
+        # `bool` is a subclass of `int`. Without the explicit `isinstance(_,
+        # bool)` reject, `True` would pass the type check and act as `1`.
+        '{"version": 1, "fetched_at_epoch": true, "data": "PWN"}',
     ],
 )
 def test_get_returns_none_on_corrupt_payload(tmp_path: Path, corrupt_payload: str):

@@ -18,6 +18,8 @@ from __future__ import annotations
 import math
 from collections.abc import Sequence
 
+from ..lang import tmpl
+
 MONO_STACK = "ui-monospace, 'SF Mono', 'JetBrains Mono', 'Cascadia Code', Consolas, monospace"
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -589,8 +591,11 @@ def credit_line(handle: str, theme: dict, lang: dict, canvas_w: int, canvas_h: i
     string can be customized via overlay, but is identical in EN and FR
     by default (the "Clauded" pun is intentional and intraducible).
     """
+    # Resolve the template through the same `_SafeFormatter` sandbox the rest
+    # of the renderer uses. A vanilla `str.format(...)` here would be the one
+    # call site that an overlay-supplied template could exploit.
     return text(
-        lang["templates"]["proudly_clauded"].format(handle=handle),
+        tmpl(lang, "proudly_clauded", handle=handle),
         canvas_w - 22,
         canvas_h - 8,
         theme,

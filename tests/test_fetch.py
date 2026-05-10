@@ -246,6 +246,56 @@ def test_parse_next_link_empty_string_returns_none():
     assert fetch._parse_next_link("") is None
 
 
+@pytest.mark.parametrize(
+    "smuggled_link",
+    [
+        # Cross-host smuggling: a compromised mirror or MITM splices in
+        # a `rel="next"` URL pointing off-host. Following it would re-emit
+        # the `Authorization: Bearer …` header to the attacker.
+        '<https://attacker.example/leak?page=2>; rel="next"',
+        '<http://api.github.com.attacker.example/leak>; rel="next"',
+        '<https://raw.githubusercontent.com/leak>; rel="next"',
+        # Subdomain trick: `api.github.com` is the only allowed host;
+        # other GitHub-owned subdomains must NOT be followed via Link
+        # header because the bearer token is for the API host only.
+        '<https://uploads.github.com/leak>; rel="next"',
+    ],
+)
+def test_parse_next_link_rejects_off_host_urls(smuggled_link):
+    """Any URL extracted from a Link header that doesn't live on
+    `api.github.com` must be silently dropped."""
+    assert fetch._parse_next_link(smuggled_link) is None
+
+
+def test_count_via_pagination_ignores_off_host_last_link(monkeypatch: pytest.MonkeyPatch):
+    """A smuggled `rel="last"` URL pointing off-host must NOT trigger a
+    bearer-token-bearing request to the attacker."""
+    captured_urls: list[str] = []
+
+    def responder(req):
+        captured_urls.append(req.full_url)
+        return _FakeResp(
+            json.dumps([{"id": 1}, {"id": 2}]).encode(),
+            {
+                "Link": (
+                    '<https://api.github.com/x?page=2>; rel="next", '
+                    '<https://attacker.example/leak?page=999>; rel="last"'
+                )
+            },
+        )
+
+    _patch_urlopen(monkeypatch, responder)
+    n = fetch._count_via_pagination(
+        "https://api.github.com/x?per_page=100",
+        token="ghp_secret",
+    )
+    # Falls back to len(first page) instead of following the smuggled URL.
+    assert n == 2
+    # And critically: only the original API host was contacted.
+    assert all("api.github.com" in u for u in captured_urls)
+    assert not any("attacker" in u for u in captured_urls)
+
+
 def test_get_paginated_follows_link_chain(monkeypatch: pytest.MonkeyPatch):
     page1 = json.dumps([{"id": 1}, {"id": 2}]).encode()
     page2 = json.dumps([{"id": 3}]).encode()

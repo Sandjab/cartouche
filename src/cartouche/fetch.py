@@ -442,9 +442,30 @@ def _get_paginated(
 _LINK_RE = re.compile(r'<([^>]+)>;\s*rel="next"')
 
 
+def _is_allowed_host(url: str) -> bool:
+    """Return True iff `url` resolves to a host inside `_ALLOWED_HOSTS`.
+
+    Used to fence Link-header-driven follow-ups: GitHub's REST endpoints
+    return RFC 5988 `Link: <next-url>; rel="next"` headers, and we must
+    not blindly forward those to `_request` — a compromised CDN, MITM,
+    or rogue mirror could splice in a `<https://attacker.example/...>`
+    URL and harvest the `Authorization: Bearer …` header on the next
+    hop. `_SameHostRedirectHandler` only intercepts HTTP redirects, not
+    direct requests built from response bodies / headers, so the check
+    has to live here too.
+    """
+    try:
+        return urllib.parse.urlsplit(url).hostname in _ALLOWED_HOSTS
+    except ValueError:
+        return False
+
+
 def _parse_next_link(header: str) -> str | None:
     m = _LINK_RE.search(header)
-    return m.group(1) if m else None
+    if not m:
+        return None
+    next_url = m.group(1)
+    return next_url if _is_allowed_host(next_url) else None
 
 
 def _count_via_pagination(url: str, token: str | None) -> int:
@@ -457,11 +478,19 @@ def _count_via_pagination(url: str, token: str | None) -> int:
     last_match = re.search(r'<([^>]+)>;\s*rel="last"', link)
     if last_match:
         last_url = last_match.group(1)
-        last_page = int(re.search(r"[?&]page=(\d+)", last_url).group(1))
+        # Same fence as `_parse_next_link`: a smuggled `rel="last"` URL
+        # pointing off-host must not leak the bearer token.
+        if not _is_allowed_host(last_url):
+            return len(items)
+        page_match = re.search(r"[?&]page=(\d+)", last_url)
+        per_page_match = re.search(r"[?&]per_page=(\d+)", url)
+        if not page_match or not per_page_match:
+            return len(items)
+        last_page = int(page_match.group(1))
         # We have all items on page 1; need to fetch the last page to know its size.
         last_data, _ = _request(last_url, token)
         last_items = json.loads(last_data)
-        per_page = int(re.search(r"[?&]per_page=(\d+)", url).group(1))
+        per_page = int(per_page_match.group(1))
         return (last_page - 1) * per_page + len(last_items)
     return len(items)
 

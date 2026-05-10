@@ -36,6 +36,7 @@ Default location:
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import time
@@ -154,7 +155,13 @@ class Cache:
         if payload.get("version") != CACHE_VERSION:
             return None
         epoch = payload.get("fetched_at_epoch")
-        if not isinstance(epoch, (int, float)):
+        if not isinstance(epoch, (int, float)) or isinstance(epoch, bool):
+            return None
+        # `Infinity` and `NaN` survive `json.load` and slip past `isinstance`.
+        # `time.time() - inf < ttl_seconds` is False, so without this guard
+        # an attacker who can write the cache file could pin an entry as
+        # forever-valid. `isfinite` rejects both.
+        if not math.isfinite(epoch):
             return None
         if time.time() - epoch > self.ttl_seconds:
             return None

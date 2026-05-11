@@ -6,7 +6,7 @@ Languages: see `cartouche.lang` (en + fr built-in, custom packs welcomed).
 Generated SVGs go in your README via the <picture> tag for light/dark.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 # Import order matters: __version__ is defined first so submodules that
 # read it (e.g. fetch.USER_AGENT) work when loaded later, and the data-

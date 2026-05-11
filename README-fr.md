@@ -19,6 +19,12 @@
   <img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/assets/dashboard-light.svg" alt="Dashboard Cartouche pour le repo cartouche — rafraîchi toutes les 6 heures par GitHub Actions">
 </picture>
 
+> **PS** — Le dashboard en haut de ce README tire de vraies données et se rafraîchit
+> toutes les 6 heures. Une `★` sur le repo, c'est votre tick qui apparaît sur sa
+> propre courbe d'étoiles avant ce soir. C'est la growth-hack la plus
+> auto-référentielle qu'on ait pu trouver.
+> *Oui, on l'a déjà starrée nous-mêmes — il manque un groupe contrôle à l'expérience.*
+
 <p align="center">
   <a href="https://github.com/Sandjab/cartouche/blob/main/THEMES.md#drafting"><img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-drafting-light.svg" width="18%" alt="drafting-light"/></a>
   <a href="https://github.com/Sandjab/cartouche/blob/main/THEMES.md#blueprint"><img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/examples/outputs/repo-blueprint-light.svg" width="18%" alt="blueprint-light"/></a>

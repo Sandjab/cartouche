@@ -15,9 +15,6 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "ci"
-    labels:
-      - "dependencies"
-      - "github-actions"
 
   - package-ecosystem: "pip"
     directory: "/"
@@ -25,6 +22,3 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "chore"
-    labels:
-      - "dependencies"
-      - "python"

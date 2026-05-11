@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-05-11
+
+### Fixed
+
+- `cartouche.fetch._detect_annotations` no longer crashes with
+  `TypeError: '<' not supported between instances of 'dict' and 'dict'`
+  when two consecutive star-history points produce the same delta. The
+  sort now pins its comparison key to the delta itself, so Python never
+  falls through to comparing the dict payloads. This was the root cause
+  of failures in the bundled `repo-dashboard.yml` GitHub Action
+  workflow's *Render light + dark variants* step. Regression pinned by
+  `test_detect_annotations_tied_deltas_do_not_compare_dicts` (#7).
+
 ## [0.2.0] - 2026-05-10
 
 First PyPI release.

@@ -611,7 +611,9 @@ def _detect_annotations(history: list[dict], lang: dict) -> list[dict]:
     deltas = [
         (history[i]["count"] - history[i - 1]["count"], history[i]) for i in range(1, len(history))
     ]
-    deltas.sort(reverse=True)
+    # Sort by delta only; tuples with equal deltas would otherwise fall through
+    # to comparing the dict payloads, which raises TypeError on Python 3.
+    deltas.sort(key=lambda d: d[0], reverse=True)
     if deltas and deltas[0][0] >= 3:
         delta, h = deltas[0]
         annotations.append(

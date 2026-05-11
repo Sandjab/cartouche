@@ -562,3 +562,27 @@ def test_contribution_calendar_uses_graphql_variables(monkeypatch: pytest.Monkey
     assert "Sandjab" not in body["query"]
     # It must travel as a variable.
     assert body["variables"] == {"login": "Sandjab"}
+
+
+def test_detect_annotations_tied_deltas_do_not_compare_dicts():
+    """Two history rows with equal deltas must not crash the sort.
+
+    Regression: _detect_annotations used to sort a list of (delta, dict)
+    tuples without a key. When two deltas are equal, Python falls through
+    to comparing the dicts and raises:
+        TypeError: '<' not supported between instances of 'dict' and 'dict'
+    """
+    from cartouche import lang as lang_module
+
+    lang = lang_module.load("en")
+    # Identical +5 deltas at consecutive points force the tuple comparison
+    # to reach the dict payloads if no key= is supplied.
+    history = [
+        {"date": "2024-01-01", "count": 0},
+        {"date": "2024-02-01", "count": 5},
+        {"date": "2024-03-01", "count": 10},
+        {"date": "2024-04-01", "count": 15},
+    ]
+    annotations = fetch._detect_annotations(history, lang)
+    # First-star + spike => 2 annotations; any of the tied spikes is fine.
+    assert len(annotations) == 2

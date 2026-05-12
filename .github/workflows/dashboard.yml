@@ -63,19 +63,63 @@ jobs:
         env:
           REPO: ${{ github.repository }}
         run: |
-          if [[ -n $(git status --porcelain assets/) ]]; then
-            git config user.name "cartouche-bot"
-            git config user.email "cartouche-bot@users.noreply.github.com"
+          if [[ -z $(git status --porcelain assets/) ]]; then
+            echo "No dashboard changes."
+            exit 0
+          fi
+
+          git config user.name "cartouche-bot"
+          git config user.email "cartouche-bot@users.noreply.github.com"
+
+          # This workflow has 3 triggers (cron, dispatch, push) and a
+          # concurrency group that queues runs rather than cancelling them.
+          # That means main can advance between this run's checkout and its
+          # push — e.g. a queued workflow_dispatch that started 30 min after
+          # being triggered sees an outdated origin/main. The naive push then
+          # fails with "rejected — fetch first".
+          #
+          # Recover by re-syncing onto origin/main and re-applying the freshly
+          # rendered SVGs (we don't care about the discarded commit's identity,
+          # only about its contents). Bail out if a concurrent run already
+          # pushed an equivalent dashboard.
+          result=""
+          for attempt in 1 2 3; do
             git add assets/
             git commit -m "chore(cartouche): refresh repo dashboard"
-            git push
+            if git push; then
+              result="pushed"
+              break
+            fi
 
-            # Purge jsDelivr edge for the README hero. Without this the CDN
-            # serves the previous SVG for up to s-maxage=12h, so half of our
-            # 6-hourly refreshes would be invisible to README visitors.
-            for variant in light dark; do
-              curl -fsS "https://purge.jsdelivr.net/gh/${REPO}@main/assets/dashboard-${variant}.svg" || true
-            done
-          else
-            echo "No dashboard changes."
-          fi
+            echo "Push attempt $attempt rejected; resyncing with origin/main."
+            cp assets/dashboard-light.svg "$RUNNER_TEMP/dashboard-light.svg"
+            cp assets/dashboard-dark.svg  "$RUNNER_TEMP/dashboard-dark.svg"
+            git fetch origin main
+            git reset --hard origin/main
+            mkdir -p assets
+            mv "$RUNNER_TEMP/dashboard-light.svg" assets/dashboard-light.svg
+            mv "$RUNNER_TEMP/dashboard-dark.svg"  assets/dashboard-dark.svg
+
+            if [[ -z $(git status --porcelain assets/) ]]; then
+              echo "origin/main already has an equivalent dashboard; nothing to push."
+              result="noop"
+              break
+            fi
+          done
+
+          case "$result" in
+            pushed)
+              # Purge jsDelivr edge for the README hero. Without this the CDN
+              # serves the previous SVG for up to s-maxage=12h, so half of our
+              # 6-hourly refreshes would be invisible to README visitors.
+              for variant in light dark; do
+                curl -fsS "https://purge.jsdelivr.net/gh/${REPO}@main/assets/dashboard-${variant}.svg" || true
+              done
+              ;;
+            noop)
+              ;;
+            *)
+              echo "::error::Failed to push dashboard refresh after 3 attempts."
+              exit 1
+              ;;
+          esac

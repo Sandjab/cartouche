@@ -29,3 +29,6 @@ Thumbs.db
 *.pem
 *.key
 *.p12
+
+# Local assets (generated previews, work-in-progress)
+assets/

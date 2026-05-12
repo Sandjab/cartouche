@@ -60,6 +60,8 @@ jobs:
             --out assets/dashboard-dark.svg
 
       - name: Commit if changed
+        env:
+          REPO: ${{ github.repository }}
         run: |
           if [[ -n $(git status --porcelain assets/) ]]; then
             git config user.name "cartouche-bot"
@@ -67,6 +69,13 @@ jobs:
             git add assets/
             git commit -m "chore(cartouche): refresh repo dashboard"
             git push
+
+            # Purge jsDelivr edge for the README hero. Without this the CDN
+            # serves the previous SVG for up to s-maxage=12h, so half of our
+            # 6-hourly refreshes would be invisible to README visitors.
+            for variant in light dark; do
+              curl -fsS "https://purge.jsdelivr.net/gh/${REPO}@main/assets/dashboard-${variant}.svg" || true
+            done
           else
             echo "No dashboard changes."
           fi

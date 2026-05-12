@@ -19,9 +19,10 @@
   <img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/assets/dashboard-light.svg" alt="Cartouche dashboard for the cartouche repo — refreshed every 6 hours by GitHub Actions">
 </picture>
 
-> **PS** — The dashboard at the top of this README pulls real data and refreshes every
-> 6 hours. A `★` on the repo means you'll show up as a tick on its own star-history
-> curve before tonight. It's the most self-referential growth hack we could come up with.
+> [!TIP]
+> **The dashboard at the top of this README pulls real data and refreshes every**
+> **6 hours. A `★` on the repo means you'll show up as a tick on its own star-history**
+> **curve before tonight. It's the most self-referential growth hack we could come up with.**
 > *Yes, we already starred it ourselves — the experiment lacks a control group.*
 
 <p align="center">

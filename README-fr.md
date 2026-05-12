@@ -19,10 +19,11 @@
   <img src="https://cdn.jsdelivr.net/gh/Sandjab/cartouche@main/assets/dashboard-light.svg" alt="Dashboard Cartouche pour le repo cartouche — rafraîchi toutes les 6 heures par GitHub Actions">
 </picture>
 
-> **PS** — Le dashboard en haut de ce README tire de vraies données et se rafraîchit
-> toutes les 6 heures. Une `★` sur le repo, c'est votre tick qui apparaît sur sa
-> propre courbe d'étoiles avant ce soir. C'est la growth-hack la plus
-> auto-référentielle qu'on ait pu trouver.
+> [!TIP]
+> **Le dashboard en haut de ce README utilise de vraies données et se rafraîchit**
+> **toutes les 6 heures. Une `★` sur le repo, c'est votre tick qui apparaît sur sa**
+> **propre courbe d'étoiles avant ce soir. C'est la growth-hack la plus**
+> **auto-référentielle qu'on ait pu trouver.**
 > *Oui, on l'a déjà starrée nous-mêmes — il manque un groupe contrôle à l'expérience.*
 
 <p align="center">

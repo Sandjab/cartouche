@@ -62,6 +62,7 @@ jobs:
       - name: Commit if changed
         env:
           REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [[ -z $(git status --porcelain assets/) ]]; then
             echo "No dashboard changes."
@@ -114,6 +115,26 @@ jobs:
               # 6-hourly refreshes would be invisible to README visitors.
               for variant in light dark; do
                 curl -fsS "https://purge.jsdelivr.net/gh/${REPO}@main/assets/dashboard-${variant}.svg" || true
+              done
+
+              # Purge GitHub's Camo proxy too. Camo sits between every README
+              # visitor and jsDelivr, with its own Varnish cache (s-maxage=12h)
+              # keyed on the source URL — so jsDelivr being fresh is not enough.
+              # Camo accepts an undocumented PURGE verb that returns
+              # {"status":"ok"} and invalidates the entry on the receiving edge.
+              # The Camo URL contains a server-side hash we can't reconstruct,
+              # so we scrape it from the rendered README HTML. Endpoint is
+              # undocumented; `|| true` keeps CI green if it disappears.
+              readme_html=$(gh api -H "Accept: application/vnd.github.html" "repos/${REPO}/readme" 2>/dev/null || true)
+              for variant in light dark; do
+                target="https://cdn.jsdelivr.net/gh/${REPO}@main/assets/dashboard-${variant}.svg"
+                hex=$(printf '%s' "$target" | xxd -p -c 256 | tr -d '\n')
+                camo_url=$(printf '%s' "$readme_html" | grep -oE "https://camo\.githubusercontent\.com/[a-f0-9]+/${hex}" | head -n1)
+                if [[ -n "$camo_url" ]]; then
+                  curl -fsS -X PURGE "$camo_url" || true
+                else
+                  echo "::warning::Camo URL for dashboard-${variant} not found in rendered README"
+                fi
               done
               ;;
             noop)

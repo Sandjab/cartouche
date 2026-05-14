@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-05-14
+
+### Fixed
+
+- `cartouche.fetch` no longer flips the repo radar's tests and docs
+  axes to `0` on roughly one refresh in three. The two prior estimators
+  (`_estimate_tests_ratio`, `_estimate_docs_ratio`) counted matching
+  files via GitHub's Code Search API and silently caught every
+  `urllib.error.HTTPError` as `return 0.0`. Code Search lags fresh
+  commits, rate-limits aggressively, and 5xx's regularly — each of
+  those produced a zeroed radar with no log and no warning. Replaced
+  by a single recursive Git Tree call against the repo's default
+  branch (`_tree_file_counts`), which is deterministic against the
+  live HEAD and bypasses the search index entirely. `HTTPError` now
+  propagates from the helper; `repo_data` catches it once and falls
+  back to `0/0` with an explicit `RuntimeWarning`, so silent zeros
+  are gone. Behaviour pinned by four new tests in
+  `tests/test_fetch.py` (classification, URL branch encoding,
+  truncation warning, error propagation).
+
 ## [0.2.1] - 2026-05-11
 
 ### Fixed

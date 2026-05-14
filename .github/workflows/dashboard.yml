@@ -132,6 +132,11 @@ jobs:
                 camo_url=$(printf '%s' "$readme_html" | grep -oE "https://camo\.githubusercontent\.com/[a-f0-9]+/${hex}" | head -n1)
                 if [[ -n "$camo_url" ]]; then
                   curl -fsS -X PURGE "$camo_url" || true
+                  # Warm the chain end-to-end via Camo. Forces the cascade
+                  # Camo→jsDelivr→raw.gh to happen on CI's clock (and any
+                  # transient 504 to surface in this run's log) rather than
+                  # on the first README visitor right after the purge.
+                  curl -fsS -o /dev/null "$camo_url" || true
                 else
                   echo "::warning::Camo URL for dashboard-${variant} not found in rendered README"
                 fi

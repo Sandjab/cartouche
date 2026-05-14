@@ -20,6 +20,7 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
+import warnings
 from collections import Counter
 from collections.abc import Iterator
 from datetime import date, datetime, timedelta, timezone
@@ -127,14 +128,31 @@ def repo_data(
     cutoff = today - timedelta(days=30)
     stars_30d_delta = _delta_since(star_history, cutoff)
 
+    # File-tree based counts for the tests/docs radar axes. One Git Tree
+    # call against the default branch — deterministic, in contrast to the
+    # Code Search–based estimation that preceded this and oscillated
+    # between real counts and 0 because the search index lags behind
+    # recent commits and 5xx-s were silently swallowed as 0.
+    try:
+        counts = _tree_file_counts(owner, name, repo["default_branch"], token)
+    except urllib.error.HTTPError as exc:
+        warnings.warn(
+            f"cartouche: git/trees failed for {owner}/{name} "
+            f"(HTTP {exc.code}); tests/docs ratios fall back to 0",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        counts = {"py": 0, "tests": 0, "md": 0}
+    py_count = counts["py"]
+
     # Radar values (normalized 0..1 with reasonable caps for small repos)
     radar = {
         "stars": min(1.0, repo["stargazers_count"] / 100),
         "forks": min(1.0, repo["forks_count"] / 30),
         "commits": min(1.0, commits_30d / 100),
         "code": min(1.0, sum(lang_bytes.values()) / 500_000),
-        "tests": _estimate_tests_ratio(owner, name, token),
-        "docs": _estimate_docs_ratio(owner, name, token),
+        "tests": min(1.0, counts["tests"] / max(1, py_count * 0.3)) if py_count else 0.0,
+        "docs": min(1.0, counts["md"] / 8),
     }
 
     return {
@@ -627,29 +645,58 @@ def _detect_annotations(history: list[dict], lang: dict) -> list[dict]:
     return annotations
 
 
-def _estimate_tests_ratio(owner: str, name: str, token: str | None) -> float:
-    """Approximate test coverage by file-count ratio: tests/* and test_*.py."""
-    try:
-        # Use the search endpoint to count test files
-        q1 = urllib.parse.quote(f"repo:{owner}/{name} path:tests")
-        q2 = urllib.parse.quote(f"repo:{owner}/{name} extension:py")
-        tests = _get_json(f"{API_BASE}/search/code?q={q1}&per_page=1", token).get("total_count", 0)
-        py = _get_json(f"{API_BASE}/search/code?q={q2}&per_page=1", token).get("total_count", 0)
-        if py == 0:
-            return 0.0
-        return min(1.0, tests / max(1, py * 0.3))
-    except urllib.error.HTTPError:
-        return 0.0
+def _tree_file_counts(owner: str, name: str, branch: str, token: str | None) -> dict[str, int]:
+    """Count Python, test, and Markdown files at the tip of `branch`.
 
+    One recursive Git Tree call. Replaces the Code Search–based estimators
+    that preceded this: the search index lags fresh commits and rate-limits
+    aggressively, and the old code silently treated every error as 0,
+    which made the tests/docs radar axes flip to 0 on roughly a third of
+    the 6-hourly refreshes for this very repo.
 
-def _estimate_docs_ratio(owner: str, name: str, token: str | None) -> float:
-    """Approximate documentation density by counting .md files."""
-    try:
-        q = urllib.parse.quote(f"repo:{owner}/{name} extension:md")
-        md = _get_json(f"{API_BASE}/search/code?q={q}&per_page=1", token).get("total_count", 0)
-        return min(1.0, md / 8)
-    except urllib.error.HTTPError:
-        return 0.0
+    Returns a dict with keys "py", "tests", "md".
+
+    File classification (each `.py` is counted as "py" and additionally
+    as "tests" if any of):
+      - any directory segment of the path equals "tests"
+      - the basename starts with "test_"
+      - the basename ends with "_test.py"
+
+    For very large repos (>100k entries) the Git Tree API truncates its
+    response; we emit a `RuntimeWarning` and return the counts seen so
+    far, which are then lower bounds rather than exact values.
+    """
+    safe_branch = urllib.parse.quote(branch, safe="")
+    url = f"{API_BASE}/repos/{owner}/{name}/git/trees/{safe_branch}?recursive=1"
+    data = _get_json(url, token)
+
+    counts = {"py": 0, "tests": 0, "md": 0}
+    for entry in data.get("tree", []):
+        if entry.get("type") != "blob":
+            continue
+        path = entry.get("path", "")
+        if path.endswith(".md"):
+            counts["md"] += 1
+            continue
+        if path.endswith(".py"):
+            counts["py"] += 1
+            segs = path.split("/")
+            basename = segs[-1]
+            if (
+                "tests" in segs[:-1]
+                or basename.startswith("test_")
+                or basename.endswith("_test.py")
+            ):
+                counts["tests"] += 1
+
+    if data.get("truncated"):
+        warnings.warn(
+            f"cartouche: git tree for {owner}/{name} was truncated; "
+            "tests/docs counts are lower bounds",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+    return counts
 
 
 def _fetch_contribution_calendar(

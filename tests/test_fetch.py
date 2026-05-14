@@ -564,6 +564,92 @@ def test_contribution_calendar_uses_graphql_variables(monkeypatch: pytest.Monkey
     assert body["variables"] == {"login": "Sandjab"}
 
 
+# ──────────────────────────────────────────────────────────────────────────
+#  Git Tree-based file counts (replaces flaky Code Search estimators)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def test_tree_file_counts_classifies_files(monkeypatch: pytest.MonkeyPatch):
+    """Cover every classification branch in one tree fixture.
+
+    Pins the contract that:
+      - directory entries (`type=tree`) are ignored,
+      - files outside .py / .md are ignored,
+      - .md files count toward "md" only,
+      - .py files always count toward "py",
+      - and additionally toward "tests" when the path has a `tests`
+        directory segment, or the basename starts with `test_` or ends
+        with `_test.py`.
+    """
+    tree = {
+        "tree": [
+            {"path": "src/foo.py", "type": "blob"},
+            {"path": "tests/test_foo.py", "type": "blob"},
+            {"path": "tests/__init__.py", "type": "blob"},
+            {"path": "test_root.py", "type": "blob"},
+            {"path": "foo_test.py", "type": "blob"},
+            {"path": "README.md", "type": "blob"},
+            {"path": "docs/guide.md", "type": "blob"},
+            {"path": "src", "type": "tree"},
+            {"path": "vendor/lib.so", "type": "blob"},
+        ],
+        "truncated": False,
+    }
+    _patch_urlopen(monkeypatch, lambda req: _FakeResp(json.dumps(tree).encode()))
+    counts = fetch._tree_file_counts("o", "r", "main", None)
+    assert counts == {"py": 5, "tests": 4, "md": 2}
+
+
+def test_tree_file_counts_request_url_targets_default_branch(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """The URL must hit /git/trees/<branch>?recursive=1 with branch URL-encoded.
+
+    Encoding matters because users with `/` in their default branch
+    (rare but legal under git refs) would otherwise smuggle path
+    segments into the request.
+    """
+    cap = _patch_urlopen(
+        monkeypatch,
+        lambda req: _FakeResp(json.dumps({"tree": [], "truncated": False}).encode()),
+    )
+    fetch._tree_file_counts("acme", "lib", "release/2025", "tok")
+    assert cap["req"].full_url == (
+        "https://api.github.com/repos/acme/lib/git/trees/release%2F2025?recursive=1"
+    )
+
+
+def test_tree_file_counts_truncated_emits_warning(monkeypatch: pytest.MonkeyPatch):
+    """A truncated response must not be silently treated as complete.
+
+    Counts are still returned (they're lower bounds, which is more useful
+    than 0), but the caller and the test suite both get a `RuntimeWarning`
+    so monorepos with > 100k blobs surface the partial-counts caveat
+    instead of looking like under-tested projects.
+    """
+    tree = {
+        "tree": [{"path": "src/foo.py", "type": "blob"}],
+        "truncated": True,
+    }
+    _patch_urlopen(monkeypatch, lambda req: _FakeResp(json.dumps(tree).encode()))
+    with pytest.warns(RuntimeWarning, match="truncated"):
+        counts = fetch._tree_file_counts("o", "r", "main", None)
+    assert counts == {"py": 1, "tests": 0, "md": 0}
+
+
+def test_tree_file_counts_propagates_http_error(monkeypatch: pytest.MonkeyPatch):
+    """5xx must reach the caller — repo_data is where the fallback lives.
+
+    The previous estimators caught HTTPError internally and returned 0,
+    which is exactly the silent-zero bug this refactor exists to kill.
+    The helper must now propagate so the caller can decide (warn + fall
+    back) and the warning is observable.
+    """
+    _patch_urlopen(monkeypatch, lambda req: _http_error(503))
+    with pytest.raises(urllib.error.HTTPError):
+        fetch._tree_file_counts("o", "r", "main", None)
+
+
 def test_detect_annotations_tied_deltas_do_not_compare_dicts():
     """Two history rows with equal deltas must not crash the sort.
 

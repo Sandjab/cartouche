@@ -224,6 +224,25 @@ def test_404_propagates_unchanged(monkeypatch: pytest.MonkeyPatch):
         fetch._request("https://api.github.com/x", token=None)
 
 
+def test_http_error_message_includes_endpoint(monkeypatch: pytest.MonkeyPatch):
+    """Non-rate-limit HTTPErrors must surface the request URL + method in
+    their message. Intermittent 4xx/5xx (e.g. a transient 401 from
+    `/search/issues`) otherwise appear in CLI output as a bare
+    "HTTP Error 401: Unauthorized" with no way to tell which endpoint
+    flaked — and the bug doesn't reproduce on the next run."""
+    _patch_urlopen(monkeypatch, lambda req: _http_error(401))
+    with pytest.raises(urllib.error.HTTPError) as exc_info:
+        fetch._request(
+            "https://api.github.com/search/issues?q=repo:foo/bar+is:issue",
+            token="t",
+        )
+    msg = str(exc_info.value)
+    assert "search/issues" in msg
+    assert "GET" in msg
+    # Code is still preserved so caller dispatch on `.code` keeps working.
+    assert exc_info.value.code == 401
+
+
 # ──────────────────────────────────────────────────────────────────────────
 #  Pagination
 # ──────────────────────────────────────────────────────────────────────────

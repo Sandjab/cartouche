@@ -417,7 +417,14 @@ def _request(
     except urllib.error.HTTPError as e:
         if e.code in (403, 429) and (e.headers.get("X-RateLimit-Remaining") == "0"):
             raise _rate_limit_error(e, has_token=token is not None) from e
-        raise
+        # Re-raise with the endpoint embedded in the message. Otherwise an
+        # intermittent 4xx surfaces in CLI output as a bare "HTTP Error 401:
+        # Unauthorized" with no way to tell which endpoint flaked. Same
+        # class, so callers that catch HTTPError + read `.code` (e.g.
+        # `_tree_file_counts` in `repo_data`) keep working.
+        raise urllib.error.HTTPError(
+            url, e.code, f"{e.reason} ({method} {url})", e.headers, None
+        ) from e
 
 
 def _rate_limit_error(err: urllib.error.HTTPError, *, has_token: bool) -> RateLimitError:

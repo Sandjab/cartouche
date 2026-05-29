@@ -358,6 +358,20 @@ def _fig_indicators(data: ProfileData, theme: dict, lang: dict) -> str:
     cards_x_start = 40
     y = 736
 
+    # Surface private contributions beside the public commit count — but only
+    # when the querying token can actually see them. `restricted_contribs` is 0
+    # both when there genuinely are none AND when the token lacks visibility
+    # (anonymous, a third-party token, or the Actions GITHUB_TOKEN while the
+    # profile's "include private contributions" setting is off). Writing
+    # "+0 private" in that case would assert a false zero, so fall back to the
+    # followers/following context instead.
+    restricted = data.get("restricted_contribs", 0)
+    commits_sub = (
+        tmpl(lang, "n_private", n=restricted)
+        if restricted > 0
+        else tmpl(lang, "n_following", n=data.get("following", 0))
+    )
+
     cards = [
         (
             t(lang, "card_total_stars"),
@@ -371,14 +385,14 @@ def _fig_indicators(data: ProfileData, theme: dict, lang: dict) -> str:
         ),
         (
             # Value is the PUBLIC commit count (GraphQL totalCommitContributions).
-            # The sub-line surfaces the private bucket next to it so a profile
-            # whose work is mostly in private repos isn't misread as low-activity.
+            # `commits_sub` (computed above) shows the private bucket beside it,
+            # or falls back to the following count when private isn't visible.
             # Note: restricted_contribs counts ALL private contributions (commits +
             # PRs + issues + reviews), which GitHub anonymizes — it is not strictly
             # private *commits*, hence a generic "private" label rather than "commits".
             t(lang, "card_commits_year"),
             str(data.get("total_commits_year", 0)),
-            tmpl(lang, "n_private", n=data.get("restricted_contribs", 0)),
+            commits_sub,
         ),
         (
             t(lang, "card_since"),

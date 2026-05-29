@@ -353,6 +353,23 @@ def test_profile_surfaces_private_contributions():
     assert f"+{data['restricted_contribs']}" in svg
 
 
+def test_profile_commits_card_falls_back_when_private_not_visible():
+    """When restricted_contribs is 0 the commits card must NOT assert a false
+    "+0 private". Zero is ambiguous: it happens both when there genuinely are
+    no private contributions AND when the querying token can't see them
+    (anonymous / third-party / the Actions GITHUB_TOKEN with the profile's
+    private-contribution setting off). Asserting "+0 private" would read as
+    "this person has no private work", so the card falls back to the
+    followers/following context instead."""
+    pack = lang_module.load("en")
+    data = mock_profile("Sandjab", lang=pack)
+    data["restricted_contribs"] = 0
+    svg = profile.render(data, get_theme("blueprint-light"), lang=pack)
+    assert "+0 PRIVATE" not in svg
+    # Falls back to the following count that the card used before the change.
+    assert f"{data['following']} FOLLOWING" in svg
+
+
 def test_credit_line_present_on_both_dashboards():
     """The 'Proudly Clauded by @<handle>' watermark sits below the frame on
     both repo and profile dashboards. It uses the data's handle / owner so

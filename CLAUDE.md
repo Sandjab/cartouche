@@ -15,7 +15,7 @@ fonts) so they render identically in GitHub READMEs, MDN docs, and any
 SVG viewer. They get committed via GitHub Actions and embedded in READMEs
 through the `<picture>` tag for light/dark modes.
 
-Current version: **0.2.0** (i18n landed). The codebase is small and
+Current version: **0.3.0** (profile metric corrections). The codebase is small and
 intentionally legible — read it end-to-end if needed; it's ~900 LOC.
 
 ## Repository layout
@@ -309,7 +309,7 @@ families (Vellum + Davinci, Botanical + Floral, Blossom + Kawai).
 
 Parametrized over themes and langs. When adding a new theme or lang the
 tests automatically include it. The test count grows multiplicatively
-(16 themes × 2 langs × 2 dashboards = 64 render tests; today **170 total**
+(16 themes × 2 langs × 2 dashboards = 64 render tests; today **260 total**
 across `test_render.py` + `test_cache.py` + `test_fetch.py`).
 
 ### `tests/test_cache.py`
@@ -338,8 +338,8 @@ touching the network.
 | Profile dashboard                 | ✅ stable |
 | i18n with EN+FR + custom overlay  | ✅ stable |
 | GitHub Actions workflows          | ✅ stable |
-| Tests                             | ✅ 170 passing |
-| PyPI release (`cartouche-svg`)    | ✅ v0.2.0 on PyPI |
+| Tests                             | ✅ 260 passing |
+| PyPI release (`cartouche-svg`)    | ✅ v0.3.0 on PyPI |
 | Stargazer cache (TTL-based)       | ✅ stable (24h disk cache, --no-cache to skip) |
 | Stargazer cache (incremental refresh) | ⏳ planned, not implemented |
 | Custom annotation callouts        | ✅ stable via `--annotations-file PATH` (replaces auto-detected first ★ + spike) |

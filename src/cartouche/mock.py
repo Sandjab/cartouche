@@ -147,6 +147,7 @@ def mock_profile(handle: str = "Sandjab", lang: dict | None = None) -> dict:
         "total_stars": 184,
         "total_forks": 31,
         "total_commits_year": 1247,
+        "restricted_contribs": 312,
         "languages": [
             ("Python", 62.0),
             ("TypeScript", 18.0),

@@ -44,6 +44,7 @@ class ProfileData(TypedDict, total=False):
     total_stars: int
     total_forks: int
     total_commits_year: int
+    restricted_contribs: int
     languages: list[tuple[str, float]]
     star_history: list[StarPoint]
     top_repos: list[dict]
@@ -369,9 +370,15 @@ def _fig_indicators(data: ProfileData, theme: dict, lang: dict) -> str:
             tmpl(lang, "n_followers", n=data.get("followers", 0)),
         ),
         (
+            # Value is the PUBLIC commit count (GraphQL totalCommitContributions).
+            # The sub-line surfaces the private bucket next to it so a profile
+            # whose work is mostly in private repos isn't misread as low-activity.
+            # Note: restricted_contribs counts ALL private contributions (commits +
+            # PRs + issues + reviews), which GitHub anonymizes — it is not strictly
+            # private *commits*, hence a generic "private" label rather than "commits".
             t(lang, "card_commits_year"),
             str(data.get("total_commits_year", 0)),
-            tmpl(lang, "n_following", n=data.get("following", 0)),
+            tmpl(lang, "n_private", n=data.get("restricted_contribs", 0)),
         ),
         (
             t(lang, "card_since"),

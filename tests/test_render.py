@@ -102,6 +102,7 @@ REQUIRED_LANG_TEMPLATES = {
     "n_repos",
     "n_followers",
     "n_following",
+    "n_private",
     "n_years",
     "contribs_total",
     "top_repo_stars",
@@ -337,6 +338,19 @@ def test_profile_truncates_long_repo_names():
     # Short names stay intact
     assert "athanor" in svg
     assert "cartouche" in svg
+
+
+def test_profile_surfaces_private_contributions():
+    """The commits card sub-line surfaces restricted (private) contributions
+    next to the public commit count. This matters because a profile whose work
+    lives mostly in private repos would otherwise be misread as low-activity:
+    `totalCommitContributions` only counts public commits, so the private
+    bucket (`restrictedContributionsCount`) has to be shown or the dashboard
+    silently undercounts real activity."""
+    pack = lang_module.load("en")
+    data = mock_profile("Sandjab", lang=pack)
+    svg = profile.render(data, get_theme("blueprint-light"), lang=pack)
+    assert f"+{data['restricted_contribs']}" in svg
 
 
 def test_credit_line_present_on_both_dashboards():

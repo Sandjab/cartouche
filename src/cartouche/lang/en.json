@@ -58,6 +58,7 @@
     "n_repos": "{n} REPOS",
     "n_followers": "{n} FOLLOWERS",
     "n_following": "{n} FOLLOWING",
+    "n_private": "+{n} PRIVATE",
     "n_years": "{n} YR(S)",
     "contribs_total": "≈ {n} contributions over 12 months",
     "top_repo_stars": "★ {n}",

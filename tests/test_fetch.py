@@ -563,6 +563,7 @@ def test_contribution_calendar_uses_graphql_variables(monkeypatch: pytest.Monkey
                         "user": {
                             "contributionsCollection": {
                                 "totalCommitContributions": 0,
+                                "restrictedContributionsCount": 0,
                                 "contributionCalendar": {
                                     "totalContributions": 0,
                                     "weeks": [],
@@ -691,3 +692,76 @@ def test_detect_annotations_tied_deltas_do_not_compare_dicts():
     annotations = fetch._detect_annotations(history, lang)
     # First-star + spike => 2 annotations; any of the tied spikes is fine.
     assert len(annotations) == 2
+
+
+# ──────────────────────────────────────────────────────────────────────────
+#  Language aggregation: equal-weight per repo (not byte-weighted)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def test_languages_equal_weight_prevents_one_repo_domination():
+    """A single repo holding a gigabyte of one language must NOT dominate the
+    profile's stack. Each repo contributes its own percentage breakdown with
+    equal weight, so 'most bytes' ≠ 'dominant language'. This is the whole
+    point of the change: byte-weighting let one repo with a vendored/archived
+    blob (e.g. ~1 GB of committed HTML) report 'HTML 83%' for a profile that
+    is really mostly Python.
+    """
+    per_repo = [
+        {"Python": 50},  # 100% Python (tiny)
+        {"HTML": 1_000_000},  # 100% HTML (huge) — still just one vote
+        {"Python": 30, "JavaScript": 10},  # 75% Python / 25% JS
+    ]
+    result = dict(fetch._languages_equal_weight(per_repo))
+    # Byte-weighting would put HTML at ~99.99%; equal-weighting caps it at 1/3.
+    assert round(result["HTML"]) == 33
+    assert round(result["Python"]) == 58
+    assert round(result["JavaScript"]) == 8
+    # Percentages of a full breakdown sum to ~100.
+    assert round(sum(result.values())) == 100
+
+
+def test_languages_equal_weight_ignores_repos_with_no_code():
+    """Repos with no detected language (empty dict) or zero bytes are skipped,
+    not counted as a vote — otherwise they'd dilute every percentage."""
+    assert fetch._languages_equal_weight([]) == []
+    assert fetch._languages_equal_weight([{}, {"Go": 0}]) == []
+    # One real repo among empties → that repo's own breakdown verbatim.
+    assert dict(fetch._languages_equal_weight([{}, {"Go": 10, "C": 10}])) == {
+        "Go": 50.0,
+        "C": 50.0,
+    }
+
+
+def test_contribution_calendar_returns_restricted_count(monkeypatch: pytest.MonkeyPatch):
+    """`_fetch_contribution_calendar` must surface `restrictedContributionsCount`
+    (private contributions) as its 4th return value, so the profile can show
+    private activity beside the public commit count instead of hiding it."""
+
+    def fake(req):
+        return _FakeResp(
+            json.dumps(
+                {
+                    "data": {
+                        "user": {
+                            "contributionsCollection": {
+                                "totalCommitContributions": 695,
+                                "restrictedContributionsCount": 2058,
+                                "contributionCalendar": {
+                                    "totalContributions": 2832,
+                                    "weeks": [],
+                                },
+                            }
+                        }
+                    }
+                }
+            ).encode()
+        )
+
+    _patch_urlopen(monkeypatch, fake)
+    heatmap, total_contribs, total_commits, restricted = fetch._fetch_contribution_calendar(
+        "Sandjab", token="t"
+    )
+    assert total_commits == 695
+    assert total_contribs == 2832
+    assert restricted == 2058

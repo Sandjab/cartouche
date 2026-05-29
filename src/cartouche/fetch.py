@@ -245,19 +245,24 @@ def profile_data(
             }
         )
 
-    # Aggregate languages (bytes-weighted) — cached per repo.
+    # Aggregate languages — cached per repo. `lang_totals` (raw bytes) still
+    # feeds the radar's depth/polyglot axes, but the *displayed* stack is
+    # equal-weighted per repo (see _languages_equal_weight) so one repo holding
+    # a huge vendored/archived blob can't dominate the mix.
     lang_totals: Counter[str] = Counter()
+    per_repo_langs: list[dict[str, int]] = []
     for r in own_repos[:20]:  # cap at 20 to stay reasonable
         try:
-            lang_totals.update(_cached_languages(handle, r["name"], token, cache))
+            repo_langs = _cached_languages(handle, r["name"], token, cache)
         except urllib.error.HTTPError:
             continue
-    languages = _bytes_to_pct(dict(lang_totals.most_common(10)))
+        lang_totals.update(repo_langs)
+        per_repo_langs.append(repo_langs)
+    languages = _languages_equal_weight(per_repo_langs)
 
     # Contribution heatmap (GraphQL)
-    heatmap, total_contribs, total_commits_year = _fetch_contribution_calendar(
-        handle,
-        token,
+    heatmap, total_contribs, total_commits_year, restricted_contribs = _fetch_contribution_calendar(
+        handle, token
     )
 
     # Totals
@@ -280,10 +285,15 @@ def profile_data(
         "joined": user["created_at"][:10],
         "followers": user["followers"],
         "following": user["following"],
-        "public_repos": len(own_repos),
+        # Mirror GitHub's headline count (public repos *including* forks).
+        # `own_repos` (forks filtered out) still drives the stars / top-5 /
+        # stack aggregations, but the displayed repo count matches the profile
+        # page so the dashboard doesn't look like it's "missing" repos.
+        "public_repos": user["public_repos"],
         "total_stars": total_stars,
         "total_forks": total_forks,
         "total_commits_year": total_commits_year,
+        "restricted_contribs": restricted_contribs,
         "languages": languages,
         "star_history": star_history,
         "top_repos": top_repos,
@@ -597,6 +607,38 @@ def _bytes_to_pct(lang_bytes: dict[str, int]) -> list[tuple[str, float]]:
     ]
 
 
+def _languages_equal_weight(per_repo: list[dict[str, int]]) -> list[tuple[str, float]]:
+    """Aggregate a profile's languages as the mean of each repo's own breakdown.
+
+    Each repo is normalized to its internal percentages first, then those
+    percentages are averaged with EQUAL weight across repos. The effect: one
+    repo holding a gigabyte of a single language (a vendored or archived blob
+    that GitHub Linguist still counts as source) gets exactly one vote instead
+    of swamping the total. This is what keeps a mostly-Python profile from
+    reporting "HTML 83%" because of a single repo full of committed HTML.
+
+    Returns the top-10 languages as (name, percent) pairs sorted descending;
+    percentages of a full breakdown sum to ~100. Repos with no detected
+    language (empty dict) or zero total bytes are skipped, not counted as a
+    vote — counting them would dilute every percentage.
+    """
+    contributing = [d for d in per_repo if sum(d.values()) > 0]
+    if not contributing:
+        return []
+    acc: dict[str, float] = {}
+    for d in contributing:
+        total = sum(d.values())
+        for name, byte_count in d.items():
+            acc[name] = acc.get(name, 0.0) + byte_count / total
+    n = len(contributing)
+    pct = sorted(
+        ((name, 100 * share / n) for name, share in acc.items()),
+        key=lambda kv: kv[1],
+        reverse=True,
+    )
+    return pct[:10]
+
+
 def _delta_since(history: list[dict], cutoff: date) -> int:
     """How many stars were added since `cutoff` based on the downsampled history."""
     if not history:
@@ -709,15 +751,27 @@ def _tree_file_counts(owner: str, name: str, branch: str, token: str | None) -> 
 def _fetch_contribution_calendar(
     handle: str,
     token: str | None,
-) -> tuple[list[list[int]], int, int]:
-    """Return (heatmap, total_contribs, total_commits_year).
+) -> tuple[list[list[int]], int, int, int]:
+    """Return (heatmap, total_contribs, total_commits_year, restricted_contribs).
 
     Heatmap is a 53×7 grid of intensity buckets 0..4. GraphQL returns raw
     counts; we bucket them by quantiles.
+
+    `total_commits_year` is `totalCommitContributions` — *public* commit
+    contributions only. `restricted_contribs` is `restrictedContributionsCount`,
+    the count of contributions GitHub anonymizes because they happened in
+    private repos. The two are surfaced side by side so a profile whose work
+    is mostly private isn't misread as low-activity. Note that the restricted
+    bucket lumps together private commits, PRs, issues and reviews — it is
+    not strictly a private *commit* count. What the querying token can see
+    depends on its access: a token that owns the account (or a profile with
+    "private contribution counts" made public) returns a non-zero value; an
+    anonymous or third-party token typically returns 0.
     """
     query = (
         "query($login: String!) { user(login: $login) { contributionsCollection { "
         "totalCommitContributions "
+        "restrictedContributionsCount "
         "contributionCalendar { "
         "totalContributions "
         "weeks { contributionDays { contributionCount weekday } } "
@@ -728,6 +782,7 @@ def _fetch_contribution_calendar(
     cal = cc["contributionCalendar"]
     total = cal["totalContributions"]
     total_commits = cc["totalCommitContributions"]
+    restricted = cc["restrictedContributionsCount"]
 
     # Compute thresholds so we have 5 visually distinct buckets
     all_counts = [d["contributionCount"] for w in cal["weeks"] for d in w["contributionDays"]]
@@ -756,7 +811,7 @@ def _fetch_contribution_calendar(
     while len(heatmap) < 53:
         heatmap.insert(0, [0] * 7)
 
-    return heatmap[-53:], total, total_commits
+    return heatmap[-53:], total, total_commits, restricted
 
 
 def _build_notes_repo(repo: dict, languages: list[tuple[str, float]], lang: dict) -> list[str]:
@@ -782,7 +837,9 @@ def _build_notes_profile(
         tmpl(
             lang,
             "profile_notes_totals",
-            n_repos=len(repos),
+            # Match the indicator card: GitHub's public-repo count (forks
+            # included), not the fork-filtered `repos` used for aggregations.
+            n_repos=user["public_repos"],
             n_stars=total_stars,
             n_commits=total_commits,
         ),

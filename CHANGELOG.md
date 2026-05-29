@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-30
+
+### Added
+
+- Profile dashboard now surfaces **private contributions**
+  (`restrictedContributionsCount`) on the COMMITS card, beside the public
+  commit count (`totalCommitContributions`). The value depends on what the
+  querying token can see: an owner token — or a profile that exposes private
+  contribution counts — shows the real number, while an anonymous or
+  third-party token, including the Actions `GITHUB_TOKEN` used by the bundled
+  `profile-dashboard.yml`, sees `0`. To avoid asserting a misleading
+  "+0 private" in that case, the card falls back to the followers/following
+  sub-line when the count is `0`. Adds the `n_private` label (en + fr) and a
+  `restricted_contribs` field on `ProfileData` and the mock fixture.
+
+### Changed
+
+- Profile **repo count** now mirrors GitHub's headline public-repo total
+  (forks included) instead of counting only non-fork repos, so the dashboard
+  no longer looks like it is "missing" repositories. The fork-filtered list
+  still drives the stars / top-5 / language aggregations and the radar
+  breadth axis.
+- Profile **dominant stack** is now equal-weighted per repository instead of
+  byte-weighted across all of them. A single repo holding a large vendored or
+  archived blob — e.g. a gigabyte of committed HTML that GitHub Linguist still
+  counts as source — used to report something like "HTML 83%" for an account
+  that is really mostly Python. Each repo now contributes its own percentage
+  breakdown with equal weight. GitHub's `/languages` endpoint is already
+  post-Linguist-generated and exposes no field to exclude generated content
+  further, so equal-weighting is the available lever. Adds the
+  `_languages_equal_weight` helper; the single-repo dashboard stack is
+  unchanged.
+
 ## [0.2.2] - 2026-05-14
 
 ### Fixed

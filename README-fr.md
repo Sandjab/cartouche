@@ -6,7 +6,7 @@
 [![Last commit](https://img.shields.io/github/last-commit/Sandjab/cartouche)](https://github.com/Sandjab/cartouche/commits/main)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Sandjab/cartouche/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/Python-%E2%89%A53.10-blue.svg)](https://www.python.org)
-[![Version](https://img.shields.io/badge/Version-v0.2.0-green.svg)](https://github.com/Sandjab/cartouche/releases)
+[![PyPI](https://img.shields.io/pypi/v/cartouche-svg.svg)](https://pypi.org/project/cartouche-svg/)
 [![Visitors](https://komarev.com/ghpvc/?username=sandjab-cartouche&label=Visitors&color=0e75b6&style=flat)](https://github.com/Sandjab/cartouche)
 
 > Dashboards SVG façon dessin technique pour repos et profils GitHub.

@@ -12,6 +12,10 @@
 
 **Deviation from spec (flagged):** §4.4 showed the radar `tests` formula inline; this plan extracts it into a pure `_tests_axis(test_count, code_count)` helper for direct unit-testing. Same arithmetic, same result, same radar shape.
 
+**Execution notes (post-implementation):**
+- Tasks 1 and 2 were committed together (`fix: detect test files across languages, not just Python`): changing the counts key `py`→`code` mechanically breaks `repo_data`, so splitting them would have left an intermediate commit where `repo_data` raises `KeyError` at runtime.
+- `_tree_file_counts` already had house tests — the "no dedicated test" claim below was wrong. The two asserting the old `py` key were updated to `code`; the genuinely new tests are the multi-language + false-positive cases, written in the house `_patch_urlopen`/`_FakeResp` style (the `_fake_tree` helper from an earlier draft was dropped to avoid a parallel style).
+
 ---
 
 ## File structure

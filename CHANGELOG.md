@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The repo health-radar **tests** axis now recognizes test files across
+  languages (Swift, Go, Rust, JS/TS, Java, Kotlin, Ruby, …) instead of
+  Python only, so non-Python repositories no longer render a `tests` axis
+  stuck at 0. Detection uses language-agnostic path/name conventions and
+  the axis stays a density proxy saturating at a 30% test-to-code ratio.
+
 ## [0.3.0] - 2026-05-30
 
 ### Added

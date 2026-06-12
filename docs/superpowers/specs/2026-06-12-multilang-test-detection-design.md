@@ -195,29 +195,38 @@ broken. For `Sandjab/Iris`: 78 tests / ~160 code files ≈ 49% → above the
 
 ## 5. Tests (TDD)
 
-`_tree_file_counts` currently has **no dedicated test**. Add a section to
-`tests/test_fetch.py` that monkeypatches `fetch._get_json` to return a
-canned `{"tree": [...], "truncated": ...}` and asserts the returned
-counts. Cases:
+> **Correction (post-implementation):** an earlier draft of this section
+> claimed `_tree_file_counts` had "no dedicated test" — that was wrong (a
+> truncated `grep` during exploration missed them). It already has house
+> tests in `tests/test_fetch.py`
+> (`test_tree_file_counts_classifies_files`, `…_truncated_emits_warning`,
+> `…_request_url_targets_default_branch`, `…_propagates_http_error`) that
+> monkeypatch `fetch._urlopen` via `_patch_urlopen` + `_FakeResp` — **not**
+> `_get_json`. The plan below reflects the real approach.
 
-1. **Python** — `test_foo.py`, `foo_test.py`, `pkg/tests/x.py` counted as
-   tests; `conftest.py` and `pkg/foo.py` not.
-2. **Swift** — `Sources/A.swift` code-only; `Tests/ATests.swift` test
+Two moves, in the existing house style:
+
+- **Update the two tests that assert the old `py` key** to the new `code`
+  key (`classifies_files` and `truncated_emits_warning`), and refresh the
+  `classifies_files` docstring to the language-agnostic contract. These
+  already cover the Python conventions, `.md`-only, non-blob entries, the
+  ignore-unknown-extension branch, and the truncated warning — so those
+  cases are **not** re-added as new tests (DRY).
+- **Add the genuinely new multi-language cases** as focused tests:
+
+1. **Swift** — `Sources/A.swift` code-only; `Tests/ATests.swift` test
    (dir + camel); verifies the case-insensitive `Tests/` match.
-3. **Go** — `a.go` code-only; `a_test.go` test.
-4. **JS/TS** — `a.ts` code-only; `a.test.ts`, `b.spec.js`,
+2. **Go** — `a.go` code-only; `a_test.go` test.
+3. **JS/TS** — `a.ts` code-only; `a.test.ts`, `b.spec.js`,
    `__tests__/c.js` tests.
-5. **Ruby** — `a.rb` code-only; `spec/a_spec.rb` test.
-6. **False positives** — `greatest.py`, `contest.go`, `latest.js`,
+4. **Ruby** — `a.rb` code-only; `spec/a_spec.rb` test.
+5. **False positives** — `greatest.py`, `contest.go`, `latest.js`,
    `manifest.ts` counted as code but **not** tests.
-7. **Docs/non-code** — `README.md` → md; `config.json`, `logo.svg` →
-   neither code nor md nor tests.
-8. **Empty / no code** — tree with only docs/config → `code == 0`, and
-   (integration-light) the resulting `tests` axis is `0.0` via the guard.
-9. **Truncated** — `truncated: true` emits a `RuntimeWarning`
-   (`pytest.warns`), counts are still returned.
-10. **Backward-compat** — a pure-Python tree yields the same `tests`/code
-    ratio as the legacy `py`-based logic for an equivalent input.
+
+Plus dedicated `_tests_axis` unit tests: zero when no code (guard), zero
+when no tests, saturation at the 30% ratio, and a partial-density value.
+Backward-compat is pinned by the updated `classifies_files` (Python
+conventions still classify) and the `_tests_axis` saturation cases.
 
 `ruff check .` and `pytest` must pass (project gate per `CONTRIBUTING.md`).
 

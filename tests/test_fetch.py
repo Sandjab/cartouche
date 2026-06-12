@@ -858,7 +858,7 @@ def test_tests_axis_zero_when_no_tests():
 
 
 def test_tests_axis_saturates_at_thirty_percent():
-    assert fetch._tests_axis(3, 10) == 1.0    # 3 / (10*0.3) = 1.0
+    assert fetch._tests_axis(3, 10) == 1.0  # 3 / (10*0.3) = 1.0
     assert fetch._tests_axis(78, 160) == 1.0  # Iris case, well above 30%
 
 

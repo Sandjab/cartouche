@@ -142,8 +142,7 @@ def repo_data(
             RuntimeWarning,
             stacklevel=2,
         )
-        counts = {"py": 0, "tests": 0, "md": 0}
-    py_count = counts["py"]
+        counts = {"code": 0, "tests": 0, "md": 0}
 
     # Radar values (normalized 0..1 with reasonable caps for small repos)
     radar = {
@@ -151,7 +150,7 @@ def repo_data(
         "forks": min(1.0, repo["forks_count"] / 30),
         "commits": min(1.0, commits_30d / 100),
         "code": min(1.0, sum(lang_bytes.values()) / 500_000),
-        "tests": min(1.0, counts["tests"] / max(1, py_count * 0.3)) if py_count else 0.0,
+        "tests": _tests_axis(counts["tests"], counts["code"]),
         "docs": min(1.0, counts["md"] / 8),
     }
 
@@ -694,22 +693,85 @@ def _detect_annotations(history: list[dict], lang: dict) -> list[dict]:
     return annotations
 
 
+# ──────────────────────────────────────────────────────────────────────────
+#  File classification for the repo radar's code / tests axes
+# ──────────────────────────────────────────────────────────────────────────
+
+# Source-file extensions (no leading dot) used as the language-agnostic
+# denominator of the `tests` density axis. Markdown is handled separately
+# (docs axis); config/data/asset formats are excluded on purpose. Adding a
+# language is a one-line edit here.
+CODE_EXTENSIONS = frozenset(
+    {
+        "py", "pyi", "pyx",
+        "swift", "go", "rs",
+        "js", "jsx", "mjs", "cjs", "ts", "tsx", "mts", "cts",
+        "java", "kt", "kts", "scala", "sc", "rb", "php",
+        "c", "h", "cc", "cpp", "cxx", "hpp", "hh", "hxx", "cs", "m", "mm",
+        "dart", "ex", "exs", "erl", "hrl", "clj", "cljs", "cljc", "hs", "lua",
+        "sh", "bash", "zsh", "pl", "pm", "r", "jl", "groovy", "gradle",
+        "vue", "svelte", "fs", "fsx", "ml", "mli", "nim", "zig",
+    }
+)
+
+# Directory segments that mark a test tree (matched case-insensitively, so
+# SwiftPM's `Tests/` and JS `__tests__/` both count).
+TEST_DIR_SEGMENTS = frozenset({"test", "tests", "spec", "specs", "__tests__"})
+
+# Name conventions. The mandatory boundary (`_` `.` `-`, or an uppercase
+# letter) is what rejects false positives like `greatest`, `contest`,
+# `latest`, `manifest`. `_SNAKE_DOT_TEST_RE` runs on the lowercased stem;
+# `_CAMEL_TEST_RE` runs on the original stem to require a CamelCase boundary.
+_SNAKE_DOT_TEST_RE = re.compile(r"[._-](?:test|spec)s?$")
+_CAMEL_TEST_RE = re.compile(r"[a-z0-9](?:Test|Tests|Spec|Specs)$")
+
+
+def _is_test_path(segs: list[str], stem: str) -> bool:
+    """True if a code file looks like a test, by directory or by name.
+
+    `segs` is the path split on '/'; `stem` is the basename without its
+    extension. Directory match wins first (any parent segment is a test
+    dir), then the name conventions.
+    """
+    if any(s.lower() in TEST_DIR_SEGMENTS for s in segs[:-1]):
+        return True
+    sl = stem.lower()
+    if sl in ("test", "tests", "spec", "specs"):
+        return True
+    if sl.startswith("test_"):
+        return True
+    if _SNAKE_DOT_TEST_RE.search(sl):
+        return True
+    if _CAMEL_TEST_RE.search(stem):
+        return True
+    return False
+
+
+def _tests_axis(test_count: int, code_count: int) -> float:
+    """Repo radar `tests` axis: a density proxy of test files relative to
+    code files, saturating at a 30% ratio. Zero when no recognized code
+    exists (avoids division by zero; 'no code' → 'no test signal')."""
+    if not code_count:
+        return 0.0
+    return min(1.0, test_count / max(1, code_count * 0.3))
+
+
 def _tree_file_counts(owner: str, name: str, branch: str, token: str | None) -> dict[str, int]:
-    """Count Python, test, and Markdown files at the tip of `branch`.
+    """Count code, test, and Markdown files at the tip of `branch`.
 
-    One recursive Git Tree call. Replaces the Code Search–based estimators
-    that preceded this: the search index lags fresh commits and rate-limits
-    aggressively, and the old code silently treated every error as 0,
-    which made the tests/docs radar axes flip to 0 on roughly a third of
-    the 6-hourly refreshes for this very repo.
+    One recursive Git Tree call, feeding the repo radar's `tests` and `docs`
+    axes. Replaces the Code Search–based estimators that preceded this: the
+    search index lags fresh commits and rate-limits aggressively, and the
+    old code silently treated every error as 0.
 
-    Returns a dict with keys "py", "tests", "md".
+    Returns a dict with keys "code", "tests", "md".
 
-    File classification (each `.py` is counted as "py" and additionally
-    as "tests" if any of):
-      - any directory segment of the path equals "tests"
-      - the basename starts with "test_"
-      - the basename ends with "_test.py"
+    Classification is language-agnostic:
+      - basename ending in `.md`                 → "md"
+      - extension in `CODE_EXTENSIONS`           → "code", and additionally
+        "tests" when `_is_test_path` matches (a test directory, or a name
+        convention such as `test_*`, `*_test`, `*.spec`, `FooTests`)
+      - anything else (configs, assets, …)       → ignored
 
     For very large repos (>100k entries) the Git Tree API truncates its
     response; we emit a `RuntimeWarning` and return the counts seen so
@@ -719,23 +781,21 @@ def _tree_file_counts(owner: str, name: str, branch: str, token: str | None) -> 
     url = f"{API_BASE}/repos/{owner}/{name}/git/trees/{safe_branch}?recursive=1"
     data = _get_json(url, token)
 
-    counts = {"py": 0, "tests": 0, "md": 0}
+    counts = {"code": 0, "tests": 0, "md": 0}
     for entry in data.get("tree", []):
         if entry.get("type") != "blob":
             continue
         path = entry.get("path", "")
-        if path.endswith(".md"):
+        segs = path.split("/")
+        basename = segs[-1]
+        if basename.endswith(".md"):
             counts["md"] += 1
             continue
-        if path.endswith(".py"):
-            counts["py"] += 1
-            segs = path.split("/")
-            basename = segs[-1]
-            if (
-                "tests" in segs[:-1]
-                or basename.startswith("test_")
-                or basename.endswith("_test.py")
-            ):
+        dot = basename.rfind(".")
+        ext = basename[dot + 1 :].lower() if dot > 0 else ""
+        if ext in CODE_EXTENSIONS:
+            counts["code"] += 1
+            if _is_test_path(segs, basename[:dot]):
                 counts["tests"] += 1
 
     if data.get("truncated"):

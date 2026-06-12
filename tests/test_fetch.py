@@ -594,12 +594,12 @@ def test_tree_file_counts_classifies_files(monkeypatch: pytest.MonkeyPatch):
 
     Pins the contract that:
       - directory entries (`type=tree`) are ignored,
-      - files outside .py / .md are ignored,
+      - files whose extension is not a known code extension (and not .md)
+        are ignored,
       - .md files count toward "md" only,
-      - .py files always count toward "py",
-      - and additionally toward "tests" when the path has a `tests`
-        directory segment, or the basename starts with `test_` or ends
-        with `_test.py`.
+      - code files count toward "code",
+      - and additionally toward "tests" when the path has a test directory
+        segment, or the basename matches a test naming convention.
     """
     tree = {
         "tree": [
@@ -617,7 +617,7 @@ def test_tree_file_counts_classifies_files(monkeypatch: pytest.MonkeyPatch):
     }
     _patch_urlopen(monkeypatch, lambda req: _FakeResp(json.dumps(tree).encode()))
     counts = fetch._tree_file_counts("o", "r", "main", None)
-    assert counts == {"py": 5, "tests": 4, "md": 2}
+    assert counts == {"code": 5, "tests": 4, "md": 2}
 
 
 def test_tree_file_counts_request_url_targets_default_branch(
@@ -654,7 +654,7 @@ def test_tree_file_counts_truncated_emits_warning(monkeypatch: pytest.MonkeyPatc
     _patch_urlopen(monkeypatch, lambda req: _FakeResp(json.dumps(tree).encode()))
     with pytest.warns(RuntimeWarning, match="truncated"):
         counts = fetch._tree_file_counts("o", "r", "main", None)
-    assert counts == {"py": 1, "tests": 0, "md": 0}
+    assert counts == {"code": 1, "tests": 0, "md": 0}
 
 
 def test_tree_file_counts_propagates_http_error(monkeypatch: pytest.MonkeyPatch):
@@ -765,3 +765,102 @@ def test_contribution_calendar_returns_restricted_count(monkeypatch: pytest.Monk
     assert total_commits == 695
     assert total_contribs == 2832
     assert restricted == 2058
+
+
+# ──────────────────────────────────────────────────────────────────────────
+#  Repo radar file classification (_tree_file_counts)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def test_tree_file_counts_detects_swift(monkeypatch: pytest.MonkeyPatch):
+    """SwiftPM: the `Tests/` dir (uppercase) and the `…Tests` CamelCase
+    suffix both flag a test; sources elsewhere are code-only."""
+    tree = {
+        "tree": [
+            {"path": "Sources/Proxy.swift", "type": "blob"},
+            {"path": "Tests/ProxyTests.swift", "type": "blob"},
+        ],
+        "truncated": False,
+    }
+    _patch_urlopen(monkeypatch, lambda req: _FakeResp(json.dumps(tree).encode()))
+    assert fetch._tree_file_counts("o", "r", "main", None) == {"code": 2, "tests": 1, "md": 0}
+
+
+def test_tree_file_counts_detects_go(monkeypatch: pytest.MonkeyPatch):
+    """Go: the `_test.go` suffix flags a test."""
+    tree = {
+        "tree": [
+            {"path": "server.go", "type": "blob"},
+            {"path": "server_test.go", "type": "blob"},
+        ],
+        "truncated": False,
+    }
+    _patch_urlopen(monkeypatch, lambda req: _FakeResp(json.dumps(tree).encode()))
+    assert fetch._tree_file_counts("o", "r", "main", None) == {"code": 2, "tests": 1, "md": 0}
+
+
+def test_tree_file_counts_detects_js_ts(monkeypatch: pytest.MonkeyPatch):
+    """JS/TS: `.test`/`.spec` dotted suffixes and the `__tests__` dir flag tests."""
+    tree = {
+        "tree": [
+            {"path": "src/app.ts", "type": "blob"},
+            {"path": "src/app.test.ts", "type": "blob"},
+            {"path": "src/util.spec.js", "type": "blob"},
+            {"path": "__tests__/e2e.js", "type": "blob"},
+        ],
+        "truncated": False,
+    }
+    _patch_urlopen(monkeypatch, lambda req: _FakeResp(json.dumps(tree).encode()))
+    assert fetch._tree_file_counts("o", "r", "main", None) == {"code": 4, "tests": 3, "md": 0}
+
+
+def test_tree_file_counts_detects_ruby(monkeypatch: pytest.MonkeyPatch):
+    """Ruby: the `spec/` dir and the `_spec.rb` suffix flag a test."""
+    tree = {
+        "tree": [
+            {"path": "lib/user.rb", "type": "blob"},
+            {"path": "spec/user_spec.rb", "type": "blob"},
+        ],
+        "truncated": False,
+    }
+    _patch_urlopen(monkeypatch, lambda req: _FakeResp(json.dumps(tree).encode()))
+    assert fetch._tree_file_counts("o", "r", "main", None) == {"code": 2, "tests": 1, "md": 0}
+
+
+def test_tree_file_counts_rejects_false_positive_names(monkeypatch: pytest.MonkeyPatch):
+    """`test`/`spec` without a leading boundary (`_` `.` `-` or CamelCase) is
+    not a test — guards `greatest`, `contest`, `latest`, `manifest`."""
+    tree = {
+        "tree": [
+            {"path": "greatest.py", "type": "blob"},
+            {"path": "contest.go", "type": "blob"},
+            {"path": "latest.js", "type": "blob"},
+            {"path": "manifest.ts", "type": "blob"},
+        ],
+        "truncated": False,
+    }
+    _patch_urlopen(monkeypatch, lambda req: _FakeResp(json.dumps(tree).encode()))
+    assert fetch._tree_file_counts("o", "r", "main", None) == {"code": 4, "tests": 0, "md": 0}
+
+
+# ──────────────────────────────────────────────────────────────────────────
+#  Tests-axis normalization (_tests_axis)
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def test_tests_axis_zero_when_no_code():
+    assert fetch._tests_axis(0, 0) == 0.0
+    assert fetch._tests_axis(5, 0) == 0.0  # guard: no recognized code → 0
+
+
+def test_tests_axis_zero_when_no_tests():
+    assert fetch._tests_axis(0, 10) == 0.0
+
+
+def test_tests_axis_saturates_at_thirty_percent():
+    assert fetch._tests_axis(3, 10) == 1.0  # 3 / (10*0.3) = 1.0
+    assert fetch._tests_axis(78, 160) == 1.0  # Iris case, well above 30%
+
+
+def test_tests_axis_partial_density():
+    assert fetch._tests_axis(1, 10) == pytest.approx(1 / 3.0)  # 1 / (10*0.3)

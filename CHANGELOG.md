@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-07-04
+
+### Fixed
+
+- Profile **star history** no longer silently collapses to an empty chart
+  when a per-repo stargazer fetch fails. Around 2026-07-03 GitHub began
+  returning `403 "Resource not accessible by integration"` when the default
+  Actions `GITHUB_TOKEN` (a GitHub App installation token) reads *another*
+  repo's `/stargazers` — a cross-repo read the profile dashboard makes for
+  every owned repo. `profile_data` now emits a `RuntimeWarning` per skipped
+  repo (with a hint pointing at the PAT requirement) instead of swallowing
+  the `HTTPError`, so the failure is visible instead of surfacing as a blank
+  chart on a green CI.
+
+### Changed
+
+- The bundled `examples/workflows/profile-dashboard.yml` and both READMEs now
+  use a personal access token (`CARTOUCHE_PAT`, classic `public_repo` +
+  `read:user`) for the **profile** dashboard, since the default `GITHUB_TOKEN`
+  can't do the cross-repo stargazer reads a profile aggregation needs. The
+  **repo** dashboard is unaffected — it only reads its own repo.
+
 ## [0.3.1] - 2026-06-12
 
 ### Fixed

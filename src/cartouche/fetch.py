@@ -211,17 +211,37 @@ def profile_data(
     for r in own_repos:
         if r["stargazers_count"] == 0:
             continue
+        repo_name = r["name"]
         try:
             all_star_dates.extend(
                 _cached_stargazer_dates(
                     handle,
-                    r["name"],
+                    repo_name,
                     token,
                     cache,
                     max_pages=5,
                 )
             )
-        except urllib.error.HTTPError:
+        except urllib.error.HTTPError as exc:
+            # Skip this repo, but never silently: a swallowed error here
+            # collapses the whole profile star history to an empty chart with
+            # no trace. The 403 case is the common one — a GitHub App
+            # installation token (e.g. the default Actions GITHUB_TOKEN) gets
+            # "Resource not accessible by integration" on cross-repo
+            # /stargazers reads and can't aggregate them.
+            hint = (
+                " — an installation token (e.g. the default Actions "
+                "GITHUB_TOKEN) can't read another repo's stargazers; use a PAT"
+                if exc.code == 403
+                else ""
+            )
+            warnings.warn(
+                f"cartouche: stargazers fetch failed for {handle}/{repo_name} "
+                f"(HTTP {exc.code}); its stars are omitted from the profile "
+                f"star history{hint}",
+                RuntimeWarning,
+                stacklevel=2,
+            )
             continue
     star_history = _build_cumulative_history(sorted(all_star_dates))
 

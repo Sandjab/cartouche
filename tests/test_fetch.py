@@ -864,3 +864,68 @@ def test_tests_axis_saturates_at_thirty_percent():
 
 def test_tests_axis_partial_density():
     assert fetch._tests_axis(1, 10) == pytest.approx(1 / 3.0)  # 1 / (10*0.3)
+
+
+# ──────────────────────────────────────────────────────────────────────────
+#  Profile star aggregation degrades loudly on a per-repo 403
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def test_profile_stargazer_403_warns_and_degrades(monkeypatch: pytest.MonkeyPatch):
+    """A per-repo stargazers 403 (what the default Actions GITHUB_TOKEN now
+    gets on cross-repo reads) must WARN and leave the star history empty —
+    never silently swallow it into an empty chart with no trace."""
+    user = {
+        "followers": 1,
+        "following": 1,
+        "created_at": "2020-01-01T00:00:00Z",
+        "public_repos": 1,
+        "name": "Test",
+        "bio": "b",
+    }
+    repos = [
+        {
+            "name": "repo1",
+            "fork": False,
+            "stargazers_count": 2,
+            "forks_count": 0,
+            "language": "Python",
+        }
+    ]
+    graphql = {
+        "data": {
+            "user": {
+                "contributionsCollection": {
+                    "totalCommitContributions": 0,
+                    "restrictedContributionsCount": 0,
+                    "contributionCalendar": {"totalContributions": 0, "weeks": []},
+                }
+            }
+        }
+    }
+
+    def route(req: urllib.request.Request):
+        url = req.full_url
+        if "/users/testuser/repos" in url:
+            return _FakeResp(json.dumps(repos))
+        if url.endswith("/users/testuser"):
+            return _FakeResp(json.dumps(user))
+        if "/stargazers" in url:
+            return _http_error(403)  # the cross-repo installation-token case
+        if "/commits" in url:
+            return _FakeResp("[]")
+        if "/languages" in url:
+            return _FakeResp(json.dumps({"Python": 100}))
+        if "graphql" in url:
+            return _FakeResp(json.dumps(graphql))
+        raise AssertionError(f"unexpected URL: {url}")
+
+    _patch_urlopen(monkeypatch, route)
+
+    with pytest.warns(RuntimeWarning, match=r"stargazers fetch failed for testuser/repo1"):
+        data = fetch.profile_data("testuser", token="x", cache=fetch.Cache(enabled=False))
+
+    # Star chart degrades to empty (placeholder), but the rest still renders
+    # and the star *count* is unaffected.
+    assert data["star_history"] == []
+    assert data["total_stars"] == 2

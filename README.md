@@ -285,13 +285,19 @@ GitHub rewrites external images through its Camo proxy, which breaks the
 Two ready-to-use workflows live in `examples/workflows/`:
 
 - `repo-dashboard.yml` — drop into `.github/workflows/` of the repo whose
-  dashboard you want. Regenerates and commits every 6 hours.
+  dashboard you want. Regenerates and commits every 6 hours. Uses the
+  built-in `secrets.GITHUB_TOKEN` with no configuration — it only reads its
+  own repo.
 - `profile-dashboard.yml` — drop into your **profile repo**
-  (`<handle>/<handle>`). Twice a day.
+  (`<handle>/<handle>`). Twice a day. Needs a **personal access token**, not
+  the default `GITHUB_TOKEN`: a profile aggregates stargazer timelines across
+  all your repos (cross-repo reads), which the default token can't do (see
+  [Known limitations](#known-limitations)). Create a classic PAT with
+  `public_repo` + `read:user` (or `repo` to include private repos) and store
+  it as a repository secret named `CARTOUCHE_PAT`.
 
-Both use `secrets.GITHUB_TOKEN` (already available in any Action) and
-work with no further configuration. To serve a French dashboard, add
-`--lang fr` to the `cartouche` commands in the workflow.
+To serve a French dashboard, add `--lang fr` to the `cartouche` commands in
+the workflow.
 
 ## Python API
 
@@ -344,6 +350,14 @@ lines in `THEMES`. Adding a language = drop a JSON in `lang/`. See
   to relocate. True *incremental* refresh (only fetch stars added
   since last run) isn't implemented yet — when the cache is stale,
   the timeline is refetched in full.
+- The profile star history needs a **personal access token**. Reading a
+  repo's stargazer *timeline* across repos you don't run the workflow in is a
+  cross-repo read, and a GitHub App installation token (the default Actions
+  `GITHUB_TOKEN`) gets `403 "Resource not accessible by integration"` there —
+  so the star chart silently falls back to an empty state. A user PAT is not
+  an integration and reads them fine. The repo dashboard is unaffected: it
+  only reads its own repo. Cartouche now emits a `RuntimeWarning` per skipped
+  repo instead of failing silently.
 - Forks are excluded from profile aggregates (filtered out). The
   dashboard for an individual fork still works normally.
 - Web fonts are not embedded — GitHub strips them when rendering SVGs in

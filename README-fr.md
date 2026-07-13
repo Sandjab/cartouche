@@ -290,7 +290,7 @@ Deux workflows prêts à l'emploi dans `examples/workflows/` :
 
 - `repo-dashboard.yml` — à coller dans `.github/workflows/` du repo dont vous
   voulez le dashboard. Toutes les 6 heures, regénère et commite. Tourne avec le
-  `secrets.GITHUB_TOKEN` intégré, sans configuration, mais rend la FIG. 02
+  `secrets.GITHUB_TOKEN` intégré, sans configuration, mais rend la FIG. 01
   (historique des étoiles) vide si vous ne fournissez pas de PAT — voir
   [Limitations connues](#limitations-connues).
 - `profile-dashboard.yml` — à coller dans votre **profile repo**

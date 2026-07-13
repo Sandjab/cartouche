@@ -942,8 +942,8 @@ def test_repo_stargazer_403_warns_and_degrades(monkeypatch: pytest.MonkeyPatch):
     Since 2026-07-13 GitHub restricts GET /repos/{owner}/{repo}/stargazers to
     admins and collaborators, so the default Actions GITHUB_TOKEN (an app
     installation token, neither of those) gets a 403 even on its OWN repo.
-    The star curve is one figure out of six: losing it must cost us that
-    figure, not the dashboard. Every other metric — including the star
+    The star curve is one figure of the dashboard: losing it must cost us that
+    figure, not the whole render. Every other metric — including the star
     *count*, which comes from /repos and is unaffected — must survive.
     """
     repo = {

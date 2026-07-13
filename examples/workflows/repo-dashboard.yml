@@ -57,7 +57,7 @@ jobs:
           # endpoint (/repos/{owner}/{repo}/stargazers) to a repo's admins and
           # collaborators. The default GITHUB_TOKEN is an app installation
           # token — neither of those — so it gets a 403 there, even on your own
-          # repo, and FIG. 02 (star history) renders empty with a warning in the
+          # repo, and FIG. 01 (star history) renders empty with a warning in the
           # log. Every other figure is unaffected.
           #
           # To get the star curve back, add a Personal Access Token with read

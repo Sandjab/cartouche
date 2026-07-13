@@ -286,7 +286,7 @@ Two ready-to-use workflows live in `examples/workflows/`:
 
 - `repo-dashboard.yml` — drop into `.github/workflows/` of the repo whose
   dashboard you want. Regenerates and commits every 6 hours. Runs on the
-  built-in `secrets.GITHUB_TOKEN` with no configuration, but renders FIG. 02
+  built-in `secrets.GITHUB_TOKEN` with no configuration, but renders FIG. 01
   (star history) empty unless you also provide a PAT — see
   [Known limitations](#known-limitations).
 - `profile-dashboard.yml` — drop into your **profile repo**

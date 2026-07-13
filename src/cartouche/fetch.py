@@ -104,8 +104,8 @@ def repo_data(
         # Since 2026-07-13 GitHub restricts /stargazers to a repo's admins and
         # collaborators, so an app installation token — the default Actions
         # GITHUB_TOKEN — gets a 403 even on its OWN repo. The star curve is one
-        # figure out of six: losing it must cost us that figure, not the whole
-        # dashboard. Warn rather than swallow, or an empty chart is
+        # figure of the dashboard: losing it must cost us that figure, not the
+        # whole render. Warn rather than swallow, or an empty chart is
         # indistinguishable from a repo that genuinely has no stars.
         hint = (
             " — /stargazers is restricted to admins and collaborators; the "

@@ -48,7 +48,13 @@ jobs:
 
       - name: Render light + dark variants
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Since 2026-07-13 GitHub restricts /repos/{owner}/{repo}/stargazers
+          # to a repo's admins and collaborators. The default GITHUB_TOKEN is an
+          # app installation token — neither of those — so it now gets a 403 even
+          # on this very repo, and the star-history figure comes back empty.
+          # A PAT belonging to an admin still reads it; fall back to GITHUB_TOKEN
+          # when no PAT is configured (dashboard renders, minus the star curve).
+          GITHUB_TOKEN: ${{ secrets.CARTOUCHE_PAT || secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
           mkdir -p assets

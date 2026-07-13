@@ -285,16 +285,18 @@ GitHub rewrites external images through its Camo proxy, which breaks the
 Two ready-to-use workflows live in `examples/workflows/`:
 
 - `repo-dashboard.yml` — drop into `.github/workflows/` of the repo whose
-  dashboard you want. Regenerates and commits every 6 hours. Uses the
-  built-in `secrets.GITHUB_TOKEN` with no configuration — it only reads its
-  own repo.
+  dashboard you want. Regenerates and commits every 6 hours. Runs on the
+  built-in `secrets.GITHUB_TOKEN` with no configuration, but renders FIG. 02
+  (star history) empty unless you also provide a PAT — see
+  [Known limitations](#known-limitations).
 - `profile-dashboard.yml` — drop into your **profile repo**
-  (`<handle>/<handle>`). Twice a day. Needs a **personal access token**, not
-  the default `GITHUB_TOKEN`: a profile aggregates stargazer timelines across
-  all your repos (cross-repo reads), which the default token can't do (see
-  [Known limitations](#known-limitations)). Create a classic PAT with
-  `public_repo` + `read:user` (or `repo` to include private repos) and store
-  it as a repository secret named `CARTOUCHE_PAT`.
+  (`<handle>/<handle>`). Twice a day.
+
+Both templates read the token from `secrets.CARTOUCHE_PAT` and fall back to
+`secrets.GITHUB_TOKEN`. The profile dashboard **requires** the PAT; the repo
+dashboard works without it, minus the star curve. Create a classic PAT with
+`public_repo` + `read:user` (or `repo` to include private repos) and store it
+as a repository secret named `CARTOUCHE_PAT`.
 
 To serve a French dashboard, add `--lang fr` to the `cartouche` commands in
 the workflow.
@@ -350,14 +352,21 @@ lines in `THEMES`. Adding a language = drop a JSON in `lang/`. See
   to relocate. True *incremental* refresh (only fetch stars added
   since last run) isn't implemented yet — when the cache is stale,
   the timeline is refetched in full.
-- The profile star history needs a **personal access token**. Reading a
-  repo's stargazer *timeline* across repos you don't run the workflow in is a
-  cross-repo read, and a GitHub App installation token (the default Actions
-  `GITHUB_TOKEN`) gets `403 "Resource not accessible by integration"` there —
-  so the star chart silently falls back to an empty state. A user PAT is not
-  an integration and reads them fine. The repo dashboard is unaffected: it
-  only reads its own repo. Cartouche now emits a `RuntimeWarning` per skipped
-  repo instead of failing silently.
+- **Star history needs a personal access token — for repo dashboards too.**
+  On 2026-06-30 GitHub [announced][star-restriction] that the stargazer *list*
+  endpoint (`/repos/{owner}/{repo}/stargazers`, the only source of star
+  *timestamps*) would be restricted to a repo's admins and collaborators; the
+  restriction reached Actions on 2026-07-13. A GitHub App installation token —
+  which is what the default `GITHUB_TOKEN` is — is neither an admin nor a
+  collaborator, so it now gets a `403` there **even on its own repo**. A user
+  PAT belonging to an admin still reads it fine.
+
+  Without a PAT, both dashboards render with an empty star chart and emit a
+  `RuntimeWarning`; every other figure, including the star *count* (which comes
+  from a different endpoint), is unaffected. Cartouche never fails the build
+  over this.
+
+[star-restriction]: https://github.blog/changelog/2026-06-30-upcoming-access-restrictions-to-public-api-endpoints-and-ui-views/
 - Forks are excluded from profile aggregates (filtered out). The
   dashboard for an individual fork still works normally.
 - Web fonts are not embedded — GitHub strips them when rendering SVGs in

@@ -98,7 +98,28 @@ def repo_data(
     repo = _get_json(f"{API_BASE}/repos/{owner}/{name}", token)
 
     # Star history (timestamps via the star+json media type) — cached.
-    star_dates = _cached_stargazer_dates(owner, name, token, cache)
+    try:
+        star_dates = _cached_stargazer_dates(owner, name, token, cache)
+    except urllib.error.HTTPError as exc:
+        # Since 2026-07-13 GitHub restricts /stargazers to a repo's admins and
+        # collaborators, so an app installation token — the default Actions
+        # GITHUB_TOKEN — gets a 403 even on its OWN repo. The star curve is one
+        # figure out of six: losing it must cost us that figure, not the whole
+        # dashboard. Warn rather than swallow, or an empty chart is
+        # indistinguishable from a repo that genuinely has no stars.
+        hint = (
+            " — /stargazers is restricted to admins and collaborators; the "
+            "default Actions GITHUB_TOKEN can't read it, pass a PAT"
+            if exc.code == 403
+            else ""
+        )
+        warnings.warn(
+            f"cartouche: stargazers fetch failed for {owner}/{name} "
+            f"(HTTP {exc.code}); the star history chart is left empty{hint}",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        star_dates = []
     star_history = _build_cumulative_history(star_dates)
 
     # Languages (returns {name: bytes}) — cached.

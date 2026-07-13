@@ -52,7 +52,18 @@ jobs:
           # itself, but propagating the safe pattern here means anyone
           # extending this template (e.g. with a PR title or issue body)
           # starts from a non-injectable baseline.
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          #
+          # On the token: since 2026-07-13 GitHub restricts the stargazers
+          # endpoint (/repos/{owner}/{repo}/stargazers) to a repo's admins and
+          # collaborators. The default GITHUB_TOKEN is an app installation
+          # token — neither of those — so it gets a 403 there, even on your own
+          # repo, and FIG. 02 (star history) renders empty with a warning in the
+          # log. Every other figure is unaffected.
+          #
+          # To get the star curve back, add a Personal Access Token with read
+          # access to this repo as a secret named CARTOUCHE_PAT. Without it,
+          # this falls back to GITHUB_TOKEN and the dashboard still renders.
+          GITHUB_TOKEN: ${{ secrets.CARTOUCHE_PAT || secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
           mkdir -p assets

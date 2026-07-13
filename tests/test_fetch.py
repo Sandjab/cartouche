@@ -929,3 +929,55 @@ def test_profile_stargazer_403_warns_and_degrades(monkeypatch: pytest.MonkeyPatc
     # and the star *count* is unaffected.
     assert data["star_history"] == []
     assert data["total_stars"] == 2
+
+
+# ──────────────────────────────────────────────────────────────────────────
+#  Repo star history degrades loudly on a 403
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def test_repo_stargazer_403_warns_and_degrades(monkeypatch: pytest.MonkeyPatch):
+    """A stargazers 403 must not take the whole repo dashboard down.
+
+    Since 2026-07-13 GitHub restricts GET /repos/{owner}/{repo}/stargazers to
+    admins and collaborators, so the default Actions GITHUB_TOKEN (an app
+    installation token, neither of those) gets a 403 even on its OWN repo.
+    The star curve is one figure out of six: losing it must cost us that
+    figure, not the dashboard. Every other metric — including the star
+    *count*, which comes from /repos and is unaffected — must survive.
+    """
+    repo = {
+        "stargazers_count": 7,
+        "forks_count": 2,
+        "open_issues_count": 1,
+        "default_branch": "main",
+        "description": "d",
+        "license": None,
+        "created_at": "2020-01-01T00:00:00Z",
+    }
+
+    def route(req: urllib.request.Request):
+        url = req.full_url
+        if "/stargazers" in url:
+            return _http_error(403)  # the restricted-endpoint case
+        if "/languages" in url:
+            return _FakeResp(json.dumps({"Python": 100}))
+        if "/search/issues" in url:
+            return _FakeResp(json.dumps({"total_count": 3}))
+        if "/commits" in url:
+            return _FakeResp("[]")
+        if "/git/trees/" in url:
+            return _FakeResp(json.dumps({"tree": [], "truncated": False}))
+        if url.endswith("/repos/testowner/testrepo"):
+            return _FakeResp(json.dumps(repo))
+        raise AssertionError(f"unexpected URL: {url}")
+
+    _patch_urlopen(monkeypatch, route)
+
+    with pytest.warns(RuntimeWarning, match=r"stargazers fetch failed for testowner/testrepo"):
+        data = fetch.repo_data("testowner", "testrepo", token="x", cache=fetch.Cache(enabled=False))
+
+    assert data["star_history"] == []
+    assert data["annotations"] == []
+    assert data["stars"] == 7
+    assert data["forks"] == 2

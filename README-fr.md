@@ -289,17 +289,18 @@ quels.
 Deux workflows prêts à l'emploi dans `examples/workflows/` :
 
 - `repo-dashboard.yml` — à coller dans `.github/workflows/` du repo dont vous
-  voulez le dashboard. Toutes les 6 heures, regénère et commite. Utilise le
-  `secrets.GITHUB_TOKEN` intégré, sans configuration — il ne lit que son
-  propre repo.
+  voulez le dashboard. Toutes les 6 heures, regénère et commite. Tourne avec le
+  `secrets.GITHUB_TOKEN` intégré, sans configuration, mais rend la FIG. 02
+  (historique des étoiles) vide si vous ne fournissez pas de PAT — voir
+  [Limitations connues](#limitations-connues).
 - `profile-dashboard.yml` — à coller dans votre **profile repo**
-  (`<handle>/<handle>`). Toutes les 12 heures. Nécessite un **personal access
-  token**, et non le `GITHUB_TOKEN` par défaut : un profil agrège les
-  timelines de stargazers de tous vos repos (lectures cross-repo), ce que le
-  token par défaut ne peut pas faire (voir [Limitations
-  connues](#limitations-connues)). Créez un PAT classique avec `public_repo` +
-  `read:user` (ou `repo` pour inclure les repos privés) et stockez-le dans un
-  secret de dépôt nommé `CARTOUCHE_PAT`.
+  (`<handle>/<handle>`). Toutes les 12 heures.
+
+Les deux templates lisent le token dans `secrets.CARTOUCHE_PAT` et retombent
+sur `secrets.GITHUB_TOKEN`. Le profile dashboard **exige** le PAT ; le repo
+dashboard fonctionne sans, à la courbe d'étoiles près. Créez un PAT classique
+avec `public_repo` + `read:user` (ou `repo` pour inclure les repos privés) et
+stockez-le dans un secret de dépôt nommé `CARTOUCHE_PAT`.
 
 Pour servir un dashboard en français, ajoutez `--lang fr` aux commandes
 `cartouche` du workflow.
@@ -357,15 +358,21 @@ architecturaux.
   *incrémental* (ne fetcher que les étoiles nouvelles depuis la dernière
   fois) n'est pas encore là — quand le cache est expiré, on refetch
   toute la timeline.
-- L'historique des stars du profil nécessite un **personal access token**.
-  Lire la *timeline* de stargazers de repos autres que celui qui exécute le
-  workflow est une lecture cross-repo, et un token d'installation GitHub App
-  (le `GITHUB_TOKEN` par défaut d'Actions) y reçoit un
-  `403 "Resource not accessible by integration"` — le graphe des stars
-  retombe alors silencieusement sur un état vide. Un PAT utilisateur n'est pas
-  une « integration » et les lit sans souci. Le dashboard repo n'est pas
-  concerné : il ne lit que son propre repo. Cartouche émet désormais un
-  `RuntimeWarning` par repo ignoré plutôt qu'un échec silencieux.
+- **L'historique des stars nécessite un personal access token — y compris pour
+  les dashboards de repo.** Le 30 juin 2026, GitHub a [annoncé][star-restriction]
+  que l'endpoint listant les stargazers (`/repos/{owner}/{repo}/stargazers`, la
+  seule source des *horodatages* d'étoiles) serait réservé aux admins et
+  collaborateurs du repo ; la restriction a atteint Actions le 13 juillet 2026.
+  Un token d'installation GitHub App — ce qu'est le `GITHUB_TOKEN` par défaut —
+  n'est ni admin ni collaborateur : il reçoit désormais un `403` **même sur son
+  propre repo**. Un PAT utilisateur appartenant à un admin le lit sans souci.
+
+  Sans PAT, les deux dashboards se rendent avec un graphe d'étoiles vide et
+  émettent un `RuntimeWarning` ; toutes les autres figures, dont le *compteur*
+  d'étoiles (qui vient d'un autre endpoint), sont intactes. Cartouche ne fait
+  jamais échouer le build pour autant.
+
+[star-restriction]: https://github.blog/changelog/2026-06-30-upcoming-access-restrictions-to-public-api-endpoints-and-ui-views/
 - Pas de support des dépôts forks dans les agrégats profil (filtrés). Le
   dashboard d'un fork individuel fonctionne normalement.
 - Les polices web ne sont pas embarquées — GitHub les strippe au rendu des

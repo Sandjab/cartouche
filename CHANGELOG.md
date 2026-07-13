@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-07-13
+
+### Fixed
+
+- **Repo dashboards no longer fail the build when GitHub denies the stargazer
+  list.** On 2026-06-30 GitHub [announced][star-restriction] that
+  `/repos/{owner}/{repo}/stargazers` would be restricted to a repo's admins and
+  collaborators; the restriction reached Actions on 2026-07-13. The default
+  `GITHUB_TOKEN` is an app installation token — neither an admin nor a
+  collaborator — so it started getting a `403` there **even on its own repo**,
+  and every scheduled `cartouche repo` render died with exit code 3.
+
+  `repo_data` now degrades the way `profile_data` has since 0.3.2: it emits a
+  `RuntimeWarning`, leaves the star history empty (the chart renders its `—`
+  placeholder) and returns every other metric intact — including the star
+  *count*, which comes from `/repos` and was never affected. Star *timestamps*
+  are simply no longer readable without a personal access token.
+
+### Changed
+
+- Both example workflows now read the token from `secrets.CARTOUCHE_PAT` and
+  fall back to `secrets.GITHUB_TOKEN`. Supplying a PAT that belongs to a repo
+  admin restores the star-history curve; without one the dashboard still
+  renders, minus that figure.
+
+[star-restriction]: https://github.blog/changelog/2026-06-30-upcoming-access-restrictions-to-public-api-endpoints-and-ui-views/
+
 ## [0.3.2] - 2026-07-04
 
 ### Fixed
